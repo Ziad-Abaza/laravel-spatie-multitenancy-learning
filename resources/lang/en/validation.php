@@ -39,15 +39,5 @@ return [
     'string' => 'The :attribute field must be a string.',
     'unique' => 'The :attribute has already been taken.',
 
-    'attributes' => [
-        'organization_name' => 'organization name',
-        'subdomain' => 'subdomain',
-        'admin_name' => 'administrator name',
-        'admin_email' => 'administrator email',
-        'admin_password' => 'administrator password',
-        'plan_id' => 'subscription plan',
-        'name' => 'name',
-        'email' => 'email',
-        'password' => 'password',
-    ],
+    'attributes' => [],
 ];

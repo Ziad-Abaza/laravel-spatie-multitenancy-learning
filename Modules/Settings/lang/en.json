@@ -1,0 +1,23 @@
+{
+    "settings": "Settings",
+    "branding": "Branding",
+    "logo": "Logo",
+    "company_name": "Company Name",
+    "platform_settings": "Platform Settings",
+    "platform_settings_sub": "Configure branding, defaults, localization, and system-wide behavior.",
+    "workspace_settings": "Workspace Settings",
+    "workspace_settings_sub": "Customize branding and theme tokens for your workspace.",
+    "custom_display_name": "Custom Display Name",
+    "workspace_tagline": "Workspace Tagline \/ Slogan",
+    "color_palette": "Color Palette",
+    "default_theme_mode": "Default Theme Mode",
+    "platform_name": "Platform Name",
+    "platform_tagline": "Platform Tagline",
+    "support_email": "Support Email",
+    "default_color_palette": "Default Color Palette",
+    "default_locale": "Default Language",
+    "enable_arabic_desc": "Enable Arabic language (RTL) for all users and tenants",
+    "default_trial_days_label": "Default Trial Days",
+    "tenant_db_prefix_label": "Tenant Database Prefix",
+    "allow_registration_desc": "Allow self-service tenant registration from landing page"
+}

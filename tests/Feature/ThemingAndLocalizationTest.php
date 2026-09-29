@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Inertia\Testing\AssertableInertia;
 use Modules\Core\Contracts\SettingManagerContract;
+use Modules\Core\Contracts\TranslationResolverContract;
 use Modules\Settings\Services\SettingService;
 use Modules\Subscription\Models\Plan;
 use Tests\TestCase;
@@ -38,8 +39,64 @@ class ThemingAndLocalizationTest extends TestCase
         $this->assertArrayHasKey('dashboard', $enData);
         $this->assertArrayHasKey('dashboard', $arData);
         $this->assertEquals('لوحة التحكم', $arData['dashboard']);
-        $this->assertArrayHasKey('platform_settings', $enData);
-        $this->assertArrayHasKey('platform_settings', $arData);
+        $this->assertArrayHasKey('actions', $enData);
+        $this->assertArrayHasKey('actions', $arData);
+        $this->assertArrayHasKey('confirm_delete_title', $enData);
+        $this->assertArrayHasKey('confirm_delete_title', $arData);
+    }
+
+    public function test_module_specific_translation_files_exist_in_respective_modules(): void
+    {
+        $settingsEn = json_decode(file_get_contents(base_path('Modules/Settings/lang/en.json')), true);
+        $settingsAr = json_decode(file_get_contents(base_path('Modules/Settings/lang/ar.json')), true);
+        $this->assertArrayHasKey('platform_settings', $settingsEn);
+        $this->assertArrayHasKey('platform_settings', $settingsAr);
+        $this->assertEquals('إعدادات المنصة المركزية', $settingsAr['platform_settings']);
+
+        $subEn = json_decode(file_get_contents(base_path('Modules/Subscription/lang/en.json')), true);
+        $subAr = json_decode(file_get_contents(base_path('Modules/Subscription/lang/ar.json')), true);
+        $this->assertArrayHasKey('subscription_plans', $subEn);
+        $this->assertArrayHasKey('subscription_plans', $subAr);
+        $this->assertEquals('خطط الاشتراكات', $subAr['subscription_plans']);
+
+        $landlordEn = json_decode(file_get_contents(base_path('Modules/Landlord/lang/en.json')), true);
+        $landlordAr = json_decode(file_get_contents(base_path('Modules/Landlord/lang/ar.json')), true);
+        $this->assertArrayHasKey('landlord_portal', $landlordEn);
+        $this->assertArrayHasKey('landlord_portal', $landlordAr);
+
+        $accessEn = json_decode(file_get_contents(base_path('Modules/Access/lang/en.json')), true);
+        $accessAr = json_decode(file_get_contents(base_path('Modules/Access/lang/ar.json')), true);
+        $this->assertArrayHasKey('roles', $accessEn);
+        $this->assertArrayHasKey('roles', $accessAr);
+    }
+
+    public function test_translation_resolver_resolves_all_module_and_global_translations(): void
+    {
+        $resolver = app(TranslationResolverContract::class);
+
+        $en = $resolver->resolve('en');
+        $ar = $resolver->resolve('ar');
+
+        $this->assertIsArray($en);
+        $this->assertIsArray($ar);
+
+        // Global keys
+        $this->assertArrayHasKey('dashboard', $en);
+        $this->assertArrayHasKey('dashboard', $ar);
+
+        // Module keys (flat access)
+        $this->assertArrayHasKey('platform_settings', $en);
+        $this->assertArrayHasKey('platform_settings', $ar);
+        $this->assertArrayHasKey('subscription_plans', $en);
+        $this->assertArrayHasKey('subscription_plans', $ar);
+        $this->assertArrayHasKey('landlord_portal', $en);
+        $this->assertArrayHasKey('roles', $en);
+
+        // Module keys (namespaced access to prevent collisions)
+        $this->assertArrayHasKey('settings::platform_settings', $en);
+        $this->assertArrayHasKey('settings.platform_settings', $en);
+        $this->assertArrayHasKey('subscription::subscription_plans', $en);
+        $this->assertArrayHasKey('subscription.subscription_plans', $en);
     }
 
     public function test_validation_translation_files_exist_and_are_valid(): void
@@ -57,6 +114,11 @@ class ThemingAndLocalizationTest extends TestCase
         $this->assertIsArray($arVal);
         $this->assertArrayHasKey('required', $enVal);
         $this->assertArrayHasKey('required', $arVal);
+
+        // Check module validation files
+        $this->assertFileExists(base_path('Modules/Landlord/lang/en/validation.php'));
+        $this->assertFileExists(base_path('Modules/Access/lang/en/validation.php'));
+        $this->assertFileExists(base_path('Modules/Subscription/lang/en/validation.php'));
     }
 
     public function test_set_locale_middleware_handles_arabic_locale(): void

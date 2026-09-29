@@ -1,0 +1,23 @@
+{
+    "settings": "الإعدادات",
+    "branding": "الهوية التجارية",
+    "logo": "الشعار",
+    "company_name": "اسم المنشأة",
+    "platform_settings": "إعدادات المنصة المركزية",
+    "platform_settings_sub": "تخصيص الهوية التجارية، الإعدادات الافتراضية، اللغات، وسلوك النظام العام.",
+    "workspace_settings": "إعدادات مساحة العمل",
+    "workspace_settings_sub": "تخصيص الهوية والمظهر اللوني لمساحة عملك.",
+    "custom_display_name": "الاسم المخصص للعرض",
+    "workspace_tagline": "الشعار اللفظي لمساحة العمل",
+    "color_palette": "لوحة الألوان",
+    "default_theme_mode": "الوضع اللوني الافتراضي",
+    "platform_name": "اسم المنصة",
+    "platform_tagline": "الشعار اللفظي للمنصة",
+    "support_email": "بريد الدعم الفني",
+    "default_color_palette": "لوحة الألوان الافتراضية",
+    "default_locale": "اللغة الافتراضية",
+    "enable_arabic_desc": "تفعيل اللغة العربية (RTL) لجميع المستخدمين والمستأجرين",
+    "default_trial_days_label": "أيام التجربة المجانية الافتراضية",
+    "tenant_db_prefix_label": "بادئة قواعد بيانات المستأجرين",
+    "allow_registration_desc": "السماح بالتسجيل الذاتي للمستأجرين من الصفحة الرئيسية"
+}

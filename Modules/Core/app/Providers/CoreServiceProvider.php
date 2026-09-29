@@ -2,7 +2,8 @@
 
 namespace Modules\Core\Providers;
 
-use Illuminate\Console\Scheduling\Schedule;
+use Modules\Core\Contracts\TranslationResolverContract;
+use Modules\Core\Services\TranslationResolver;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class CoreServiceProvider extends ModuleServiceProvider
@@ -35,12 +36,22 @@ class CoreServiceProvider extends ModuleServiceProvider
     ];
 
     /**
-     * Define module schedules.
-     *
-     * @param  $schedule
+     * Register any application services.
      */
-    // protected function configureSchedules(Schedule $schedule): void
-    // {
-    //     $schedule->command('inspire')->hourly();
-    // }
+    public function register(): void
+    {
+        parent::register();
+
+        $this->app->singleton(TranslationResolverContract::class, TranslationResolver::class);
+    }
+
+    /**
+     * Boot the application events.
+     */
+    public function boot(): void
+    {
+        parent::boot();
+
+        $this->app->make(TranslationResolverContract::class)->registerWithTranslator();
+    }
 }

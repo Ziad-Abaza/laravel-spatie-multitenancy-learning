@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Modules\Core\Contracts\TranslationResolverContract;
 use Modules\Settings\Services\SettingService;
 
 class HandleInertiaRequests extends Middleware
@@ -126,24 +127,9 @@ class HandleInertiaRequests extends Middleware
 
         $isRtl = in_array($locale, ['ar', 'fa', 'ur', 'he'], true);
 
-        // Load translations from multiple locations: resources/lang, lang, and Modules/*/resources/lang
-        $translations = [];
-        $paths = [
-            resource_path("lang/{$locale}.json"),
-            base_path("lang/{$locale}.json"),
-        ];
-        $moduleLangFiles = glob(base_path('Modules/*/resources/lang/'.$locale.'.json')) ?: [];
-        foreach ($moduleLangFiles as $modPath) {
-            $paths[] = $modPath;
-        }
-        foreach ($paths as $path) {
-            if (file_exists($path)) {
-                $decoded = json_decode(file_get_contents($path), true);
-                if (is_array($decoded)) {
-                    $translations = array_merge($translations, $decoded);
-                }
-            }
-        }
+        // Resolve translations from global layer and active modules via TranslationResolver
+        $translationResolver = app(TranslationResolverContract::class);
+        $translations = $translationResolver->resolve($locale);
 
         // Active Theme Settings (from session override, tenant settings, or landlord settings)
         $configuredTheme = $settingService->getTheme();

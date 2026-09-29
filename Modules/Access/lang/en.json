@@ -1,0 +1,23 @@
+{
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "users": "Users",
+    "team": "Team",
+    "roles": "Roles",
+    "permissions": "Permissions",
+    "profile": "Profile",
+    "super_admin": "Super Admin",
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member",
+    "role": "Role",
+    "joined": "Joined",
+    "no_users_found": "No users found.",
+    "invite_team": "Add Member",
+    "team_members": "Recent Team Members",
+    "workspace_members_sub": "Users with isolated workspace credentials"
+}
