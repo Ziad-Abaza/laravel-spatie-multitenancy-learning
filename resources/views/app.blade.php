@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
     <title inertia>{{ config('app.name', 'SaaS Platform') }}</title>
 
     <!-- Theme & Mode Initialization (prevents FOUC) -->
@@ -29,7 +30,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @inertiaHead
 </head>
-<body class="h-full bg-surface-bg text-text-main font-sans antialiased selection:bg-primary-500 selection:text-white">
+<body class="h-full bg-surface-bg text-text-main font-sans antialiased selection:bg-primary-500 selection:text-on-primary">
     @inertia
 </body>
 </html>

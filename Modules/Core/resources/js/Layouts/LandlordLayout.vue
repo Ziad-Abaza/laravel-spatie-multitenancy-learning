@@ -70,11 +70,11 @@ function logout() {
 </script>
 
 <template>
-    <div class="h-screen max-h-screen overflow-hidden flex flex-col md:flex-row bg-surface-bg text-text-main antialiased selection:bg-primary-500 selection:text-white">
+    <div class="h-screen max-h-screen overflow-hidden flex flex-col md:flex-row bg-surface-bg text-text-main antialiased selection:bg-primary-500 selection:text-on-primary">
         <!-- Mobile Header -->
         <header class="md:hidden flex items-center justify-between p-4 bg-surface-header border-b border-border-subtle shrink-0 z-30">
             <div class="flex items-center gap-2.5 font-bold tracking-tight">
-                <div class="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-black text-sm shadow-xs">
+                <div class="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-on-primary font-black text-sm shadow-xs">
                     <Shield class="w-4 h-4" />
                 </div>
                 <span class="truncate max-w-[180px] font-bold text-sm text-text-main">{{ appName }}</span>
@@ -97,7 +97,7 @@ function logout() {
         <!-- Mobile Drawer Backdrop -->
         <div
             v-if="isSidebarOpen"
-            class="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden"
+            class="fixed inset-0 bg-scrim backdrop-blur-xs z-40 md:hidden"
             @click="isSidebarOpen = false"
         />
 
@@ -112,7 +112,7 @@ function logout() {
             <!-- Logo / Brand Header -->
             <div class="p-4 border-b border-border-subtle flex items-center justify-between shrink-0 h-16">
                 <Link href="/landlord" class="flex items-center gap-3 overflow-hidden">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white shadow-md shadow-primary-500/20 shrink-0">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 flex items-center justify-center text-on-primary shadow-md shadow-primary-500/20 shrink-0">
                         <Shield class="w-5 h-5" />
                     </div>
                     <div v-if="!isCollapsed" class="overflow-hidden min-w-0">
@@ -142,7 +142,7 @@ function logout() {
                     class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all group"
                     :class="[
                         isItemActive(item.href)
-                            ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20 font-semibold'
+                            ? 'bg-primary-600 text-on-primary shadow-md shadow-primary-600/20 font-semibold'
                             : 'text-text-muted hover:text-text-main hover:bg-surface-hover',
                         isCollapsed ? 'justify-center px-2' : ''
                     ]"
@@ -158,7 +158,7 @@ function logout() {
             <div class="p-3.5 border-t border-border-subtle bg-surface-card/40 shrink-0">
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2.5 overflow-hidden min-w-0">
-                        <div class="w-8 h-8 rounded-full bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xs uppercase shrink-0">
+                        <div class="w-8 h-8 rounded-full bg-secondary-500/10 border border-secondary-500/20 flex items-center justify-center text-secondary-600 dark:text-secondary-400 font-bold text-xs uppercase shrink-0">
                             {{ page.props.auth?.user?.name ? page.props.auth.user.name.charAt(0) : 'A' }}
                         </div>
                         <div v-if="!isCollapsed" class="overflow-hidden min-w-0">
@@ -172,7 +172,7 @@ function logout() {
                     </div>
                     <button
                         type="button"
-                        class="p-1.5 rounded-lg text-text-muted hover:text-rose-500 hover:bg-surface-hover transition-colors shrink-0"
+                        class="p-1.5 rounded-lg text-text-muted hover:text-danger-fg hover:bg-surface-hover transition-colors shrink-0"
                         :title="t('logout', 'Logout')"
                         @click="logout"
                     >
@@ -198,11 +198,11 @@ function logout() {
             </header>
 
             <!-- Flash Notifications -->
-            <div v-if="page.props.flash?.success" class="mx-6 mt-4 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2.5 shrink-0">
+            <div v-if="page.props.flash?.success" class="mx-6 mt-4 p-4 rounded-2xl bg-success/10 border border-success/20 text-success-fg text-xs flex items-center gap-2.5 shrink-0">
                 <CheckCircle2 class="w-4 h-4 shrink-0" />
                 <span class="font-medium">{{ page.props.flash.success }}</span>
             </div>
-            <div v-if="page.props.flash?.error" class="mx-6 mt-4 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2.5 shrink-0">
+            <div v-if="page.props.flash?.error" class="mx-6 mt-4 p-4 rounded-2xl bg-danger/10 border border-danger/20 text-danger-fg text-xs flex items-center gap-2.5 shrink-0">
                 <AlertCircle class="w-4 h-4 shrink-0" />
                 <span class="font-medium">{{ page.props.flash.error }}</span>
             </div>

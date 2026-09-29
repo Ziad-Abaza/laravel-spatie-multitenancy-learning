@@ -2,21 +2,13 @@
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { Palette, Moon, Sun } from 'lucide-vue-next';
-import { useThemeStore, type ThemePalette, type ThemeMode } from '../Stores/useThemeStore';
+import { useThemeStore, THEME_PRESETS, type ThemePalette, type ThemeMode } from '../Stores/useThemeStore';
 import { useI18n } from '../Composables/useI18n';
 
 const themeStore = useThemeStore();
 const { t } = useI18n();
 const isOpen = ref(false);
-
-const palettes: { id: ThemePalette; name: string; bg: string }[] = [
-    { id: 'indigo', name: 'Indigo', bg: 'bg-indigo-500' },
-    { id: 'emerald', name: 'Emerald', bg: 'bg-emerald-500' },
-    { id: 'violet', name: 'Violet', bg: 'bg-violet-500' },
-    { id: 'amber', name: 'Amber', bg: 'bg-amber-500' },
-    { id: 'cyan', name: 'Cyan', bg: 'bg-cyan-500' },
-    { id: 'rose', name: 'Rose', bg: 'bg-rose-500' },
-];
+const palettes = THEME_PRESETS;
 
 function selectPalette(palette: ThemePalette) {
     themeStore.applyTheme(palette);
@@ -58,14 +50,14 @@ function toggleMode() {
             :title="themeStore.currentMode === 'dark' ? t('light_mode', 'Light Mode') : t('dark_mode', 'Dark Mode')"
             @click="toggleMode"
         >
-            <Sun v-if="themeStore.currentMode === 'dark'" class="w-4 h-4 text-amber-400" />
+            <Sun v-if="themeStore.currentMode === 'dark'" class="w-4 h-4 text-accent-500" />
             <Moon v-else class="w-4 h-4 text-primary-600" />
         </button>
 
         <!-- Palette Dropdown Menu -->
         <div
             v-if="isOpen"
-            class="absolute end-0 top-full mt-2 w-48 rounded-2xl bg-surface-card border border-border-subtle shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-100"
+            class="absolute end-0 top-full mt-2 w-48 rounded-2xl bg-surface-card border border-border-subtle shadow-2xl p-2 z-50"
         >
             <div class="px-2.5 py-1 text-xs font-semibold text-text-muted tracking-wider uppercase">
                 {{ t('color_palette', 'Color Palette') }}
@@ -79,7 +71,15 @@ function toggleMode() {
                     :class="themeStore.currentTheme === p.id ? 'border-primary-500 bg-surface-hover font-medium text-text-main' : 'border-transparent'"
                     @click="selectPalette(p.id)"
                 >
-                    <span class="w-5 h-5 rounded-full mb-1 shadow-sm" :class="p.bg" />
+                    <span class="flex mb-1.5">
+                        <span
+                            v-for="(c, i) in p.colors"
+                            :key="c"
+                            class="w-4 h-4 rounded-full shadow-sm border border-black/10"
+                            :class="i > 0 ? '-ms-1.5' : ''"
+                            :style="{ backgroundColor: c }"
+                        />
+                    </span>
                     <span class="text-[11px]">{{ p.name }}</span>
                 </button>
             </div>

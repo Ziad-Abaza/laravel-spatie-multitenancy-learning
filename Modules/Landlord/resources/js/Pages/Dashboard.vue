@@ -59,7 +59,7 @@ const { t } = useI18n();
                 <div class="flex items-center gap-3">
                     <Link
                         href="/landlord/tenants/create"
-                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold text-xs shadow-lg shadow-primary-600/25 transition-all"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-lg shadow-primary-600/25 transition-all"
                     >
                         <Plus class="w-4 h-4" />
                         <span>{{ t('provision_tenant', 'Provision Tenant') }}</span>
@@ -112,7 +112,7 @@ const { t } = useI18n();
                                 <h2 class="text-base font-bold text-text-main">{{ t('recently_provisioned_tenants', 'Recently Provisioned Tenants') }}</h2>
                                 <p class="text-xs text-text-muted mt-0.5">{{ t('tenant_databases_status', 'Dedicated tenant databases status') }}</p>
                             </div>
-                            <Link href="/landlord/tenants" class="text-xs font-semibold text-primary-400 hover:text-primary-300 flex items-center gap-1">
+                            <Link href="/landlord/tenants" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 flex items-center gap-1">
                                 <span>{{ t('view_all', 'View All') }}</span>
                                 <ArrowUpRight class="w-3.5 h-3.5" />
                             </Link>
@@ -132,13 +132,13 @@ const { t } = useI18n();
                                 <tbody class="divide-y divide-border-subtle">
                                     <tr v-for="tenant in metrics.recent_tenants" :key="tenant.id" class="hover:bg-surface-hover transition-colors">
                                         <td class="py-3 px-3 font-semibold text-text-main">{{ tenant.name }}</td>
-                                        <td class="py-3 px-3 font-mono text-primary-400">{{ tenant.domain }}</td>
+                                        <td class="py-3 px-3 font-mono text-primary-600 dark:text-primary-400">{{ tenant.domain }}</td>
                                         <td class="py-3 px-3 font-mono text-text-muted">{{ tenant.database }}</td>
                                         <td class="py-3 px-3">
                                             <StatusBadge :status="tenant.status" />
                                         </td>
                                         <td class="py-3 px-3 text-end">
-                                            <Link :href="`/landlord/tenants/${tenant.id}`" class="text-primary-400 hover:text-primary-300 font-medium">
+                                            <Link :href="`/landlord/tenants/${tenant.id}`" class="text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 font-medium">
                                                 {{ t('manage', 'Manage') }}
                                             </Link>
                                         </td>
@@ -161,7 +161,7 @@ const { t } = useI18n();
                             <h2 class="text-base font-bold text-text-main">{{ t('plan_breakdown', 'Plan Distribution') }}</h2>
                             <p class="text-xs text-text-muted mt-0.5">{{ t('active_tenant_shares', 'Tenant subscription tiers') }}</p>
                         </div>
-                        <Link href="/landlord/plans" class="text-xs font-semibold text-primary-400 hover:text-primary-300">
+                        <Link href="/landlord/plans" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300">
                             {{ t('edit_plans', 'Edit') }}
                         </Link>
                     </div>
@@ -170,13 +170,13 @@ const { t } = useI18n();
                         <div
                             v-for="plan in metrics.plans_distribution"
                             :key="plan.id"
-                            class="p-4 rounded-2xl bg-surface-bg border border-border-subtle space-y-2"
+                            class="p-4 rounded-2xl bg-surface-hover border border-border-subtle space-y-2"
                         >
                             <div class="flex items-center justify-between text-xs">
                                 <span class="font-bold text-text-main">
                                     {{ typeof plan.name === 'object' ? plan.name.en : plan.name }}
                                 </span>
-                                <span class="font-mono text-primary-400 font-semibold">
+                                <span class="font-mono text-primary-600 dark:text-primary-400 font-semibold">
                                     {{ plan.count }} {{ t('tenants', 'Tenants') }}
                                 </span>
                             </div>

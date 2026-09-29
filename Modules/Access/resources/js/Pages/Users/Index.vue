@@ -134,16 +134,16 @@ function confirmDelete() {
             <!-- Quota Warning if limit reached -->
             <div
                 v-if="!quota.can_add"
-                class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center justify-between"
+                class="p-4 rounded-2xl bg-warning/10 border border-warning/25 text-warning-fg text-xs flex items-center justify-between"
             >
                 <div class="flex items-center gap-2.5">
-                    <AlertCircle class="w-4 h-4 shrink-0 text-amber-400" />
+                    <AlertCircle class="w-4 h-4 shrink-0 text-warning-fg" />
                     <span>
                         {{ t('quota_limit_reached_msg', 'Your workspace has reached its limit of') }}
                         <strong>{{ quota.limit }} {{ t('users', 'team members') }}</strong>.
                     </span>
                 </div>
-                <Link href="/subscription" class="font-bold underline hover:text-white">
+                <Link href="/subscription" class="font-bold underline hover:text-text-main">
                     {{ t('upgrade_plan', 'Upgrade Plan') }} &rarr;
                 </Link>
             </div>
@@ -159,15 +159,15 @@ function confirmDelete() {
             >
                 <template #toolbar-actions>
                     <div class="flex items-center gap-3">
-                        <span class="text-xs text-slate-400">
-                            {{ t('quota', 'Seats') }}: <strong class="text-white">{{ quota.current }} / {{ quota.limit ?? '∞' }}</strong>
+                        <span class="text-xs text-text-muted">
+                            {{ t('quota', 'Seats') }}: <strong class="text-text-main">{{ quota.current }} / {{ quota.limit ?? '∞' }}</strong>
                         </span>
 
                         <button
                             type="button"
                             :disabled="!quota.can_add"
                             @click="openAddModal"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-xs shadow-md shadow-indigo-600/20 transition-all"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed text-on-primary font-semibold text-xs shadow-md shadow-primary-600/20 transition-all"
                         >
                             <UserPlus class="w-4 h-4" />
                             <span>{{ t('add_member', 'Add Member') }}</span>
@@ -178,19 +178,19 @@ function confirmDelete() {
                 <!-- Member Name & Email -->
                 <template #cell-name="{ row }">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-indigo-400">
+                        <div class="w-8 h-8 rounded-full bg-surface-input border border-border-subtle flex items-center justify-center font-bold text-xs text-primary-600 dark:text-primary-400">
                             {{ row.name.charAt(0) }}
                         </div>
                         <div>
-                            <div class="font-semibold text-white">{{ row.name }}</div>
-                            <div class="text-[11px] text-slate-400">{{ row.email }}</div>
+                            <div class="font-semibold text-text-main">{{ row.name }}</div>
+                            <div class="text-[11px] text-text-muted">{{ row.email }}</div>
                         </div>
                     </div>
                 </template>
 
                 <!-- Role Badge -->
                 <template #cell-role="{ row }">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20">
                         <Shield class="w-3 h-3" />
                         <span>{{ row.role }}</span>
                     </span>
@@ -207,7 +207,7 @@ function confirmDelete() {
                         <button
                             type="button"
                             @click="openEditModal(row)"
-                            class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                            class="p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors"
                             :title="t('edit', 'Edit')"
                         >
                             <Edit2 class="w-3.5 h-3.5" />
@@ -217,7 +217,7 @@ function confirmDelete() {
                             v-if="row.role !== 'Owner'"
                             type="button"
                             @click="openDeleteModal(row)"
-                            class="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
+                            class="p-1.5 rounded-lg text-danger-fg hover:bg-danger/10 transition-colors"
                             :title="t('delete', 'Delete')"
                         >
                             <Trash2 class="w-3.5 h-3.5" />
@@ -231,37 +231,37 @@ function confirmDelete() {
         <Modal :is-open="isAddModalOpen" :title="t('add_team_member', 'Add New Team Member')" @close="isAddModalOpen = false">
             <form @submit.prevent="submitAdd" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">{{ t('full_name', 'Full Name') }}</label>
-                    <input v-model="addForm.name" type="text" required class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500" />
+                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('full_name', 'Full Name') }}</label>
+                    <input v-model="addForm.name" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">{{ t('email', 'Email Address') }}</label>
-                    <input v-model="addForm.email" type="email" required class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500" />
+                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('email', 'Email Address') }}</label>
+                    <input v-model="addForm.email" type="email" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">{{ t('password', 'Initial Password') }}</label>
-                    <input v-model="addForm.password" type="password" required minlength="8" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500" />
+                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('password', 'Initial Password') }}</label>
+                    <input v-model="addForm.password" type="password" required minlength="8" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">{{ t('role', 'Role') }}</label>
-                        <select v-model="addForm.role" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500">
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('role', 'Role') }}</label>
+                        <select v-model="addForm.role" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
                             <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">{{ t('job_title', 'Job Title') }}</label>
-                        <input v-model="addForm.job_title" type="text" placeholder="Engineer" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500" />
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('job_title', 'Job Title') }}</label>
+                        <input v-model="addForm.job_title" type="text" placeholder="Engineer" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
-                <div class="pt-4 border-t border-slate-800 flex justify-end gap-2">
-                    <button type="button" @click="isAddModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
-                    <button type="submit" :disabled="addForm.processing" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">Add Member</button>
+                <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
+                    <button type="button" @click="isAddModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main">Cancel</button>
+                    <button type="submit" :disabled="addForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold">Add Member</button>
                 </div>
             </form>
         </Modal>
@@ -270,26 +270,26 @@ function confirmDelete() {
         <Modal :is-open="isEditModalOpen" :title="t('edit_team_member', 'Edit Team Member')" @close="isEditModalOpen = false">
             <form @submit.prevent="submitEdit" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">{{ t('full_name', 'Full Name') }}</label>
-                    <input v-model="editForm.name" type="text" required class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500" />
+                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('full_name', 'Full Name') }}</label>
+                    <input v-model="editForm.name" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">{{ t('email', 'Email Address') }}</label>
-                    <input v-model="editForm.email" type="email" required class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500" />
+                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('email', 'Email Address') }}</label>
+                    <input v-model="editForm.email" type="email" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">{{ t('role', 'Role') }}</label>
-                        <select v-model="editForm.role" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500">
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('role', 'Role') }}</label>
+                        <select v-model="editForm.role" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
                             <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">{{ t('status', 'Status') }}</label>
-                        <select v-model="editForm.status" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500">
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('status', 'Status') }}</label>
+                        <select v-model="editForm.status" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
                             <option value="active">Active</option>
                             <option value="suspended">Suspended</option>
                         </select>
@@ -297,13 +297,13 @@ function confirmDelete() {
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">{{ t('job_title', 'Job Title') }}</label>
-                    <input v-model="editForm.job_title" type="text" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs outline-none focus:border-indigo-500" />
+                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('job_title', 'Job Title') }}</label>
+                    <input v-model="editForm.job_title" type="text" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                 </div>
 
-                <div class="pt-4 border-t border-slate-800 flex justify-end gap-2">
-                    <button type="button" @click="isEditModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
-                    <button type="submit" :disabled="editForm.processing" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">Save Changes</button>
+                <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
+                    <button type="button" @click="isEditModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main">Cancel</button>
+                    <button type="submit" :disabled="editForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold">Save Changes</button>
                 </div>
             </form>
         </Modal>
@@ -314,7 +314,7 @@ function confirmDelete() {
             :title="t('confirm_remove_member', 'Remove Team Member?')"
             :message="t('confirm_remove_member_msg', `Are you sure you want to remove ${deletingUser?.name}? They will lose access to this workspace.`)"
             :confirm-text="t('remove', 'Remove Member')"
-            confirm-button-class="bg-rose-600 hover:bg-rose-500 text-white"
+            variant="danger"
             @close="isDeleteModalOpen = false"
             @confirm="confirmDelete"
         />

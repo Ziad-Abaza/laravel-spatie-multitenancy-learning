@@ -26,7 +26,7 @@ const formatted = computed(() => {
 
 <template>
     <span class="inline-flex items-baseline font-semibold tracking-tight">
-        <span class="text-white">{{ formatted }}</span>
-        <span v-if="period" class="ms-1 text-xs text-slate-400 font-normal">/ {{ period }}</span>
+        <span class="text-text-main">{{ formatted }}</span>
+        <span v-if="period" class="ms-1 text-xs text-text-muted font-normal">/ {{ period }}</span>
     </span>
 </template>

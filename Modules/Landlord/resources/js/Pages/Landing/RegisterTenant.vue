@@ -68,7 +68,7 @@ function submit() {
     <GuestLayout>
         <div class="py-12 sm:py-16 max-w-3xl mx-auto px-4 sm:px-6">
             <div class="text-center mb-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-xs font-semibold mb-3">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-600 dark:text-primary-400 text-xs font-semibold mb-3">
                     <Sparkles class="w-3.5 h-3.5" />
                     <span>{{ t('instant_onboarding', 'Self-Service Onboarding') }}</span>
                 </div>
@@ -77,7 +77,7 @@ function submit() {
             </div>
 
             <div v-if="!allowRegistration" class="bg-surface-card border border-border-subtle rounded-3xl p-8 text-center space-y-4 shadow-xl">
-                <div class="w-12 h-12 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto">
+                <div class="w-12 h-12 rounded-full bg-warning/10 text-warning-fg flex items-center justify-center mx-auto">
                     <AlertTriangle class="w-6 h-6" />
                 </div>
                 <h2 class="text-lg font-bold text-text-main">{{ t('registration_closed', 'Registration Currently Closed') }}</h2>
@@ -85,7 +85,7 @@ function submit() {
                     {{ t('registration_disabled_message', 'Self-service organization registration is currently disabled by system administrators.') }}
                 </p>
                 <div class="pt-4">
-                    <Link href="/" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold shadow-md transition-all">
+                    <Link href="/" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold shadow-md transition-all">
                         {{ t('return_home', 'Return Home') }}
                     </Link>
                 </div>
@@ -94,7 +94,7 @@ function submit() {
             <form v-else @submit.prevent="submit" class="bg-surface-card border border-border-subtle rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
                 <!-- Section 1: Workspace Info -->
                 <div class="space-y-5">
-                    <h2 class="text-sm font-bold text-primary-400 uppercase tracking-wider flex items-center gap-2">
+                    <h2 class="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider flex items-center gap-2">
                         <Building2 class="w-4 h-4" />
                         <span>{{ t('organization_details', 'Workspace Details') }}</span>
                     </h2>
@@ -107,14 +107,14 @@ function submit() {
                             required
                             @input="onOrgNameInput"
                             placeholder="Acme Corporation"
-                            class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
+                            class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
                         />
-                        <p v-if="form.errors.organization_name" class="mt-1 text-xs text-rose-500">{{ form.errors.organization_name }}</p>
+                        <p v-if="form.errors.organization_name" class="mt-1 text-xs text-danger-fg">{{ form.errors.organization_name }}</p>
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('subdomain_identifier', 'Workspace Subdomain / URL') }}</label>
-                        <div class="flex items-center rounded-xl bg-surface-bg border border-border-subtle overflow-hidden focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
+                        <div class="flex items-center rounded-xl bg-surface-input border border-border-subtle overflow-hidden focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
                             <input
                                 v-model="form.subdomain"
                                 type="text"
@@ -127,13 +127,13 @@ function submit() {
                             </span>
                         </div>
                         <p class="mt-1 text-[11px] text-text-subtle">{{ t('subdomain_help', 'Only lowercase letters, numbers, and hyphens.') }}</p>
-                        <p v-if="form.errors.subdomain" class="mt-1 text-xs text-rose-500">{{ form.errors.subdomain }}</p>
+                        <p v-if="form.errors.subdomain" class="mt-1 text-xs text-danger-fg">{{ form.errors.subdomain }}</p>
                     </div>
                 </div>
 
                 <!-- Section 2: Choose Plan -->
                 <div class="space-y-4 pt-6 border-t border-border-subtle">
-                    <h2 class="text-sm font-bold text-primary-400 uppercase tracking-wider flex items-center gap-2">
+                    <h2 class="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider flex items-center gap-2">
                         <Sparkles class="w-4 h-4" />
                         <span>{{ t('selected_subscription_plan', 'Select Subscription Plan') }}</span>
                     </h2>
@@ -146,7 +146,7 @@ function submit() {
                             :class="
                                 form.plan_id === plan.id
                                     ? 'bg-primary-500/10 border-primary-500 ring-1 ring-primary-500'
-                                    : 'bg-surface-bg border-border-subtle hover:border-border-strong'
+                                    : 'bg-surface-input border-border-subtle hover:border-border-strong'
                             "
                         >
                             <input
@@ -164,17 +164,17 @@ function submit() {
                                 <CurrencyCell :amount="plan.price" :currency="plan.currency" />
                                 <span class="text-[11px] text-text-muted font-normal">/ mo</span>
                             </div>
-                            <span v-if="plan.trial_days > 0" class="text-[10px] text-primary-400 font-semibold mt-1">
+                            <span v-if="plan.trial_days > 0" class="text-[10px] text-primary-600 dark:text-primary-400 font-semibold mt-1">
                                 {{ plan.trial_days }} {{ t('days_trial', 'Days Free') }}
                             </span>
                         </label>
                     </div>
-                    <p v-if="form.errors.plan_id" class="mt-1 text-xs text-rose-500">{{ form.errors.plan_id }}</p>
+                    <p v-if="form.errors.plan_id" class="mt-1 text-xs text-danger-fg">{{ form.errors.plan_id }}</p>
                 </div>
 
                 <!-- Section 3: Owner Admin Account -->
                 <div class="space-y-5 pt-6 border-t border-border-subtle">
-                    <h2 class="text-sm font-bold text-primary-400 uppercase tracking-wider flex items-center gap-2">
+                    <h2 class="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider flex items-center gap-2">
                         <User class="w-4 h-4" />
                         <span>{{ t('administrator_credentials', 'Workspace Administrator Account') }}</span>
                     </h2>
@@ -186,9 +186,9 @@ function submit() {
                             type="text"
                             required
                             placeholder="John Doe"
-                            class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
+                            class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
                         />
-                        <p v-if="form.errors.admin_name" class="mt-1 text-xs text-rose-500">{{ form.errors.admin_name }}</p>
+                        <p v-if="form.errors.admin_name" class="mt-1 text-xs text-danger-fg">{{ form.errors.admin_name }}</p>
                     </div>
 
                     <div>
@@ -198,9 +198,9 @@ function submit() {
                             type="email"
                             required
                             placeholder="john@example.com"
-                            class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
+                            class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
                         />
-                        <p v-if="form.errors.admin_email" class="mt-1 text-xs text-rose-500">{{ form.errors.admin_email }}</p>
+                        <p v-if="form.errors.admin_email" class="mt-1 text-xs text-danger-fg">{{ form.errors.admin_email }}</p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -212,9 +212,9 @@ function submit() {
                                 required
                                 minlength="8"
                                 placeholder="••••••••"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
+                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
                             />
-                            <p v-if="form.errors.admin_password" class="mt-1 text-xs text-rose-500">{{ form.errors.admin_password }}</p>
+                            <p v-if="form.errors.admin_password" class="mt-1 text-xs text-danger-fg">{{ form.errors.admin_password }}</p>
                         </div>
 
                         <div>
@@ -224,7 +224,7 @@ function submit() {
                                 type="password"
                                 required
                                 placeholder="••••••••"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
+                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
                             />
                         </div>
                     </div>
@@ -234,7 +234,7 @@ function submit() {
                     <button
                         type="submit"
                         :disabled="form.processing"
-                        class="w-full py-3.5 px-6 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white font-bold text-sm shadow-xl shadow-primary-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                        class="w-full py-3.5 px-6 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-on-primary font-bold text-sm shadow-xl shadow-primary-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
                         <span v-if="form.processing">{{ t('provisioning_tenant', 'Provisioning Dedicated Database...') }}</span>
                         <template v-else>

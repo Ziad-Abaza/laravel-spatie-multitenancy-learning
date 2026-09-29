@@ -70,7 +70,7 @@ const maxWidthClasses = {
         >
             <div
                 v-if="isVisible"
-                class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+                class="fixed inset-0 z-50 overflow-y-auto bg-scrim backdrop-blur-xs flex items-center justify-center p-4"
                 @click.self="close"
             >
                 <div

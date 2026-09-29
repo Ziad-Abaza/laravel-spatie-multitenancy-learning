@@ -17,7 +17,7 @@ defineProps<{
     <div class="p-6 rounded-2xl bg-surface-card border border-border-subtle shadow-xs flex flex-col justify-between hover:border-border-strong transition-colors">
         <div class="flex items-center justify-between">
             <span class="text-sm font-medium text-text-muted">{{ title }}</span>
-            <div v-if="icon" class="w-10 h-10 rounded-xl bg-primary-500/10 border border-primary-500/20 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+            <div v-if="icon" class="w-10 h-10 rounded-xl bg-secondary-500/10 border border-secondary-500/20 text-secondary-600 dark:text-secondary-400 flex items-center justify-center">
                 <component :is="icon" class="w-5 h-5 stroke-[1.75]" />
             </div>
         </div>
@@ -30,7 +30,7 @@ defineProps<{
                 <span
                     v-if="trend"
                     class="font-semibold px-1.5 py-0.5 rounded"
-                    :class="trend.isPositive ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'"
+                    :class="trend.isPositive ? 'bg-success/10 text-success-fg' : 'bg-danger/10 text-danger-fg'"
                 >
                     {{ trend.isPositive ? '↑' : '↓' }} {{ trend.value }}
                 </span>

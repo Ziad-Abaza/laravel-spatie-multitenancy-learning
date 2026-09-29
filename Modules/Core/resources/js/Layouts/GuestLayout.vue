@@ -21,12 +21,12 @@ const appName = computed(() => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-surface-bg text-text-main flex flex-col antialiased selection:bg-primary-500 selection:text-white transition-colors duration-150">
+    <div class="min-h-screen bg-surface-bg text-text-main flex flex-col antialiased selection:bg-primary-500 selection:text-on-primary transition-colors duration-150">
         <!-- Top Navigation -->
         <header class="border-b border-border-subtle bg-surface-header/80 backdrop-blur-md sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                 <Link href="/" class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white shadow-md shadow-primary-500/25">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 flex items-center justify-center text-on-primary shadow-md shadow-primary-500/25">
                         <Shield class="w-5 h-5" />
                     </div>
                     <span class="font-bold text-lg text-text-main tracking-tight">
@@ -64,7 +64,7 @@ const appName = computed(() => {
                     <Link
                         v-if="allowRegistration"
                         :href="tenant ? '/register' : '/register-tenant'"
-                        class="inline-flex items-center px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-xs font-semibold text-white shadow-md shadow-primary-600/20 transition-all"
+                        class="inline-flex items-center px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-xs font-semibold text-on-primary shadow-md shadow-primary-600/20 transition-all"
                     >
                         {{ tenant ? t('join_workspace', 'Join') : t('get_started', 'Get Started') }}
                     </Link>

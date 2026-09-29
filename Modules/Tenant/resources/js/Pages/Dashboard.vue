@@ -58,7 +58,7 @@ const { t } = useI18n();
                 class="p-4 sm:p-5 rounded-3xl bg-primary-500/10 border border-primary-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl"
             >
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-primary-500/20 text-primary-400 flex items-center justify-center shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-primary-500/20 text-primary-600 dark:text-primary-400 flex items-center justify-center shrink-0">
                         <Sparkles class="w-5 h-5" />
                     </div>
                     <div>
@@ -71,7 +71,7 @@ const { t } = useI18n();
 
                 <Link
                     href="/subscription"
-                    class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold text-xs shadow-md shadow-primary-600/30 transition-all text-center shrink-0"
+                    class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-md shadow-primary-600/30 transition-all text-center shrink-0"
                 >
                     {{ t('upgrade_now', 'Upgrade Workspace') }}
                 </Link>
@@ -90,7 +90,7 @@ const { t } = useI18n();
                 <div class="flex items-center gap-2">
                     <Link
                         href="/users"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold text-xs shadow-md shadow-primary-600/20 transition-all"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-md shadow-primary-600/20 transition-all"
                     >
                         <UserPlus class="w-4 h-4" />
                         <span>{{ t('invite_team', 'Add Member') }}</span>
@@ -143,7 +143,7 @@ const { t } = useI18n();
                                 <h2 class="text-base font-bold text-text-main">{{ t('team_members', 'Recent Team Members') }}</h2>
                                 <p class="text-xs text-text-muted mt-0.5">{{ t('workspace_members_sub', 'Users with isolated workspace credentials') }}</p>
                             </div>
-                            <Link href="/users" class="text-xs font-semibold text-primary-400 hover:text-primary-300 flex items-center gap-1">
+                            <Link href="/users" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 flex items-center gap-1">
                                 <span>{{ t('view_all', 'View All') }}</span>
                                 <ArrowUpRight class="w-3.5 h-3.5" />
                             </Link>
@@ -165,7 +165,7 @@ const { t } = useI18n();
                                             <div class="text-[11px] text-text-muted">{{ user.email }}</div>
                                         </td>
                                         <td class="py-3 px-3">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-primary-500/10 text-primary-400 border border-primary-500/20">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20">
                                                 {{ user.role }}
                                             </span>
                                         </td>
@@ -187,7 +187,7 @@ const { t } = useI18n();
                     <div>
                         <div class="flex items-center justify-between mb-4">
                             <h2 class="text-base font-bold text-text-main">{{ t('resource_limits', 'Resource Limits') }}</h2>
-                            <Link href="/subscription" class="text-xs font-semibold text-primary-400 hover:text-primary-300">
+                            <Link href="/subscription" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300">
                                 {{ t('upgrade', 'Upgrade') }}
                             </Link>
                         </div>
@@ -196,12 +196,12 @@ const { t } = useI18n();
                             <div>
                                 <div class="flex items-center justify-between text-xs mb-1.5">
                                     <span class="text-text-muted">{{ t('user_seats', 'Team Seats') }}</span>
-                                    <span class="font-mono text-primary-400 font-semibold">{{ quota.users.current }} / {{ quota.users.limit ?? '∞' }}</span>
+                                    <span class="font-mono text-primary-600 dark:text-primary-400 font-semibold">{{ quota.users.current }} / {{ quota.users.limit ?? '∞' }}</span>
                                 </div>
-                                <div class="w-full bg-surface-bg h-2 rounded-full overflow-hidden">
+                                <div class="w-full bg-surface-hover h-2 rounded-full overflow-hidden">
                                     <div
                                         class="h-full rounded-full transition-all"
-                                        :class="quota.users.percentage > 85 ? 'bg-rose-500' : 'bg-primary-500'"
+                                        :class="quota.users.percentage > 85 ? 'bg-danger' : 'bg-primary-500'"
                                         :style="{ width: `${quota.users.percentage}%` }"
                                     />
                                 </div>
@@ -210,9 +210,9 @@ const { t } = useI18n();
                             <div>
                                 <div class="flex items-center justify-between text-xs mb-1.5">
                                     <span class="text-text-muted">{{ t('storage', 'Disk Storage') }}</span>
-                                    <span class="font-mono text-primary-400 font-semibold">{{ quota.storage.current }}MB / {{ quota.storage.limit ?? '1000' }}MB</span>
+                                    <span class="font-mono text-primary-600 dark:text-primary-400 font-semibold">{{ quota.storage.current }}MB / {{ quota.storage.limit ?? '1000' }}MB</span>
                                 </div>
-                                <div class="w-full bg-surface-bg h-2 rounded-full overflow-hidden">
+                                <div class="w-full bg-surface-hover h-2 rounded-full overflow-hidden">
                                     <div
                                         class="bg-primary-500 h-full rounded-full transition-all"
                                         :style="{ width: `${quota.storage.percentage}%` }"
@@ -225,7 +225,7 @@ const { t } = useI18n();
                     <div class="pt-6 border-t border-border-subtle mt-6">
                         <Link
                             href="/subscription"
-                            class="w-full py-2 px-3 rounded-xl bg-surface-hover hover:bg-surface-bg text-text-main text-xs font-semibold text-center block transition-all border border-border-subtle"
+                            class="w-full py-2 px-3 rounded-xl bg-surface-input hover:bg-surface-hover text-text-main text-xs font-semibold text-center block transition-all border border-border-subtle"
                         >
                             {{ t('view_quota_details', 'View Quota & Billing Details') }} &rarr;
                         </Link>

@@ -92,7 +92,7 @@ function deleteTenant() {
 
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-primary-500/10 border border-primary-500/20 text-primary-400 flex items-center justify-center font-bold text-xl">
+                        <div class="w-14 h-14 rounded-2xl bg-primary-500/10 border border-primary-500/20 text-primary-600 dark:text-primary-400 flex items-center justify-center font-bold text-xl">
                             {{ tenant.name.charAt(0) }}
                         </div>
                         <div>
@@ -101,7 +101,7 @@ function deleteTenant() {
                                 <StatusBadge :status="tenant.status" />
                             </div>
                             <div class="flex items-center gap-4 mt-1 text-xs text-text-muted">
-                                <a :href="tenant.url" target="_blank" class="flex items-center gap-1 text-primary-400 hover:underline">
+                                <a :href="tenant.url" target="_blank" class="flex items-center gap-1 text-primary-600 dark:text-primary-400 hover:underline">
                                     <span>{{ tenant.domain }}</span>
                                     <ExternalLink class="w-3 h-3" />
                                 </a>
@@ -117,7 +117,7 @@ function deleteTenant() {
                             v-if="tenant.status !== 'suspended'"
                             type="button"
                             @click="showSuspendModal = true"
-                            class="px-3.5 py-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 text-xs font-semibold transition-all cursor-pointer"
+                            class="px-3.5 py-2 rounded-xl bg-warning/10 text-warning-fg border border-warning/25 hover:bg-warning/20 text-xs font-semibold transition-all cursor-pointer"
                         >
                             {{ t('suspend_tenant', 'Suspend Workspace') }}
                         </button>
@@ -126,7 +126,7 @@ function deleteTenant() {
                             v-else
                             type="button"
                             @click="showActivateModal = true"
-                            class="px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 text-xs font-semibold transition-all cursor-pointer"
+                            class="px-3.5 py-2 rounded-xl bg-success/10 text-success-fg border border-success/25 hover:bg-success/20 text-xs font-semibold transition-all cursor-pointer"
                         >
                             {{ t('activate_tenant', 'Activate Workspace') }}
                         </button>
@@ -134,7 +134,7 @@ function deleteTenant() {
                         <button
                             type="button"
                             @click="showDeleteModal = true"
-                            class="p-2 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500/20 text-xs transition-all cursor-pointer"
+                            class="p-2 rounded-xl bg-danger/10 text-danger-fg border border-danger/25 hover:bg-danger/20 text-xs transition-all cursor-pointer"
                             :title="t('delete_tenant', 'Delete Workspace')"
                         >
                             <Trash2 class="w-4 h-4" />
@@ -147,7 +147,7 @@ function deleteTenant() {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Database Isolation Card -->
                 <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-3 shadow-sm">
-                    <div class="flex items-center gap-2.5 text-primary-400 text-xs font-bold uppercase tracking-wider">
+                    <div class="flex items-center gap-2.5 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
                         <Database class="w-4 h-4" />
                         <span>{{ t('database_isolation', 'Dedicated Database') }}</span>
                     </div>
@@ -159,7 +159,7 @@ function deleteTenant() {
 
                 <!-- Plan & Quota Card -->
                 <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-3 shadow-sm">
-                    <div class="flex items-center gap-2.5 text-primary-400 text-xs font-bold uppercase tracking-wider">
+                    <div class="flex items-center gap-2.5 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
                         <Layers class="w-4 h-4" />
                         <span>{{ t('subscription_plan', 'Subscription Tier') }}</span>
                     </div>
@@ -175,7 +175,7 @@ function deleteTenant() {
 
                 <!-- Team & Usage Card -->
                 <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-3 shadow-sm">
-                    <div class="flex items-center gap-2.5 text-primary-400 text-xs font-bold uppercase tracking-wider">
+                    <div class="flex items-center gap-2.5 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
                         <Users class="w-4 h-4" />
                         <span>{{ t('workspace_users', 'Current Users') }}</span>
                     </div>
@@ -231,7 +231,7 @@ function deleteTenant() {
             :title="t('confirm_suspend_title', 'Suspend Organization Workspace?')"
             :message="t('confirm_suspend_message', 'This will immediately lock all users from logging in or using the workspace until reactivated.')"
             :confirm-text="t('suspend', 'Suspend Workspace')"
-            confirm-button-class="bg-amber-600 hover:bg-amber-500 text-white"
+            variant="warning"
             @close="showSuspendModal = false"
             @confirm="suspendTenant"
         />
@@ -242,7 +242,7 @@ function deleteTenant() {
             :title="t('confirm_activate_title', 'Activate Organization Workspace?')"
             :message="t('confirm_activate_message', 'This will restore access for all tenant members and reactivate subscriptions.')"
             :confirm-text="t('activate', 'Activate Workspace')"
-            confirm-button-class="bg-emerald-600 hover:bg-emerald-500 text-white"
+            variant="success"
             @close="showActivateModal = false"
             @confirm="activateTenant"
         />
@@ -253,7 +253,7 @@ function deleteTenant() {
             :title="t('confirm_delete_title', 'Permanently Delete Workspace?')"
             :message="t('confirm_delete_message', 'CAUTION: This will drop the dedicated database and delete all tenant records permanently. This action cannot be undone.')"
             :confirm-text="t('delete_forever', 'Delete Forever')"
-            confirm-button-class="bg-rose-600 hover:bg-rose-500 text-white"
+            variant="danger"
             @close="showDeleteModal = false"
             @confirm="deleteTenant"
         />

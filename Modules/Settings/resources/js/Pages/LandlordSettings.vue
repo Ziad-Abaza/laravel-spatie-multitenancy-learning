@@ -4,6 +4,7 @@ import { useForm } from '@inertiajs/vue3';
 import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import { Settings, Palette, Globe, Server, Save } from 'lucide-vue-next';
+import { THEME_PRESETS } from '@core/Stores/useThemeStore';
 
 const props = defineProps<{
     branding: Record<string, any>;
@@ -66,7 +67,7 @@ function saveSystem() {
     systemForm.post('/landlord/settings');
 }
 
-const palettes = ['indigo', 'emerald', 'violet', 'amber', 'cyan', 'rose'] as const;
+const palettes = THEME_PRESETS;
 </script>
 
 <template>
@@ -83,7 +84,7 @@ const palettes = ['indigo', 'emerald', 'violet', 'amber', 'cyan', 'rose'] as con
                     type="button"
                     @click="activeTab = 'branding'"
                     class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shrink-0"
-                    :class="activeTab === 'branding' ? 'bg-primary-600 text-white shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
+                    :class="activeTab === 'branding' ? 'bg-primary-600 text-on-primary shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
                 >
                     <Settings class="w-4 h-4" />
                     <span>{{ t('branding', 'Branding') }}</span>
@@ -93,7 +94,7 @@ const palettes = ['indigo', 'emerald', 'violet', 'amber', 'cyan', 'rose'] as con
                     type="button"
                     @click="activeTab = 'theme'"
                     class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shrink-0"
-                    :class="activeTab === 'theme' ? 'bg-primary-600 text-white shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
+                    :class="activeTab === 'theme' ? 'bg-primary-600 text-on-primary shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
                 >
                     <Palette class="w-4 h-4" />
                     <span>{{ t('theme', 'Theming & Tokens') }}</span>
@@ -103,7 +104,7 @@ const palettes = ['indigo', 'emerald', 'violet', 'amber', 'cyan', 'rose'] as con
                     type="button"
                     @click="activeTab = 'localization'"
                     class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shrink-0"
-                    :class="activeTab === 'localization' ? 'bg-primary-600 text-white shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
+                    :class="activeTab === 'localization' ? 'bg-primary-600 text-on-primary shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
                 >
                     <Globe class="w-4 h-4" />
                     <span>{{ t('localization', 'Localization') }}</span>
@@ -113,7 +114,7 @@ const palettes = ['indigo', 'emerald', 'violet', 'amber', 'cyan', 'rose'] as con
                     type="button"
                     @click="activeTab = 'system'"
                     class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shrink-0"
-                    :class="activeTab === 'system' ? 'bg-primary-600 text-white shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
+                    :class="activeTab === 'system' ? 'bg-primary-600 text-on-primary shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
                 >
                     <Server class="w-4 h-4" />
                     <span>{{ t('system', 'System & Tenancy') }}</span>
@@ -139,7 +140,7 @@ const palettes = ['indigo', 'emerald', 'violet', 'amber', 'cyan', 'rose'] as con
                     </div>
 
                     <div class="pt-4 border-t border-border-subtle flex justify-end">
-                        <button type="submit" :disabled="brandingForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
+                        <button type="submit" :disabled="brandingForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
                             <Save class="w-4 h-4" />
                             <span>{{ t('save_changes', 'Save Branding') }}</span>
                         </button>
@@ -155,23 +156,21 @@ const palettes = ['indigo', 'emerald', 'violet', 'amber', 'cyan', 'rose'] as con
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             <label
                                 v-for="p in palettes"
-                                :key="p"
+                                :key="p.id"
                                 class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer capitalize text-xs transition-all"
-                                :class="themeForm.settings.default_palette === p ? 'bg-primary-500/10 border-primary-500 text-text-main font-semibold' : 'bg-surface-input border-border-subtle text-text-muted hover:text-text-main'"
+                                :class="themeForm.settings.default_palette === p.id ? 'bg-primary-500/10 border-primary-500 text-text-main font-semibold' : 'bg-surface-input border-border-subtle text-text-muted hover:text-text-main'"
                             >
-                                <input type="radio" v-model="themeForm.settings.default_palette" :value="p" class="sr-only" />
-                                <span
-                                    class="w-4 h-4 rounded-full shadow-xs"
-                                    :class="{
-                                        'bg-indigo-500': p === 'indigo',
-                                        'bg-emerald-500': p === 'emerald',
-                                        'bg-violet-500': p === 'violet',
-                                        'bg-amber-500': p === 'amber',
-                                        'bg-cyan-500': p === 'cyan',
-                                        'bg-rose-500': p === 'rose',
-                                    }"
-                                />
-                                <span>{{ p }}</span>
+                                <input type="radio" v-model="themeForm.settings.default_palette" :value="p.id" class="sr-only" />
+                                <span class="flex shrink-0">
+                                    <span
+                                        v-for="(c, i) in p.colors"
+                                        :key="c"
+                                        class="w-4 h-4 rounded-full shadow-xs border border-black/10"
+                                        :class="i > 0 ? '-ms-1.5' : ''"
+                                        :style="{ backgroundColor: c }"
+                                    />
+                                </span>
+                                <span>{{ p.id }}</span>
                             </label>
                         </div>
                     </div>
@@ -186,7 +185,7 @@ const palettes = ['indigo', 'emerald', 'violet', 'amber', 'cyan', 'rose'] as con
                     </div>
 
                     <div class="pt-4 border-t border-border-subtle flex justify-end">
-                        <button type="submit" :disabled="themeForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
+                        <button type="submit" :disabled="themeForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
                             <Save class="w-4 h-4" />
                             <span>{{ t('save_changes', 'Save Theme') }}</span>
                         </button>
@@ -213,7 +212,7 @@ const palettes = ['indigo', 'emerald', 'violet', 'amber', 'cyan', 'rose'] as con
                     </div>
 
                     <div class="pt-4 border-t border-border-subtle flex justify-end">
-                        <button type="submit" :disabled="localizationForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
+                        <button type="submit" :disabled="localizationForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
                             <Save class="w-4 h-4" />
                             <span>{{ t('save_changes', 'Save Localization') }}</span>
                         </button>
@@ -242,7 +241,7 @@ const palettes = ['indigo', 'emerald', 'violet', 'amber', 'cyan', 'rose'] as con
                     </div>
 
                     <div class="pt-4 border-t border-border-subtle flex justify-end">
-                        <button type="submit" :disabled="systemForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
+                        <button type="submit" :disabled="systemForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
                             <Save class="w-4 h-4" />
                             <span>{{ t('save_changes', 'Save System Settings') }}</span>
                         </button>

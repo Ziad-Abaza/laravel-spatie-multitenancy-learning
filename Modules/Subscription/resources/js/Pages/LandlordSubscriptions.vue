@@ -55,8 +55,8 @@ const columns = computed<ColumnDefinition[]>(() => [
         >
             <template #cell-tenant_name="{ row }">
                 <div>
-                    <div class="font-semibold text-white">{{ row.tenant_name }}</div>
-                    <div class="font-mono text-[11px] text-slate-400">{{ row.tenant_domain }}</div>
+                    <div class="font-semibold text-text-main">{{ row.tenant_name }}</div>
+                    <div class="font-mono text-[11px] text-text-muted">{{ row.tenant_domain }}</div>
                 </div>
             </template>
 
@@ -65,7 +65,7 @@ const columns = computed<ColumnDefinition[]>(() => [
             </template>
 
             <template #cell-billing_interval="{ row }">
-                <span class="capitalize text-slate-300">{{ row.billing_interval }}</span>
+                <span class="capitalize text-text-main">{{ row.billing_interval }}</span>
             </template>
 
             <template #cell-status="{ row }">

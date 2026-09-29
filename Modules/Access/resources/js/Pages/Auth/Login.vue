@@ -28,7 +28,7 @@ function submit() {
         <div class="py-16 sm:py-24 flex items-center justify-center px-4">
             <div class="w-full max-w-md bg-surface-card border border-border-subtle rounded-3xl p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
                 <div class="text-center mb-8">
-                    <div class="w-12 h-12 rounded-2xl bg-primary-500/10 border border-primary-500/20 text-primary-400 mx-auto flex items-center justify-center mb-4 font-bold text-lg">
+                    <div class="w-12 h-12 rounded-2xl bg-primary-500/10 border border-primary-500/20 text-primary-600 dark:text-primary-400 mx-auto flex items-center justify-center mb-4 font-bold text-lg">
                         {{ tenant?.name ? tenant.name.charAt(0) : 'W' }}
                     </div>
                     <h1 class="text-2xl font-bold text-text-main tracking-tight">
@@ -49,11 +49,11 @@ function submit() {
                                 required
                                 autofocus
                                 placeholder="name@company.com"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle ps-10"
+                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle ps-10"
                             />
                             <Mail class="w-4 h-4 text-text-subtle absolute start-3.5 top-3" />
                         </div>
-                        <p v-if="form.errors.email" class="mt-1 text-xs text-rose-500">{{ form.errors.email }}</p>
+                        <p v-if="form.errors.email" class="mt-1 text-xs text-danger-fg">{{ form.errors.email }}</p>
                     </div>
 
                     <div>
@@ -64,11 +64,11 @@ function submit() {
                                 type="password"
                                 required
                                 placeholder="••••••••"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle ps-10"
+                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle ps-10"
                             />
                             <Lock class="w-4 h-4 text-text-subtle absolute start-3.5 top-3" />
                         </div>
-                        <p v-if="form.errors.password" class="mt-1 text-xs text-rose-500">{{ form.errors.password }}</p>
+                        <p v-if="form.errors.password" class="mt-1 text-xs text-danger-fg">{{ form.errors.password }}</p>
                     </div>
 
                     <div class="flex items-center justify-between text-xs">
@@ -76,7 +76,7 @@ function submit() {
                             <input
                                 v-model="form.remember"
                                 type="checkbox"
-                                class="rounded bg-surface-bg border-border-subtle text-primary-600 focus:ring-primary-500"
+                                class="rounded bg-surface-input border-border-subtle text-primary-600 focus:ring-primary-500"
                             />
                             <span>{{ t('remember_me', 'Remember me') }}</span>
                         </label>
@@ -85,14 +85,14 @@ function submit() {
                     <button
                         type="submit"
                         :disabled="form.processing"
-                        class="w-full py-3 px-4 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white font-semibold text-xs shadow-lg shadow-primary-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                        class="w-full py-3 px-4 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-on-primary font-semibold text-xs shadow-lg shadow-primary-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
                         <span>{{ form.processing ? t('authenticating', 'Signing in...') : t('sign_in', 'Sign In') }}</span>
                         <ArrowRight class="w-4 h-4 rtl:rotate-180" />
                     </button>
 
                     <div class="pt-4 border-t border-border-subtle text-center">
-                        <Link href="/register" class="text-xs text-primary-400 hover:text-primary-300 inline-flex items-center gap-1.5">
+                        <Link href="/register" class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 inline-flex items-center gap-1.5">
                             <UserPlus class="w-3.5 h-3.5" />
                             <span>{{ t('dont_have_account', "Don't have an account? Register") }}</span>
                         </Link>

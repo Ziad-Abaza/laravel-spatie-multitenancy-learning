@@ -93,7 +93,7 @@ function confirmChangePlan() {
                 <!-- Current Subscription Card -->
                 <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-4 shadow-xl">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-primary-400 text-xs font-bold uppercase tracking-wider">
+                        <div class="flex items-center gap-2 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
                             <CreditCard class="w-4 h-4" />
                             <span>{{ t('current_plan', 'Current Plan') }}</span>
                         </div>
@@ -107,12 +107,12 @@ function confirmChangePlan() {
                                 <CurrencyCell :amount="plan.price" :currency="plan.currency" />
                                 <span class="text-xs text-text-muted font-normal">/ {{ subscription?.billing_interval || 'monthly' }}</span>
                             </span>
-                            <span v-else class="text-emerald-500 text-sm font-semibold">Free Forever</span>
+                            <span v-else class="text-success-fg text-sm font-semibold">Free Forever</span>
                         </div>
                     </div>
 
                     <div class="pt-4 border-t border-border-subtle space-y-2 text-xs text-text-muted">
-                        <div v-if="subscription?.trial_ends_at" class="flex items-center justify-between text-primary-400">
+                        <div v-if="subscription?.trial_ends_at" class="flex items-center justify-between text-primary-600 dark:text-primary-400">
                             <span>{{ t('trial_period', 'Trial Ends') }}</span>
                             <span class="font-semibold">{{ subscription.trial_ends_at }}</span>
                         </div>
@@ -127,7 +127,7 @@ function confirmChangePlan() {
                 <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-4 shadow-xl flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2 text-primary-400 text-xs font-bold uppercase tracking-wider">
+                            <div class="flex items-center gap-2 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
                                 <Users class="w-4 h-4" />
                                 <span>{{ t('user_seats_quota', 'Team User Quota') }}</span>
                             </div>
@@ -136,17 +136,17 @@ function confirmChangePlan() {
                             </span>
                         </div>
 
-                        <div class="w-full bg-surface-bg h-2.5 rounded-full overflow-hidden mb-2">
+                        <div class="w-full bg-surface-hover h-2.5 rounded-full overflow-hidden mb-2">
                             <div
                                 class="h-full rounded-full transition-all"
-                                :class="usage.users.percentage >= 90 ? 'bg-rose-500' : 'bg-primary-500'"
+                                :class="usage.users.percentage >= 90 ? 'bg-danger' : 'bg-primary-500'"
                                 :style="{ width: `${usage.users.percentage}%` }"
                             />
                         </div>
 
                         <p class="text-xs text-text-muted">
                             {{ usage.users.percentage }}% {{ t('quota_used', 'of team seats occupied.') }}
-                            <span v-if="usage.users.limit && usage.users.current >= usage.users.limit" class="text-rose-500 font-semibold block mt-1">
+                            <span v-if="usage.users.limit && usage.users.current >= usage.users.limit" class="text-danger-fg font-semibold block mt-1">
                                 {{ t('quota_reached', 'Quota reached. Upgrade your plan to add more members.') }}
                             </span>
                         </p>
@@ -157,7 +157,7 @@ function confirmChangePlan() {
                 <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-4 shadow-xl flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2 text-primary-400 text-xs font-bold uppercase tracking-wider">
+                            <div class="flex items-center gap-2 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
                                 <HardDrive class="w-4 h-4" />
                                 <span>{{ t('storage_quota', 'Storage Quota') }}</span>
                             </div>
@@ -166,7 +166,7 @@ function confirmChangePlan() {
                             </span>
                         </div>
 
-                        <div class="w-full bg-surface-bg h-2.5 rounded-full overflow-hidden mb-2">
+                        <div class="w-full bg-surface-hover h-2.5 rounded-full overflow-hidden mb-2">
                             <div
                                 class="bg-primary-500 h-full rounded-full transition-all"
                                 :style="{ width: `${usage.storage_mb.percentage}%` }"
@@ -197,7 +197,7 @@ function confirmChangePlan() {
                         <div>
                             <div class="flex items-center justify-between mb-3">
                                 <h3 class="text-lg font-bold text-text-main">{{ targetPlan.name }}</h3>
-                                <span v-if="targetPlan.is_current" class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-primary-500/10 text-primary-400 border border-primary-500/20">
+                                <span v-if="targetPlan.is_current" class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20">
                                     {{ t('current_active_plan', 'Active Plan') }}
                                 </span>
                             </div>
@@ -211,11 +211,11 @@ function confirmChangePlan() {
 
                             <ul class="space-y-2.5 text-xs text-text-muted pt-4 border-t border-border-subtle">
                                 <li class="flex items-center gap-2">
-                                    <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                    <CheckCircle2 class="w-3.5 h-3.5 text-success-fg shrink-0" />
                                     <span>{{ t('max_users', 'Max Users') }}: <strong class="text-text-main">{{ targetPlan.limits?.max_users ?? 'Unlimited' }}</strong></span>
                                 </li>
                                 <li class="flex items-center gap-2">
-                                    <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                    <CheckCircle2 class="w-3.5 h-3.5 text-success-fg shrink-0" />
                                     <span>{{ t('storage', 'Storage') }}: <strong class="text-text-main">{{ targetPlan.limits?.max_storage_mb ?? 1000 }} MB</strong></span>
                                 </li>
                                 <li
@@ -223,7 +223,7 @@ function confirmChangePlan() {
                                     :key="idx"
                                     class="flex items-center gap-2"
                                 >
-                                    <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                    <CheckCircle2 class="w-3.5 h-3.5 text-success-fg shrink-0" />
                                     <span>{{ feature }}</span>
                                 </li>
                             </ul>
@@ -234,7 +234,7 @@ function confirmChangePlan() {
                                 v-if="!targetPlan.is_current"
                                 type="button"
                                 @click="promptChangePlan(targetPlan)"
-                                class="w-full py-2.5 px-4 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold text-xs shadow-md shadow-primary-600/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                class="w-full py-2.5 px-4 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-md shadow-primary-600/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                             >
                                 <ArrowUpCircle class="w-4 h-4" />
                                 <span>{{ t('switch_to_plan', 'Switch to this Plan') }}</span>
@@ -257,7 +257,7 @@ function confirmChangePlan() {
             :title="t('confirm_plan_change_title', 'Confirm Subscription Change?')"
             :message="t('confirm_plan_change_msg', `Do you want to switch your workspace subscription to ${selectedPlan?.name}? New limits will apply immediately.`)"
             :confirm-text="t('confirm_change', 'Update Subscription')"
-            confirm-button-class="bg-primary-600 hover:bg-primary-500 text-white"
+            variant="primary"
             @close="isUpgradeModalOpen = false"
             @confirm="confirmChangePlan"
         />

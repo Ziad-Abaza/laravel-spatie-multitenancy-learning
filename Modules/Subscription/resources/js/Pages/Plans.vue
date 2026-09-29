@@ -148,7 +148,7 @@ function getPlanDescription(plan: Plan): string {
                 <button
                     type="button"
                     @click="openCreateModal"
-                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold text-xs shadow-md shadow-primary-600/20 transition-all cursor-pointer"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-md shadow-primary-600/20 transition-all cursor-pointer"
                 >
                     <Plus class="w-4 h-4" />
                     <span>{{ t('create_plan', 'Create New Plan') }}</span>
@@ -164,7 +164,7 @@ function getPlanDescription(plan: Plan): string {
                 >
                     <div>
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-primary-500/10 text-primary-400 border border-primary-500/20">
+                            <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20">
                                 {{ plan.slug }}
                             </span>
                             <span class="text-xs text-text-muted">
@@ -221,7 +221,7 @@ function getPlanDescription(plan: Plan): string {
                         <button
                             type="button"
                             @click="openDeleteModal(plan)"
-                            class="p-2 rounded-lg text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            class="p-2 rounded-lg text-danger-fg hover:bg-danger/10 transition-colors cursor-pointer"
                             :title="t('delete_plan', 'Delete Plan')"
                         >
                             <Trash2 class="w-4 h-4" />
@@ -237,51 +237,51 @@ function getPlanDescription(plan: Plan): string {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Name (English)</label>
-                        <input v-model="createForm.name_en" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model="createForm.name_en" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Name (Arabic)</label>
-                        <input v-model="createForm.name_ar" type="text" required dir="rtl" class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model="createForm.name_ar" type="text" required dir="rtl" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-text-main mb-1">Slug</label>
-                    <input v-model="createForm.slug" type="text" required placeholder="e.g. enterprise-plus" class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                    <input v-model="createForm.slug" type="text" required placeholder="e.g. enterprise-plus" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Price (USD)</label>
-                        <input v-model.number="createForm.price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model.number="createForm.price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Interval</label>
-                        <select v-model="createForm.billing_interval" class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
+                        <select v-model="createForm.billing_interval" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
                             <option value="monthly">Monthly</option>
                             <option value="yearly">Yearly</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Trial Days</label>
-                        <input v-model.number="createForm.trial_days" type="number" min="0" required class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model.number="createForm.trial_days" type="number" min="0" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Max Users</label>
-                        <input v-model.number="createForm.max_users" type="number" min="1" required class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model.number="createForm.max_users" type="number" min="1" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Max Storage (MB)</label>
-                        <input v-model.number="createForm.max_storage_mb" type="number" min="100" required class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model.number="createForm.max_storage_mb" type="number" min="100" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
                 <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
                     <button type="button" @click="isCreateModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main cursor-pointer">{{ t('cancel', 'Cancel') }}</button>
-                    <button type="submit" :disabled="createForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold cursor-pointer">{{ t('save', 'Save Plan') }}</button>
+                    <button type="submit" :disabled="createForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold cursor-pointer">{{ t('save', 'Save Plan') }}</button>
                 </div>
             </form>
         </Modal>
@@ -292,46 +292,46 @@ function getPlanDescription(plan: Plan): string {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Name (English)</label>
-                        <input v-model="editForm.name_en" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model="editForm.name_en" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Name (Arabic)</label>
-                        <input v-model="editForm.name_ar" type="text" required dir="rtl" class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model="editForm.name_ar" type="text" required dir="rtl" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Price (USD)</label>
-                        <input v-model.number="editForm.price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model.number="editForm.price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Interval</label>
-                        <select v-model="editForm.billing_interval" class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
+                        <select v-model="editForm.billing_interval" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
                             <option value="monthly">Monthly</option>
                             <option value="yearly">Yearly</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Trial Days</label>
-                        <input v-model.number="editForm.trial_days" type="number" min="0" required class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model.number="editForm.trial_days" type="number" min="0" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Max Users</label>
-                        <input v-model.number="editForm.max_users" type="number" min="1" required class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model.number="editForm.max_users" type="number" min="1" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">Max Storage (MB)</label>
-                        <input v-model.number="editForm.max_storage_mb" type="number" min="100" required class="w-full px-3 py-2 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model.number="editForm.max_storage_mb" type="number" min="100" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
                 <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
                     <button type="button" @click="isEditModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main cursor-pointer">{{ t('cancel', 'Cancel') }}</button>
-                    <button type="submit" :disabled="editForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold cursor-pointer">{{ t('save', 'Update Plan') }}</button>
+                    <button type="submit" :disabled="editForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold cursor-pointer">{{ t('save', 'Update Plan') }}</button>
                 </div>
             </form>
         </Modal>
@@ -342,7 +342,7 @@ function getPlanDescription(plan: Plan): string {
             :title="t('confirm_delete_plan_title', 'Delete Subscription Plan?')"
             :message="t('confirm_delete_plan_msg', 'Are you sure? Plans with existing tenants cannot be deleted.')"
             :confirm-text="t('delete', 'Delete Plan')"
-            confirm-button-class="bg-rose-600 hover:bg-rose-500 text-white"
+            variant="danger"
             @close="isDeleteModalOpen = false"
             @confirm="confirmDelete"
         />

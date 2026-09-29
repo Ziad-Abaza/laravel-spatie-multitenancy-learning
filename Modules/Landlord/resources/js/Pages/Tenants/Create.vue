@@ -60,7 +60,7 @@ function submit() {
             <form @submit.prevent="submit" class="bg-surface-card border border-border-subtle rounded-3xl p-8 space-y-6 shadow-xl">
                 <!-- Org Details -->
                 <div class="space-y-4">
-                    <h2 class="text-xs font-bold text-primary-400 uppercase tracking-wider flex items-center gap-2">
+                    <h2 class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider flex items-center gap-2">
                         <Building2 class="w-4 h-4" />
                         <span>{{ t('organization_details', 'Workspace Details') }}</span>
                     </h2>
@@ -73,9 +73,9 @@ function submit() {
                             required
                             @input="onNameChange"
                             placeholder="Stark Industries"
-                            class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
+                            class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
                         />
-                        <p v-if="form.errors.name" class="mt-1 text-xs text-rose-500">{{ form.errors.name }}</p>
+                        <p v-if="form.errors.name" class="mt-1 text-xs text-danger-fg">{{ form.errors.name }}</p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -87,9 +87,9 @@ function submit() {
                                 required
                                 @input="onSlugChange"
                                 placeholder="stark"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
+                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
                             />
-                            <p v-if="form.errors.slug" class="mt-1 text-xs text-rose-500">{{ form.errors.slug }}</p>
+                            <p v-if="form.errors.slug" class="mt-1 text-xs text-danger-fg">{{ form.errors.slug }}</p>
                         </div>
 
                         <div>
@@ -99,9 +99,9 @@ function submit() {
                                 type="text"
                                 required
                                 placeholder="stark.localhost"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle font-mono text-xs"
+                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle font-mono text-xs"
                             />
-                            <p v-if="form.errors.domain" class="mt-1 text-xs text-rose-500">{{ form.errors.domain }}</p>
+                            <p v-if="form.errors.domain" class="mt-1 text-xs text-danger-fg">{{ form.errors.domain }}</p>
                         </div>
                     </div>
 
@@ -109,20 +109,20 @@ function submit() {
                         <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('subscription_plan', 'Subscription Plan') }}</label>
                         <select
                             v-model="form.plan_id"
-                            class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all"
+                            class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all"
                         >
                             <option value="">{{ t('free_plan', 'Free Plan') }}</option>
                             <option v-for="plan in plans" :key="plan.id" :value="plan.id">
                                 {{ plan.name }} (${{ plan.price }}/mo)
                             </option>
                         </select>
-                        <p v-if="form.errors.plan_id" class="mt-1 text-xs text-rose-500">{{ form.errors.plan_id }}</p>
+                        <p v-if="form.errors.plan_id" class="mt-1 text-xs text-danger-fg">{{ form.errors.plan_id }}</p>
                     </div>
                 </div>
 
                 <!-- Admin Details -->
                 <div class="space-y-4 pt-6 border-t border-border-subtle">
-                    <h2 class="text-xs font-bold text-primary-400 uppercase tracking-wider flex items-center gap-2">
+                    <h2 class="text-xs font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider flex items-center gap-2">
                         <User class="w-4 h-4" />
                         <span>{{ t('tenant_owner_account', 'Initial Owner Account') }}</span>
                     </h2>
@@ -134,9 +134,9 @@ function submit() {
                             type="text"
                             required
                             placeholder="Tony Stark"
-                            class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
+                            class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
                         />
-                        <p v-if="form.errors.admin_name" class="mt-1 text-xs text-rose-500">{{ form.errors.admin_name }}</p>
+                        <p v-if="form.errors.admin_name" class="mt-1 text-xs text-danger-fg">{{ form.errors.admin_name }}</p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -147,9 +147,9 @@ function submit() {
                                 type="email"
                                 required
                                 placeholder="tony@stark.test"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
+                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
                             />
-                            <p v-if="form.errors.admin_email" class="mt-1 text-xs text-rose-500">{{ form.errors.admin_email }}</p>
+                            <p v-if="form.errors.admin_email" class="mt-1 text-xs text-danger-fg">{{ form.errors.admin_email }}</p>
                         </div>
 
                         <div>
@@ -160,9 +160,9 @@ function submit() {
                                 required
                                 minlength="8"
                                 placeholder="••••••••"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-bg border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
+                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
                             />
-                            <p v-if="form.errors.admin_password" class="mt-1 text-xs text-rose-500">{{ form.errors.admin_password }}</p>
+                            <p v-if="form.errors.admin_password" class="mt-1 text-xs text-danger-fg">{{ form.errors.admin_password }}</p>
                         </div>
                     </div>
                 </div>
@@ -178,7 +178,7 @@ function submit() {
                     <button
                         type="submit"
                         :disabled="form.processing"
-                        class="px-6 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white font-semibold text-xs shadow-lg shadow-primary-600/30 flex items-center gap-2 transition-all cursor-pointer"
+                        class="px-6 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-on-primary font-semibold text-xs shadow-lg shadow-primary-600/30 flex items-center gap-2 transition-all cursor-pointer"
                     >
                         <span>{{ form.processing ? t('provisioning', 'Provisioning...') : t('provision_tenant', 'Provision Tenant') }}</span>
                     </button>

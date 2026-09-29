@@ -32,7 +32,7 @@ function switchLocale(newLocale: string) {
         <button
             type="button"
             class="px-2.5 py-1 rounded-lg transition-all"
-            :class="locale === 'en' ? 'bg-primary-600 text-white shadow-xs font-semibold' : 'text-text-muted hover:text-text-main'"
+            :class="locale === 'en' ? 'bg-primary-600 text-on-primary shadow-xs font-semibold' : 'text-text-muted hover:text-text-main'"
             @click="switchLocale('en')"
         >
             EN
@@ -41,7 +41,7 @@ function switchLocale(newLocale: string) {
             v-if="isArabicSupported"
             type="button"
             class="px-2.5 py-1 rounded-lg transition-all"
-            :class="locale === 'ar' ? 'bg-primary-600 text-white shadow-xs font-semibold' : 'text-text-muted hover:text-text-main'"
+            :class="locale === 'ar' ? 'bg-primary-600 text-on-primary shadow-xs font-semibold' : 'text-text-muted hover:text-text-main'"
             @click="switchLocale('ar')"
         >
             عربي
