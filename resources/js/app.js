@@ -32,7 +32,7 @@ createInertiaApp({
         const app = createApp({ render: () => h(App, props) })
         app.use(plugin)
         app.use(pinia)
-        setupInertiaStateBridge()
+        setupInertiaStateBridge(props.initialPage?.props)
         app.mount(el)
     },
     progress: {

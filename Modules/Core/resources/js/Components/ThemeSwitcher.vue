@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { Palette, Moon, Sun } from 'lucide-vue-next';
 import { useThemeStore, type ThemePalette, type ThemeMode } from '../Stores/useThemeStore';
+import { useI18n } from '../Composables/useI18n';
 
 const themeStore = useThemeStore();
+const { t } = useI18n();
 const isOpen = ref(false);
-
-onMounted(() => {
-    themeStore.initTheme();
-});
 
 const palettes: { id: ThemePalette; name: string; bg: string }[] = [
     { id: 'indigo', name: 'Indigo', bg: 'bg-indigo-500' },
@@ -22,11 +21,21 @@ const palettes: { id: ThemePalette; name: string; bg: string }[] = [
 function selectPalette(palette: ThemePalette) {
     themeStore.applyTheme(palette);
     isOpen.value = false;
+
+    router.post('/theme', { theme: palette }, {
+        preserveState: true,
+        preserveScroll: true,
+    });
 }
 
 function toggleMode() {
     const nextMode: ThemeMode = themeStore.currentMode === 'dark' ? 'light' : 'dark';
     themeStore.applyMode(nextMode);
+
+    router.post('/theme', { mode: nextMode }, {
+        preserveState: true,
+        preserveScroll: true,
+    });
 }
 </script>
 
@@ -35,8 +44,8 @@ function toggleMode() {
         <!-- Palette Dropdown Button -->
         <button
             type="button"
-            class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors border border-transparent hover:border-slate-700/60"
-            title="Choose Theme"
+            class="p-2 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors border border-transparent hover:border-border-subtle"
+            :title="t('choose_theme', 'Choose Theme')"
             @click="isOpen = !isOpen"
         >
             <Palette class="w-4 h-4" />
@@ -45,29 +54,29 @@ function toggleMode() {
         <!-- Mode Toggle Button -->
         <button
             type="button"
-            class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors border border-transparent hover:border-slate-700/60"
-            :title="themeStore.currentMode === 'dark' ? 'Light Mode' : 'Dark Mode'"
+            class="p-2 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors border border-transparent hover:border-border-subtle"
+            :title="themeStore.currentMode === 'dark' ? t('light_mode', 'Light Mode') : t('dark_mode', 'Dark Mode')"
             @click="toggleMode"
         >
             <Sun v-if="themeStore.currentMode === 'dark'" class="w-4 h-4 text-amber-400" />
-            <Moon v-else class="w-4 h-4 text-indigo-400" />
+            <Moon v-else class="w-4 h-4 text-primary-600" />
         </button>
 
         <!-- Palette Dropdown Menu -->
         <div
             v-if="isOpen"
-            class="absolute end-0 top-full mt-2 w-48 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-100"
+            class="absolute end-0 top-full mt-2 w-48 rounded-2xl bg-surface-card border border-border-subtle shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-100"
         >
-            <div class="px-2.5 py-1 text-xs font-semibold text-slate-400 tracking-wider uppercase">
-                Color Palette
+            <div class="px-2.5 py-1 text-xs font-semibold text-text-muted tracking-wider uppercase">
+                {{ t('color_palette', 'Color Palette') }}
             </div>
             <div class="grid grid-cols-3 gap-1.5 p-1">
                 <button
                     v-for="p in palettes"
                     :key="p.id"
                     type="button"
-                    class="flex flex-col items-center p-2 rounded-xl hover:bg-slate-800 transition-colors border text-xs text-slate-300"
-                    :class="themeStore.currentTheme === p.id ? 'border-indigo-500 bg-slate-800/80 font-medium' : 'border-transparent'"
+                    class="flex flex-col items-center p-2 rounded-xl hover:bg-surface-hover transition-colors border text-xs text-text-muted hover:text-text-main"
+                    :class="themeStore.currentTheme === p.id ? 'border-primary-500 bg-surface-hover font-medium text-text-main' : 'border-transparent'"
                     @click="selectPalette(p.id)"
                 >
                     <span class="w-5 h-5 rounded-full mb-1 shadow-sm" :class="p.bg" />

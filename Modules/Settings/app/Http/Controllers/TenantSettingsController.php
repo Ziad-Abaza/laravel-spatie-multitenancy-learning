@@ -38,6 +38,15 @@ class TenantSettingsController extends Controller
             $this->settingService->set($key, $value, $domain, true);
         }
 
+        if ($domain === 'theme') {
+            if (isset($settings['palette']) || isset($settings['theme'])) {
+                session(['theme' => $settings['palette'] ?? $settings['theme']]);
+            }
+            if (isset($settings['mode'])) {
+                session(['theme_mode' => $settings['mode']]);
+            }
+        }
+
         return back()->with('success', 'Workspace settings updated successfully.');
     }
 }

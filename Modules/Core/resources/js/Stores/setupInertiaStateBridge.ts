@@ -1,17 +1,21 @@
 import { router } from '@inertiajs/vue3';
 import { useThemeStore, ThemePalette, ThemeMode } from './useThemeStore';
 
-export function setupInertiaStateBridge() {
+export function setupInertiaStateBridge(initialProps?: Record<string, any>) {
     const themeStore = useThemeStore();
 
-    // Check if initial page data exists
     if (typeof window !== 'undefined') {
-        const initialPage = (window as any).__INITIAL_PAGE__;
-        const initialTheme = initialPage?.props?.theme;
-        if (initialTheme) {
-            themeStore.initTheme(initialTheme.theme, initialTheme.mode);
+        const themeProps = initialProps?.theme;
+        if (themeProps) {
+            themeStore.initTheme(themeProps.theme, themeProps.mode);
         } else {
             themeStore.initTheme();
+        }
+
+        const localeProps = initialProps?.locale;
+        if (localeProps?.current) {
+            document.documentElement.setAttribute('lang', localeProps.current);
+            document.documentElement.setAttribute('dir', localeProps.is_rtl ? 'rtl' : 'ltr');
         }
 
         router.on('navigate', (event) => {
@@ -21,6 +25,10 @@ export function setupInertiaStateBridge() {
             }
             if (props?.theme?.mode && props.theme.mode !== themeStore.currentMode) {
                 themeStore.applyMode(props.theme.mode as ThemeMode);
+            }
+            if (props?.locale?.current) {
+                document.documentElement.setAttribute('lang', props.locale.current);
+                document.documentElement.setAttribute('dir', props.locale.is_rtl ? 'rtl' : 'ltr');
             }
         });
     }

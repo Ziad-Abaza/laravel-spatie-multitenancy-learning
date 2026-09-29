@@ -1,23 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { useForm, Link } from '@inertiajs/vue3';
 import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
 import ConfirmDialog from '@core/Components/ConfirmDialog.vue';
 import CurrencyCell from '@core/Components/CurrencyCell.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import {
-    Building2,
     Database,
-    Globe,
     Layers,
     Users,
-    Calendar,
-    AlertTriangle,
-    CheckCircle2,
-    Trash2,
-    ExternalLink,
     ArrowLeft,
+    ExternalLink,
+    Trash2,
 } from 'lucide-vue-next';
 
 interface TenantDetail {
@@ -27,16 +22,14 @@ interface TenantDetail {
     domain: string;
     database: string;
     status: string;
-    trial_ends_at: string | null;
-    suspended_at: string | null;
     url: string;
     user_count: number;
+    created_at: string;
     plan: {
         id: number;
         name: string;
-        slug: string;
         price: number;
-        limits?: {
+        limits: {
             max_users?: number;
             max_storage_mb?: number;
         };
@@ -44,12 +37,12 @@ interface TenantDetail {
     subscriptions: Array<{
         id: number;
         plan_name: string;
-        status: string;
         amount: number;
         currency: string;
         billing_interval: string;
+        status: string;
         starts_at: string;
-        ends_at: string;
+        ends_at: string | null;
     }>;
 }
 
@@ -63,20 +56,22 @@ const showSuspendModal = ref(false);
 const showActivateModal = ref(false);
 const showDeleteModal = ref(false);
 
+const actionForm = useForm({});
+
 function suspendTenant() {
-    router.post(`/landlord/tenants/${props.tenant.id}/suspend`, {}, {
+    actionForm.post(`/landlord/tenants/${props.tenant.id}/suspend`, {
         onSuccess: () => { showSuspendModal.value = false; }
     });
 }
 
 function activateTenant() {
-    router.post(`/landlord/tenants/${props.tenant.id}/activate`, {}, {
+    actionForm.post(`/landlord/tenants/${props.tenant.id}/activate`, {
         onSuccess: () => { showActivateModal.value = false; }
     });
 }
 
 function deleteTenant() {
-    router.delete(`/landlord/tenants/${props.tenant.id}`, {
+    actionForm.delete(`/landlord/tenants/${props.tenant.id}`, {
         onSuccess: () => { showDeleteModal.value = false; }
     });
 }
@@ -89,7 +84,7 @@ function deleteTenant() {
             <div>
                 <Link
                     href="/landlord/tenants"
-                    class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white mb-4 transition-colors"
+                    class="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text-main mb-4 transition-colors"
                 >
                     <ArrowLeft class="w-4 h-4 rtl:rotate-180" />
                     <span>{{ t('back_to_tenants', 'Back to Tenants') }}</span>
@@ -97,21 +92,21 @@ function deleteTenant() {
 
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xl">
+                        <div class="w-14 h-14 rounded-2xl bg-primary-500/10 border border-primary-500/20 text-primary-400 flex items-center justify-center font-bold text-xl">
                             {{ tenant.name.charAt(0) }}
                         </div>
                         <div>
                             <div class="flex items-center gap-3">
-                                <h1 class="text-2xl font-bold text-white tracking-tight">{{ tenant.name }}</h1>
+                                <h1 class="text-2xl font-bold text-text-main tracking-tight">{{ tenant.name }}</h1>
                                 <StatusBadge :status="tenant.status" />
                             </div>
-                            <div class="flex items-center gap-4 mt-1 text-xs text-slate-400">
-                                <a :href="tenant.url" target="_blank" class="flex items-center gap-1 text-indigo-400 hover:underline">
+                            <div class="flex items-center gap-4 mt-1 text-xs text-text-muted">
+                                <a :href="tenant.url" target="_blank" class="flex items-center gap-1 text-primary-400 hover:underline">
                                     <span>{{ tenant.domain }}</span>
                                     <ExternalLink class="w-3 h-3" />
                                 </a>
                                 <span>•</span>
-                                <span class="font-mono text-slate-400">{{ tenant.database }}</span>
+                                <span class="font-mono text-text-muted">{{ tenant.database }}</span>
                             </div>
                         </div>
                     </div>
@@ -122,7 +117,7 @@ function deleteTenant() {
                             v-if="tenant.status !== 'suspended'"
                             type="button"
                             @click="showSuspendModal = true"
-                            class="px-3.5 py-2 rounded-xl bg-amber-500/10 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 text-xs font-semibold transition-all"
+                            class="px-3.5 py-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 text-xs font-semibold transition-all cursor-pointer"
                         >
                             {{ t('suspend_tenant', 'Suspend Workspace') }}
                         </button>
@@ -131,7 +126,7 @@ function deleteTenant() {
                             v-else
                             type="button"
                             @click="showActivateModal = true"
-                            class="px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/20 text-xs font-semibold transition-all"
+                            class="px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 text-xs font-semibold transition-all cursor-pointer"
                         >
                             {{ t('activate_tenant', 'Activate Workspace') }}
                         </button>
@@ -139,7 +134,7 @@ function deleteTenant() {
                         <button
                             type="button"
                             @click="showDeleteModal = true"
-                            class="p-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 text-xs transition-all"
+                            class="p-2 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500/20 text-xs transition-all cursor-pointer"
                             :title="t('delete_tenant', 'Delete Workspace')"
                         >
                             <Trash2 class="w-4 h-4" />
@@ -151,53 +146,53 @@ function deleteTenant() {
             <!-- Grid of Info Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Database Isolation Card -->
-                <div class="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 space-y-3">
-                    <div class="flex items-center gap-2.5 text-indigo-400 text-xs font-bold uppercase tracking-wider">
+                <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-3 shadow-sm">
+                    <div class="flex items-center gap-2.5 text-primary-400 text-xs font-bold uppercase tracking-wider">
                         <Database class="w-4 h-4" />
                         <span>{{ t('database_isolation', 'Dedicated Database') }}</span>
                     </div>
-                    <div class="text-lg font-bold font-mono text-white">{{ tenant.database }}</div>
-                    <p class="text-xs text-slate-400">
+                    <div class="text-lg font-bold font-mono text-text-main">{{ tenant.database }}</div>
+                    <p class="text-xs text-text-muted">
                         {{ t('database_isolation_note', 'Isolated schema with independent migrations, permissions, and tenant users.') }}
                     </p>
                 </div>
 
                 <!-- Plan & Quota Card -->
-                <div class="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 space-y-3">
-                    <div class="flex items-center gap-2.5 text-indigo-400 text-xs font-bold uppercase tracking-wider">
+                <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-3 shadow-sm">
+                    <div class="flex items-center gap-2.5 text-primary-400 text-xs font-bold uppercase tracking-wider">
                         <Layers class="w-4 h-4" />
                         <span>{{ t('subscription_plan', 'Subscription Tier') }}</span>
                     </div>
-                    <div class="text-lg font-bold text-white flex items-center justify-between">
+                    <div class="text-lg font-bold text-text-main flex items-center justify-between">
                         <span>{{ tenant.plan?.name ?? 'Free Tier' }}</span>
-                        <span v-if="tenant.plan" class="text-sm font-normal text-slate-400">${{ tenant.plan.price }}/mo</span>
+                        <span v-if="tenant.plan" class="text-sm font-normal text-text-muted">${{ tenant.plan.price }}/mo</span>
                     </div>
-                    <div class="text-xs text-slate-400 space-y-1">
+                    <div class="text-xs text-text-muted space-y-1">
                         <div>{{ t('max_users', 'Max Users') }}: {{ tenant.plan?.limits?.max_users ?? 'Unlimited' }}</div>
                         <div>{{ t('storage', 'Storage Quota') }}: {{ tenant.plan?.limits?.max_storage_mb ?? 1000 }} MB</div>
                     </div>
                 </div>
 
                 <!-- Team & Usage Card -->
-                <div class="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 space-y-3">
-                    <div class="flex items-center gap-2.5 text-indigo-400 text-xs font-bold uppercase tracking-wider">
+                <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-3 shadow-sm">
+                    <div class="flex items-center gap-2.5 text-primary-400 text-xs font-bold uppercase tracking-wider">
                         <Users class="w-4 h-4" />
                         <span>{{ t('workspace_users', 'Current Users') }}</span>
                     </div>
-                    <div class="text-lg font-bold text-white">{{ tenant.user_count }} {{ t('active_users', 'members') }}</div>
-                    <p class="text-xs text-slate-400">
+                    <div class="text-lg font-bold text-text-main">{{ tenant.user_count }} {{ t('active_users', 'members') }}</div>
+                    <p class="text-xs text-text-muted">
                         {{ t('isolated_user_records', 'User accounts live in this tenant database only.') }}
                     </p>
                 </div>
             </div>
 
             <!-- Subscriptions History -->
-            <div class="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 space-y-4">
-                <h2 class="text-base font-bold text-white">{{ t('subscription_history', 'Subscription History') }}</h2>
+            <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-4 shadow-sm">
+                <h2 class="text-base font-bold text-text-main">{{ t('subscription_history', 'Subscription History') }}</h2>
                 <div class="overflow-x-auto">
                     <table class="w-full text-start text-xs">
                         <thead>
-                            <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                            <tr class="border-b border-border-subtle text-text-muted uppercase tracking-wider">
                                 <th class="py-2.5 px-3 text-start">{{ t('plan', 'Plan') }}</th>
                                 <th class="py-2.5 px-3 text-start">{{ t('billing_cycle', 'Interval') }}</th>
                                 <th class="py-2.5 px-3 text-start">{{ t('amount', 'Amount') }}</th>
@@ -206,21 +201,21 @@ function deleteTenant() {
                                 <th class="py-2.5 px-3 text-start">{{ t('ends_at', 'Ends') }}</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800/60">
-                            <tr v-for="sub in tenant.subscriptions" :key="sub.id" class="hover:bg-slate-800/30">
-                                <td class="py-3 px-3 font-semibold text-white">{{ sub.plan_name }}</td>
-                                <td class="py-3 px-3 capitalize text-slate-300">{{ sub.billing_interval }}</td>
-                                <td class="py-3 px-3 font-semibold text-white">
+                        <tbody class="divide-y divide-border-subtle">
+                            <tr v-for="sub in tenant.subscriptions" :key="sub.id" class="hover:bg-surface-hover">
+                                <td class="py-3 px-3 font-semibold text-text-main">{{ sub.plan_name }}</td>
+                                <td class="py-3 px-3 capitalize text-text-muted">{{ sub.billing_interval }}</td>
+                                <td class="py-3 px-3 font-semibold text-text-main">
                                     <CurrencyCell :amount="sub.amount" :currency="sub.currency" />
                                 </td>
                                 <td class="py-3 px-3">
                                     <StatusBadge :status="sub.status" />
                                 </td>
-                                <td class="py-3 px-3 text-slate-400">{{ sub.starts_at }}</td>
-                                <td class="py-3 px-3 text-slate-400">{{ sub.ends_at }}</td>
+                                <td class="py-3 px-3 text-text-muted">{{ sub.starts_at }}</td>
+                                <td class="py-3 px-3 text-text-muted">{{ sub.ends_at }}</td>
                             </tr>
                             <tr v-if="tenant.subscriptions.length === 0">
-                                <td colspan="6" class="py-6 text-center text-slate-500">
+                                <td colspan="6" class="py-6 text-center text-text-subtle">
                                     {{ t('no_subscriptions_found', 'No subscription records found.') }}
                                 </td>
                             </tr>

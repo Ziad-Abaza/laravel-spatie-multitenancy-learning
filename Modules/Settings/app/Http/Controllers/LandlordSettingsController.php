@@ -40,6 +40,15 @@ class LandlordSettingsController extends Controller
             $this->settingService->set($key, $value, $domain, true);
         }
 
+        if ($domain === 'theme') {
+            if (isset($settings['default_palette']) || isset($settings['theme'])) {
+                session(['theme' => $settings['default_palette'] ?? $settings['theme']]);
+            }
+            if (isset($settings['default_mode']) || isset($settings['mode'])) {
+                session(['theme_mode' => $settings['default_mode'] ?? $settings['mode']]);
+            }
+        }
+
         return back()->with('success', 'Settings updated successfully.');
     }
 }

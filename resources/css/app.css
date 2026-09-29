@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @source '../views/**/*.blade.php';
 @source '../js/**/*.{vue,js,ts}';
 @source '../../Modules/**/*.{vue,js,ts,blade.php}';
@@ -10,7 +12,53 @@
     --font-inter: 'Inter', system-ui, sans-serif;
 }
 
+@theme inline {
+    --color-primary-50: var(--color-primary-50);
+    --color-primary-100: var(--color-primary-100);
+    --color-primary-200: var(--color-primary-200);
+    --color-primary-300: var(--color-primary-300);
+    --color-primary-400: var(--color-primary-400);
+    --color-primary-500: var(--color-primary-500);
+    --color-primary-600: var(--color-primary-600);
+    --color-primary-700: var(--color-primary-700);
+    --color-primary-800: var(--color-primary-800);
+    --color-primary-900: var(--color-primary-900);
+    --color-primary-950: var(--color-primary-950);
+
+    --color-secondary-50: var(--color-secondary-50);
+    --color-secondary-100: var(--color-secondary-100);
+    --color-secondary-200: var(--color-secondary-200);
+    --color-secondary-300: var(--color-secondary-300);
+    --color-secondary-400: var(--color-secondary-400);
+    --color-secondary-500: var(--color-secondary-500);
+    --color-secondary-600: var(--color-secondary-600);
+    --color-secondary-700: var(--color-secondary-700);
+    --color-secondary-800: var(--color-secondary-800);
+    --color-secondary-900: var(--color-secondary-900);
+
+    --color-surface-bg: var(--color-surface-bg);
+    --color-surface-card: var(--color-surface-card);
+    --color-surface-sidebar: var(--color-surface-sidebar);
+    --color-surface-header: var(--color-surface-header);
+    --color-surface-input: var(--color-surface-input);
+    --color-surface-hover: var(--color-surface-hover);
+
+    --color-border-subtle: var(--color-border-subtle);
+    --color-border-strong: var(--color-border-strong);
+
+    --color-text-main: var(--color-text-main);
+    --color-text-muted: var(--color-text-muted);
+    --color-text-subtle: var(--color-text-subtle);
+
+    --color-nav-active-bg: var(--color-nav-active-bg);
+    --color-nav-active-text: var(--color-nav-active-text);
+}
+
+/* ==========================================================================
+   Base Theme Variables (Default: Indigo Theme)
+   ========================================================================== */
 :root {
+    /* Primary (Indigo) */
     --color-primary-50: #eef2ff;
     --color-primary-100: #e0e7ff;
     --color-primary-200: #c7d2fe;
@@ -21,8 +69,62 @@
     --color-primary-700: #4338ca;
     --color-primary-800: #3730a3;
     --color-primary-900: #312e81;
+    --color-primary-950: #1e1b4b;
+
+    /* Secondary (Slate) */
+    --color-secondary-50: #f8fafc;
+    --color-secondary-100: #f1f5f9;
+    --color-secondary-200: #e2e8f0;
+    --color-secondary-300: #cbd5e1;
+    --color-secondary-400: #94a3b8;
+    --color-secondary-500: #64748b;
+    --color-secondary-600: #475569;
+    --color-secondary-700: #334155;
+    --color-secondary-800: #1e293b;
+    --color-secondary-900: #0f172a;
+
+    /* Light Mode Surfaces & Tokens */
+    --color-surface-bg: #f8fafc;
+    --color-surface-card: #ffffff;
+    --color-surface-sidebar: #ffffff;
+    --color-surface-header: rgba(255, 255, 255, 0.85);
+    --color-surface-input: #ffffff;
+    --color-surface-hover: #f1f5f9;
+
+    --color-border-subtle: #e2e8f0;
+    --color-border-strong: #cbd5e1;
+
+    --color-text-main: #0f172a;
+    --color-text-muted: #64748b;
+    --color-text-subtle: #94a3b8;
+
+    --color-nav-active-bg: #e0e7ff;
+    --color-nav-active-text: #4338ca;
 }
 
+/* Dark Mode Tokens (Applies to all themes when .dark is present) */
+.dark {
+    --color-surface-bg: #030712;
+    --color-surface-card: #0f172a;
+    --color-surface-sidebar: #0b1120;
+    --color-surface-header: rgba(11, 17, 32, 0.85);
+    --color-surface-input: #1e293b;
+    --color-surface-hover: rgba(30, 41, 59, 0.7);
+
+    --color-border-subtle: #1e293b;
+    --color-border-strong: #334155;
+
+    --color-text-main: #f8fafc;
+    --color-text-muted: #94a3b8;
+    --color-text-subtle: #64748b;
+
+    --color-nav-active-bg: var(--color-primary-600);
+    --color-nav-active-text: #ffffff;
+}
+
+/* ==========================================================================
+   Theme: Emerald
+   ========================================================================== */
 [data-theme='emerald'] {
     --color-primary-50: #ecfdf5;
     --color-primary-100: #d1fae5;
@@ -34,8 +136,41 @@
     --color-primary-700: #047857;
     --color-primary-800: #065f46;
     --color-primary-900: #064e3b;
+    --color-primary-950: #022c22;
+
+    --color-secondary-50: #f0fdfa;
+    --color-secondary-100: #ccfbf1;
+    --color-secondary-200: #99f6e4;
+    --color-secondary-300: #5eead4;
+    --color-secondary-400: #2dd4bf;
+    --color-secondary-500: #14b8a6;
+    --color-secondary-600: #0d9488;
+    --color-secondary-700: #0f766e;
+    --color-secondary-800: #115e59;
+    --color-secondary-900: #134e4a;
+
+    --color-nav-active-bg: #d1fae5;
+    --color-nav-active-text: #047857;
 }
 
+[data-theme='emerald'].dark {
+    --color-surface-bg: #022019;
+    --color-surface-card: #042f24;
+    --color-surface-sidebar: #03271e;
+    --color-surface-header: rgba(3, 39, 30, 0.85);
+    --color-surface-input: #064e3b;
+    --color-surface-hover: rgba(6, 78, 59, 0.7);
+
+    --color-border-subtle: #065f46;
+    --color-border-strong: #047857;
+
+    --color-nav-active-bg: var(--color-primary-600);
+    --color-nav-active-text: #ffffff;
+}
+
+/* ==========================================================================
+   Theme: Violet
+   ========================================================================== */
 [data-theme='violet'] {
     --color-primary-50: #f5f3ff;
     --color-primary-100: #ede9fe;
@@ -47,8 +182,41 @@
     --color-primary-700: #6d28d9;
     --color-primary-800: #5b21b6;
     --color-primary-900: #4c1d95;
+    --color-primary-950: #2e1065;
+
+    --color-secondary-50: #faf5ff;
+    --color-secondary-100: #f3e8ff;
+    --color-secondary-200: #e9d5ff;
+    --color-secondary-300: #d8b4fe;
+    --color-secondary-400: #c084fc;
+    --color-secondary-500: #a855f7;
+    --color-secondary-600: #9333ea;
+    --color-secondary-700: #7e22ce;
+    --color-secondary-800: #6b21a8;
+    --color-secondary-900: #581c87;
+
+    --color-nav-active-bg: #ede9fe;
+    --color-nav-active-text: #6d28d9;
 }
 
+[data-theme='violet'].dark {
+    --color-surface-bg: #090314;
+    --color-surface-card: #15092a;
+    --color-surface-sidebar: #0f0520;
+    --color-surface-header: rgba(15, 5, 32, 0.85);
+    --color-surface-input: #231042;
+    --color-surface-hover: rgba(35, 16, 66, 0.7);
+
+    --color-border-subtle: #2e1065;
+    --color-border-strong: #4c1d95;
+
+    --color-nav-active-bg: var(--color-primary-600);
+    --color-nav-active-text: #ffffff;
+}
+
+/* ==========================================================================
+   Theme: Amber
+   ========================================================================== */
 [data-theme='amber'] {
     --color-primary-50: #fffbeb;
     --color-primary-100: #fef3c7;
@@ -60,8 +228,41 @@
     --color-primary-700: #b45309;
     --color-primary-800: #92400e;
     --color-primary-900: #78350f;
+    --color-primary-950: #451a03;
+
+    --color-secondary-50: #fff7ed;
+    --color-secondary-100: #ffedd5;
+    --color-secondary-200: #fed7aa;
+    --color-secondary-300: #fdba74;
+    --color-secondary-400: #fb923c;
+    --color-secondary-500: #f97316;
+    --color-secondary-600: #ea580c;
+    --color-secondary-700: #c2410c;
+    --color-secondary-800: #9a3412;
+    --color-secondary-900: #7c2d12;
+
+    --color-nav-active-bg: #fef3c7;
+    --color-nav-active-text: #b45309;
 }
 
+[data-theme='amber'].dark {
+    --color-surface-bg: #120902;
+    --color-surface-card: #1f1105;
+    --color-surface-sidebar: #170d04;
+    --color-surface-header: rgba(23, 13, 4, 0.85);
+    --color-surface-input: #2f1b0a;
+    --color-surface-hover: rgba(47, 27, 10, 0.7);
+
+    --color-border-subtle: #3a220d;
+    --color-border-strong: #543314;
+
+    --color-nav-active-bg: var(--color-primary-600);
+    --color-nav-active-text: #ffffff;
+}
+
+/* ==========================================================================
+   Theme: Cyan
+   ========================================================================== */
 [data-theme='cyan'] {
     --color-primary-50: #ecfeff;
     --color-primary-100: #cffafe;
@@ -73,8 +274,41 @@
     --color-primary-700: #0e7490;
     --color-primary-800: #155e75;
     --color-primary-900: #164e63;
+    --color-primary-950: #083344;
+
+    --color-secondary-50: #f0f9ff;
+    --color-secondary-100: #e0f2fe;
+    --color-secondary-200: #bae6fd;
+    --color-secondary-300: #7dd3fc;
+    --color-secondary-400: #38bdf8;
+    --color-secondary-500: #0ea5e9;
+    --color-secondary-600: #0284c7;
+    --color-secondary-700: #0369a1;
+    --color-secondary-800: #075985;
+    --color-secondary-900: #0c4a6e;
+
+    --color-nav-active-bg: #cffafe;
+    --color-nav-active-text: #0e7490;
 }
 
+[data-theme='cyan'].dark {
+    --color-surface-bg: #021319;
+    --color-surface-card: #04222c;
+    --color-surface-sidebar: #031b23;
+    --color-surface-header: rgba(3, 27, 35, 0.85);
+    --color-surface-input: #083344;
+    --color-surface-hover: rgba(8, 51, 68, 0.7);
+
+    --color-border-subtle: #0e4c63;
+    --color-border-strong: #16607d;
+
+    --color-nav-active-bg: var(--color-primary-600);
+    --color-nav-active-text: #ffffff;
+}
+
+/* ==========================================================================
+   Theme: Rose
+   ========================================================================== */
 [data-theme='rose'] {
     --color-primary-50: #fff1f2;
     --color-primary-100: #ffe4e6;
@@ -86,6 +320,36 @@
     --color-primary-700: #be123c;
     --color-primary-800: #9f1239;
     --color-primary-900: #881337;
+    --color-primary-950: #4c0519;
+
+    --color-secondary-50: #fdf2f8;
+    --color-secondary-100: #fce7f3;
+    --color-secondary-200: #fbcfe8;
+    --color-secondary-300: #f472b6;
+    --color-secondary-400: #e879f9;
+    --color-secondary-500: #d946ef;
+    --color-secondary-600: #c026d3;
+    --color-secondary-700: #a21caf;
+    --color-secondary-800: #86198f;
+    --color-secondary-900: #701a75;
+
+    --color-nav-active-bg: #ffe4e6;
+    --color-nav-active-text: #be123c;
+}
+
+[data-theme='rose'].dark {
+    --color-surface-bg: #140206;
+    --color-surface-card: #24050d;
+    --color-surface-sidebar: #1b0409;
+    --color-surface-header: rgba(27, 4, 9, 0.85);
+    --color-surface-input: #380815;
+    --color-surface-hover: rgba(56, 8, 21, 0.7);
+
+    --color-border-subtle: #4c0519;
+    --color-border-strong: #690a25;
+
+    --color-nav-active-bg: var(--color-primary-600);
+    --color-nav-active-text: #ffffff;
 }
 
 [dir="rtl"] {

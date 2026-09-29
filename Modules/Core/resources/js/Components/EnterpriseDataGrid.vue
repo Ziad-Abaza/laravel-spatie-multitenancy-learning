@@ -134,25 +134,25 @@ const processedData = computed(() => {
 </script>
 
 <template>
-    <div class="w-full bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+    <div class="w-full bg-surface-card border border-border-subtle rounded-2xl overflow-hidden shadow-xs flex flex-col">
         <!-- Header (Title, Description, and Toolbar) -->
         <div
             v-if="title || description || $slots['toolbar-actions'] || $slots.actions || searchable"
-            class="p-5 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/60"
+            class="p-5 border-b border-border-subtle flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-card"
         >
             <div v-if="title || description" class="min-w-0">
-                <h2 v-if="title" class="text-base font-semibold text-white tracking-tight">{{ title }}</h2>
-                <p v-if="description" class="text-xs text-slate-400 mt-0.5">{{ description }}</p>
+                <h2 v-if="title" class="text-base font-semibold text-text-main tracking-tight">{{ title }}</h2>
+                <p v-if="description" class="text-xs text-text-muted mt-0.5">{{ description }}</p>
             </div>
 
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 ms-auto w-full md:w-auto">
                 <div v-if="searchable" class="relative w-full sm:w-64">
-                    <Search class="w-4 h-4 text-slate-500 absolute start-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Search class="w-4 h-4 text-text-subtle absolute start-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                         :value="localSearch"
                         type="text"
                         :placeholder="searchPlaceholder || t('search', 'Search...')"
-                        class="w-full ps-9 pe-3 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                        class="w-full ps-9 pe-3 py-2 bg-surface-input border border-border-subtle rounded-xl text-xs text-text-main placeholder-text-subtle focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
                         @input="onSearchInput(($event.target as HTMLInputElement).value)"
                     />
                 </div>
@@ -179,7 +179,7 @@ const processedData = computed(() => {
             </div>
 
             <table v-else class="w-full text-sm text-start">
-                <thead class="bg-slate-950/40 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                <thead class="bg-surface-hover/60 text-xs font-semibold text-text-muted uppercase tracking-wider border-b border-border-subtle">
                     <tr>
                         <th
                             v-for="col in columns"
@@ -188,16 +188,16 @@ const processedData = computed(() => {
                             class="px-6 py-3.5 select-none"
                             :class="[
                                 col.align === 'right' || col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start',
-                                col.sortable ? 'cursor-pointer hover:text-white transition-colors' : '',
+                                col.sortable ? 'cursor-pointer hover:text-text-main transition-colors' : '',
                                 col.width || ''
                             ]"
                             @click="toggleSort(col)"
                         >
                             <span class="inline-flex items-center gap-1.5">
                                 {{ col.label }}
-                                <span v-if="col.sortable" class="text-slate-500">
-                                    <ChevronUp v-if="sortKey === col.key && sortDirection === 'asc'" class="w-3.5 h-3.5 text-indigo-400" />
-                                    <ChevronDown v-else-if="sortKey === col.key && sortDirection === 'desc'" class="w-3.5 h-3.5 text-indigo-400" />
+                                <span v-if="col.sortable" class="text-text-subtle">
+                                    <ChevronUp v-if="sortKey === col.key && sortDirection === 'asc'" class="w-3.5 h-3.5 text-primary-600 dark:text-primary-400" />
+                                    <ChevronDown v-else-if="sortKey === col.key && sortDirection === 'desc'" class="w-3.5 h-3.5 text-primary-600 dark:text-primary-400" />
                                     <ChevronsUpDown v-else class="w-3.5 h-3.5 opacity-40" />
                                 </span>
                             </span>
@@ -208,17 +208,17 @@ const processedData = computed(() => {
                     </tr>
                 </thead>
 
-                <tbody class="divide-y divide-slate-800/60">
+                <tbody class="divide-y divide-border-subtle">
                     <tr
                         v-for="(item, idx) in processedData"
                         :key="item.id || idx"
-                        class="hover:bg-slate-800/40 transition-colors cursor-pointer"
+                        class="hover:bg-surface-hover/50 transition-colors cursor-pointer"
                         @click="emit('row-click', item)"
                     >
                         <td
                             v-for="col in columns"
                             :key="col.key"
-                            class="px-6 py-4 whitespace-nowrap text-slate-300 text-xs"
+                            class="px-6 py-4 whitespace-nowrap text-text-main text-xs"
                             :class="col.align === 'right' || col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'"
                         >
                             <!-- Supports both #cell-{col.key} and #{col.key} slots with row, item, and value bindings -->
@@ -239,14 +239,14 @@ const processedData = computed(() => {
         </div>
 
         <!-- Footer / Pagination -->
-        <div v-if="processedData.length > 0" class="p-4 border-t border-slate-800/80 bg-slate-900/60 flex items-center justify-between text-xs text-slate-400">
+        <div v-if="processedData.length > 0" class="p-4 border-t border-border-subtle bg-surface-card flex items-center justify-between text-xs text-text-muted">
             <span>
-                {{ t('total', 'Total') }}: <strong class="text-slate-200">{{ totalCount ?? pagination?.total ?? processedData.length }}</strong>
+                {{ t('total', 'Total') }}: <strong class="text-text-main">{{ totalCount ?? pagination?.total ?? processedData.length }}</strong>
             </span>
             <div v-if="pagination && pagination.last_page && pagination.last_page > 1" class="flex items-center gap-2">
                 <button
                     type="button"
-                    class="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-950/60 hover:bg-slate-800 text-slate-300 disabled:opacity-40 transition-colors"
+                    class="px-2.5 py-1 rounded-lg border border-border-subtle bg-surface-input hover:bg-surface-hover text-text-main disabled:opacity-40 transition-colors"
                     :disabled="pagination.current_page === 1"
                     @click="emit('page-change', (pagination.current_page || 1) - 1)"
                 >
@@ -255,7 +255,7 @@ const processedData = computed(() => {
                 <span>{{ pagination.current_page }} / {{ pagination.last_page }}</span>
                 <button
                     type="button"
-                    class="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-950/60 hover:bg-slate-800 text-slate-300 disabled:opacity-40 transition-colors"
+                    class="px-2.5 py-1 rounded-lg border border-border-subtle bg-surface-input hover:bg-surface-hover text-text-main disabled:opacity-40 transition-colors"
                     :disabled="pagination.current_page === pagination.last_page"
                     @click="emit('page-change', (pagination.current_page || 1) + 1)"
                 >

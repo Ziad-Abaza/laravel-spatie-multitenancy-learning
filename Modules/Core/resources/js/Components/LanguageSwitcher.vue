@@ -1,18 +1,23 @@
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3';
-import { Languages } from 'lucide-vue-next';
+import { computed } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import { useI18n } from '../Composables/useI18n';
 
+const page = usePage();
 const { locale } = useI18n();
+
+const supportedLocales = computed(() => {
+    return (page.props.locale as any)?.supported || { en: 'English', ar: 'العربية' };
+});
+
+const isArabicSupported = computed(() => Boolean(supportedLocales.value['ar']));
 
 function switchLocale(newLocale: string) {
     if (newLocale === locale.value) return;
 
-    router.visit(window.location.href, {
-        method: 'get',
-        data: { locale: newLocale },
-        preserveState: true,
+    router.post('/locale', { locale: newLocale }, {
         preserveScroll: true,
+        preserveState: false,
         onSuccess: () => {
             const isRtl = newLocale === 'ar';
             document.documentElement.setAttribute('dir', isRtl ? 'rtl' : 'ltr');
@@ -23,19 +28,20 @@ function switchLocale(newLocale: string) {
 </script>
 
 <template>
-    <div class="inline-flex items-center rounded-xl bg-slate-900/80 border border-slate-800 p-0.5 text-xs font-medium text-slate-300">
+    <div class="inline-flex items-center rounded-xl bg-surface-card border border-border-subtle p-0.5 text-xs font-medium text-text-muted shadow-xs">
         <button
             type="button"
             class="px-2.5 py-1 rounded-lg transition-all"
-            :class="locale === 'en' ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-slate-400 hover:text-slate-200'"
+            :class="locale === 'en' ? 'bg-primary-600 text-white shadow-xs font-semibold' : 'text-text-muted hover:text-text-main'"
             @click="switchLocale('en')"
         >
             EN
         </button>
         <button
+            v-if="isArabicSupported"
             type="button"
             class="px-2.5 py-1 rounded-lg transition-all"
-            :class="locale === 'ar' ? 'bg-indigo-600 text-white shadow-sm font-semibold' : 'text-slate-400 hover:text-slate-200'"
+            :class="locale === 'ar' ? 'bg-primary-600 text-white shadow-xs font-semibold' : 'text-text-muted hover:text-text-main'"
             @click="switchLocale('ar')"
         >
             عربي

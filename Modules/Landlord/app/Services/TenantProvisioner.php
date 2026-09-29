@@ -11,6 +11,7 @@ use Modules\Core\Events\TenantCreated;
 use Modules\Core\Events\TenantProvisioned;
 use Modules\Landlord\Models\Tenant;
 use Modules\Settings\Models\TenantSetting;
+use Modules\Settings\Services\SettingService;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Services\SubscriptionService;
 use Spatie\Multitenancy\Actions\MigrateTenantAction;
@@ -19,7 +20,8 @@ use Spatie\Permission\Models\Role;
 class TenantProvisioner
 {
     public function __construct(
-        protected SubscriptionService $subscriptionService
+        protected SubscriptionService $subscriptionService,
+        protected SettingService $settingService
     ) {}
 
     /**
@@ -52,11 +54,18 @@ class TenantProvisioner
         }
         $domain = $data['domain'] ?? "{$slug}.{$baseHost}";
 
-        // Ensure database name is safe
-        $databaseName = 'vendor_'.str_replace('-', '_', $slug);
+        // Ensure database name is safe with configurable prefix
+        $prefix = (string) $this->settingService->get('tenant_db_prefix', 'tenant_', 'system');
+        $databaseName = $prefix.str_replace('-', '_', $slug);
 
         // 1. Create tenant database if MySQL (or prepare sqlite in test)
         $this->createDatabaseIfNotExists($databaseName);
+
+        // Retrieve system defaults for trial duration and theme
+        $defaultTrialDays = (int) $this->settingService->get('default_trial_days', 14, 'system');
+        $defaultTheme = (string) $this->settingService->get('default_palette', $this->settingService->get('theme', 'indigo', 'theme'), 'theme');
+        $defaultMode = (string) $this->settingService->get('default_mode', $this->settingService->get('mode', 'dark', 'theme'), 'theme');
+        $defaultLocale = (string) $this->settingService->get('default_locale', 'en', 'localization');
 
         // 2. Create Tenant record on landlord connection
         $tenant = Tenant::create([
@@ -65,11 +74,11 @@ class TenantProvisioner
             'domain' => $domain,
             'database' => $databaseName,
             'status' => TenantStatus::Trialing,
-            'trial_ends_at' => now()->addDays(14),
+            'trial_ends_at' => now()->addDays($defaultTrialDays),
             'settings' => [
-                'theme' => 'indigo',
-                'mode' => 'dark',
-                'language' => 'en',
+                'theme' => $defaultTheme,
+                'mode' => $defaultMode,
+                'language' => $defaultLocale,
             ],
         ]);
 
@@ -169,12 +178,20 @@ class TenantProvisioner
                 ['value' => $tenant->name, 'type' => 'string', 'is_public' => true]
             );
             TenantSetting::updateOrCreate(
+                ['domain' => 'branding', 'key' => 'workspace_name'],
+                ['value' => $tenant->name, 'type' => 'string', 'is_public' => true]
+            );
+            TenantSetting::updateOrCreate(
                 ['domain' => 'theme', 'key' => 'theme'],
-                ['value' => 'indigo', 'type' => 'string', 'is_public' => true]
+                ['value' => $tenant->settings['theme'] ?? 'indigo', 'type' => 'string', 'is_public' => true]
+            );
+            TenantSetting::updateOrCreate(
+                ['domain' => 'theme', 'key' => 'palette'],
+                ['value' => $tenant->settings['theme'] ?? 'indigo', 'type' => 'string', 'is_public' => true]
             );
             TenantSetting::updateOrCreate(
                 ['domain' => 'theme', 'key' => 'mode'],
-                ['value' => 'dark', 'type' => 'string', 'is_public' => true]
+                ['value' => $tenant->settings['mode'] ?? 'dark', 'type' => 'string', 'is_public' => true]
             );
         });
     }

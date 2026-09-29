@@ -10,19 +10,26 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Landlord\Models\Tenant;
 use Modules\Landlord\Services\TenantProvisioner;
+use Modules\Settings\Services\SettingService;
 use Modules\Subscription\Models\Plan;
 
 class TenantRegistrationController extends Controller
 {
     public function __construct(
-        protected TenantProvisioner $provisioner
+        protected TenantProvisioner $provisioner,
+        protected SettingService $settingService
     ) {}
 
     /**
      * Show self-service workspace registration form.
      */
-    public function show(): Response
+    public function show(): Response|RedirectResponse
     {
+        $allowRegistration = (bool) $this->settingService->get('allow_registration', $this->settingService->get('registration_enabled', true, 'system'), 'system');
+        if (! $allowRegistration) {
+            abort(403, 'Public workspace registration is currently disabled.');
+        }
+
         $plans = Plan::where('is_active', true)
             ->orderBy('sort_order')
             ->get()
@@ -47,6 +54,11 @@ class TenantRegistrationController extends Controller
      */
     public function register(Request $request): RedirectResponse
     {
+        $allowRegistration = (bool) $this->settingService->get('allow_registration', $this->settingService->get('registration_enabled', true, 'system'), 'system');
+        if (! $allowRegistration) {
+            abort(403, 'Public workspace registration is currently disabled.');
+        }
+
         $reservedSubdomains = ['localhost', 'admin', 'landlord', 'api', 'www', 'app', 'system', 'root'];
 
         $validated = $request->validate([

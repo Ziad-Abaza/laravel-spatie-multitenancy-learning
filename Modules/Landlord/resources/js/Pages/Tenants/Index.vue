@@ -76,7 +76,7 @@ function rowClick(row: TenantItem) {
             <template #toolbar-actions>
                 <Link
                     href="/landlord/tenants/create"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md shadow-indigo-600/20 transition-all"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold text-xs shadow-md shadow-primary-600/20 transition-all cursor-pointer"
                 >
                     <Plus class="w-4 h-4" />
                     <span>{{ t('provision_tenant', 'Provision Tenant') }}</span>
@@ -89,7 +89,7 @@ function rowClick(row: TenantItem) {
                     :href="row.url"
                     target="_blank"
                     @click.stop
-                    class="inline-flex items-center gap-1 font-mono text-xs text-indigo-400 hover:text-indigo-300"
+                    class="inline-flex items-center gap-1 font-mono text-xs text-primary-400 hover:text-primary-300"
                 >
                     <span>{{ row.domain }}</span>
                     <ExternalLink class="w-3 h-3" />
@@ -98,7 +98,7 @@ function rowClick(row: TenantItem) {
 
             <!-- Custom Database Cell -->
             <template #cell-database="{ row }">
-                <span class="font-mono text-xs text-slate-400">{{ row.database }}</span>
+                <span class="font-mono text-xs text-text-muted">{{ row.database }}</span>
             </template>
 
             <!-- Custom Status Cell -->
@@ -111,7 +111,7 @@ function rowClick(row: TenantItem) {
                 <div class="flex items-center justify-end gap-2" @click.stop>
                     <Link
                         :href="`/landlord/tenants/${row.id}`"
-                        class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                        class="p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors"
                         :title="t('view_tenant', 'View Tenant')"
                     >
                         <Eye class="w-4 h-4" />

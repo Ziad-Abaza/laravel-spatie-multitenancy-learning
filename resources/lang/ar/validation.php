@@ -1,0 +1,53 @@
+<?php
+
+return [
+    'accepted' => 'يجب قبول حقل :attribute.',
+    'active_url' => 'حقل :attribute لا يمثل رابطاً صحيحاً.',
+    'after' => 'يجب أن يكون حقل :attribute تاريخاً بعد :date.',
+    'alpha' => 'يجب أن يحتوي حقل :attribute على حروف فقط.',
+    'alpha_dash' => 'يجب أن يحتوي حقل :attribute على حروف وأرقام وشرطات وشرطات سفلية فقط.',
+    'alpha_num' => 'يجب أن يحتوي حقل :attribute على حروف وأرقام فقط.',
+    'array' => 'يجب أن يكون حقل :attribute مصفوفة.',
+    'before' => 'يجب أن يكون حقل :attribute تاريخاً قبل :date.',
+    'between' => [
+        'numeric' => 'يجب أن تكون قيمة :attribute بين :min و :max.',
+        'file' => 'يجب أن يكون حجم ملف :attribute بين :min و :max كيلوبايت.',
+        'string' => 'يجب أن يكون طول نص :attribute بين :min و :max حرفاً.',
+        'array' => 'يجب أن يحتوي :attribute على عدد من العناصر بين :min و :max.',
+    ],
+    'boolean' => 'يجب أن تكون قيمة حقل :attribute إما صحيح أو خطأ.',
+    'confirmed' => 'حقل تأكيد :attribute غير متطابق.',
+    'email' => 'يجب أن يكون :attribute عنوان بريد إلكتروني صحيح.',
+    'exists' => 'القيمة المحددة لحقل :attribute غير صالحة.',
+    'file' => 'يجب أن يكون حقل :attribute ملفاً.',
+    'filled' => 'يجب إدخال قيمة في حقل :attribute.',
+    'integer' => 'يجب أن يكون حقل :attribute عدداً صحيحاً.',
+    'max' => [
+        'numeric' => 'يجب ألا تزيد قيمة :attribute عن :max.',
+        'file' => 'يجب ألا يتجاوز حجم ملف :attribute عن :max كيلوبايت.',
+        'string' => 'يجب ألا يزيد طول نص :attribute عن :max حرفاً.',
+        'array' => 'يجب ألا يحتوي :attribute على أكثر من :max عنصر.',
+    ],
+    'min' => [
+        'numeric' => 'يجب أن تكون قيمة :attribute على الأقل :min.',
+        'file' => 'يجب أن يكون حجم ملف :attribute على الأقل :min كيلوبايت.',
+        'string' => 'يجب أن يحتوي نص :attribute على الأقل على :min حروف.',
+        'array' => 'يجب أن يحتوي :attribute على الأقل على :min عناصر.',
+    ],
+    'numeric' => 'يجب أن يكون حقل :attribute رقماً.',
+    'required' => 'حقل :attribute مطلوب.',
+    'string' => 'يجب أن يكون حقل :attribute نصاً.',
+    'unique' => 'قيمة حقل :attribute مستخدمة بالفعل.',
+
+    'attributes' => [
+        'organization_name' => 'اسم المنشأة',
+        'subdomain' => 'النطاق الفرعي',
+        'admin_name' => 'اسم المشرف',
+        'admin_email' => 'البريد الإلكتروني للمشرف',
+        'admin_password' => 'كلمة مرور المشرف',
+        'plan_id' => 'خطة الاشتراك',
+        'name' => 'الاسم',
+        'email' => 'البريد الإلكتروني',
+        'password' => 'كلمة المرور',
+    ],
+];

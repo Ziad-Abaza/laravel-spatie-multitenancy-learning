@@ -1,0 +1,53 @@
+<?php
+
+return [
+    'accepted' => 'The :attribute field must be accepted.',
+    'active_url' => 'The :attribute field must be a valid URL.',
+    'after' => 'The :attribute field must be a date after :date.',
+    'alpha' => 'The :attribute field must only contain letters.',
+    'alpha_dash' => 'The :attribute field must only contain letters, numbers, dashes, and underscores.',
+    'alpha_num' => 'The :attribute field must only contain letters and numbers.',
+    'array' => 'The :attribute field must be an array.',
+    'before' => 'The :attribute field must be a date before :date.',
+    'between' => [
+        'numeric' => 'The :attribute field must be between :min and :max.',
+        'file' => 'The :attribute field must be between :min and :max kilobytes.',
+        'string' => 'The :attribute field must be between :min and :max characters.',
+        'array' => 'The :attribute field must have between :min and :max items.',
+    ],
+    'boolean' => 'The :attribute field must be true or false.',
+    'confirmed' => 'The :attribute field confirmation does not match.',
+    'email' => 'The :attribute field must be a valid email address.',
+    'exists' => 'The selected :attribute is invalid.',
+    'file' => 'The :attribute field must be a file.',
+    'filled' => 'The :attribute field must have a value.',
+    'integer' => 'The :attribute field must be an integer.',
+    'max' => [
+        'numeric' => 'The :attribute field must not be greater than :max.',
+        'file' => 'The :attribute field must not be greater than :max kilobytes.',
+        'string' => 'The :attribute field must not be greater than :max characters.',
+        'array' => 'The :attribute field must not have more than :max items.',
+    ],
+    'min' => [
+        'numeric' => 'The :attribute field must be at least :min.',
+        'file' => 'The :attribute field must be at least :min kilobytes.',
+        'string' => 'The :attribute field must be at least :min characters.',
+        'array' => 'The :attribute field must have at least :min items.',
+    ],
+    'numeric' => 'The :attribute field must be a number.',
+    'required' => 'The :attribute field is required.',
+    'string' => 'The :attribute field must be a string.',
+    'unique' => 'The :attribute has already been taken.',
+
+    'attributes' => [
+        'organization_name' => 'organization name',
+        'subdomain' => 'subdomain',
+        'admin_name' => 'administrator name',
+        'admin_email' => 'administrator email',
+        'admin_password' => 'administrator password',
+        'plan_id' => 'subscription plan',
+        'name' => 'name',
+        'email' => 'email',
+        'password' => 'password',
+    ],
+];

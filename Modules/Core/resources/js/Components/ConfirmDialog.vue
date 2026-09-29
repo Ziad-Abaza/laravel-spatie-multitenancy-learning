@@ -47,8 +47,8 @@ const iconColorClass = computed(() => {
     if (cls.includes('amber') || cls.includes('yellow')) {
         return 'text-amber-500';
     }
-    if (cls.includes('indigo') || cls.includes('blue')) {
-        return 'text-indigo-400';
+    if (cls.includes('indigo') || cls.includes('primary') || cls.includes('blue')) {
+        return 'text-primary-600 dark:text-primary-400';
     }
     return 'text-rose-500';
 });
@@ -59,18 +59,18 @@ const iconColorClass = computed(() => {
         <template #title>
             <span class="flex items-center gap-2">
                 <AlertTriangle class="w-5 h-5 shrink-0" :class="iconColorClass" />
-                <span class="text-white font-semibold">{{ title || t('confirm_delete_title', 'Confirm Action') }}</span>
+                <span class="text-text-main font-semibold">{{ title || t('confirm_delete_title', 'Confirm Action') }}</span>
             </span>
         </template>
 
-        <p class="text-sm text-slate-300">
+        <p class="text-sm text-text-muted">
             {{ message || t('confirm_delete_text', 'Are you sure you want to proceed? This action cannot be undone.') }}
         </p>
 
         <template #footer>
             <button
                 type="button"
-                class="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-800 hover:bg-slate-700/80 rounded-xl transition-colors"
+                class="px-4 py-2 text-sm font-medium text-text-main bg-surface-input hover:bg-surface-hover border border-border-subtle rounded-xl transition-colors"
                 :disabled="loading"
                 @click="emit('close')"
             >
@@ -78,7 +78,7 @@ const iconColorClass = computed(() => {
             </button>
             <button
                 type="button"
-                class="px-4 py-2 text-sm font-medium rounded-xl transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+                class="px-4 py-2 text-sm font-medium rounded-xl transition-colors disabled:opacity-50 inline-flex items-center gap-2 shadow-xs"
                 :class="confirmButtonClass || 'bg-rose-600 hover:bg-rose-500 text-white'"
                 :disabled="loading"
                 @click="emit('confirm')"
