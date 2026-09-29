@@ -1,3 +1,5 @@
 {
+    "percent_utilized": "تم استخدام :percent%",
+    "seats_remaining": ":count مقاعد متبقية",
     "tenant_portal": "بوابة المستأجر"
 }

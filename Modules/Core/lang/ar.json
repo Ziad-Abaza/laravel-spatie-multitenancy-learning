@@ -1,12 +1,12 @@
 {
-    "theme": "المظهر",
-    "choose_theme": "اختيار المظهر",
-    "dark_mode": "الوضع الداكن",
-    "light_mode": "الوضع الفاتح",
-    "language": "اللغة",
-    "english": "English",
     "arabic": "العربية",
+    "choose_theme": "اختيار المظهر",
     "collapse_sidebar": "طي القائمة الجانبية",
+    "dark_mode": "الوضع الداكن",
+    "english": "English",
     "expand_sidebar": "توسيع القائمة الجانبية",
-    "system_preference": "تفضيل النظام \/ المتصفح"
+    "language": "اللغة",
+    "light_mode": "الوضع الفاتح",
+    "system_preference": "تفضيل النظام / المتصفح",
+    "theme": "المظهر"
 }

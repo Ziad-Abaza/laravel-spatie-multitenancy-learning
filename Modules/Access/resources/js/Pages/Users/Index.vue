@@ -34,7 +34,7 @@ const props = defineProps<{
     };
 }>();
 
-const { t } = useI18n();
+const { t, trans } = useI18n();
 
 const search = ref(props.filters.search || '');
 const isAddModalOpen = ref(false);
@@ -255,13 +255,13 @@ function confirmDelete() {
 
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">{{ t('job_title', 'Job Title') }}</label>
-                        <input v-model="addForm.job_title" type="text" placeholder="Engineer" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                        <input v-model="addForm.job_title" type="text" :placeholder="t('job_title_example', 'e.g. Engineer')" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
                 <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
-                    <button type="button" @click="isAddModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main">Cancel</button>
-                    <button type="submit" :disabled="addForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold">Add Member</button>
+                    <button type="button" @click="isAddModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main">{{ t('cancel', 'Cancel') }}</button>
+                    <button type="submit" :disabled="addForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold">{{ t('add_member', 'Add Member') }}</button>
                 </div>
             </form>
         </Modal>
@@ -290,8 +290,8 @@ function confirmDelete() {
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">{{ t('status', 'Status') }}</label>
                         <select v-model="editForm.status" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
-                            <option value="active">Active</option>
-                            <option value="suspended">Suspended</option>
+                            <option value="active">{{ t('active', 'Active') }}</option>
+                            <option value="suspended">{{ t('suspended', 'Suspended') }}</option>
                         </select>
                     </div>
                 </div>
@@ -302,8 +302,8 @@ function confirmDelete() {
                 </div>
 
                 <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
-                    <button type="button" @click="isEditModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main">Cancel</button>
-                    <button type="submit" :disabled="editForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold">Save Changes</button>
+                    <button type="button" @click="isEditModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main">{{ t('cancel', 'Cancel') }}</button>
+                    <button type="submit" :disabled="editForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold">{{ t('save_changes', 'Save Changes') }}</button>
                 </div>
             </form>
         </Modal>
@@ -312,7 +312,7 @@ function confirmDelete() {
         <ConfirmDialog
             :is-open="isDeleteModalOpen"
             :title="t('confirm_remove_member', 'Remove Team Member?')"
-            :message="t('confirm_remove_member_msg', `Are you sure you want to remove ${deletingUser?.name}? They will lose access to this workspace.`)"
+            :message="trans('confirm_remove_member_msg', { name: deletingUser?.name || '' })"
             :confirm-text="t('remove', 'Remove Member')"
             variant="danger"
             @close="isDeleteModalOpen = false"

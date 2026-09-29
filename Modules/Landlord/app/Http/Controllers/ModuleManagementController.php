@@ -39,21 +39,21 @@ class ModuleManagementController extends Controller
         $module = Module::find($name);
 
         if (! $module) {
-            return back()->with('error', "Module {$name} not found.");
+            return back()->with('error', __('module_not_found', ['name' => $name]));
         }
 
         if (in_array(strtolower($name), ['core', 'landlord', 'access', 'subscription', 'settings', 'tenant'])) {
-            return back()->with('warning', "Core platform module {$name} cannot be disabled.");
+            return back()->with('warning', __('core_module_locked', ['name' => $name]));
         }
 
         if ($module->isEnabled()) {
             $module->disable();
 
-            return back()->with('success', "Module {$name} disabled.");
+            return back()->with('success', __('module_disabled', ['name' => $name]));
         } else {
             $module->enable();
 
-            return back()->with('success', "Module {$name} enabled.");
+            return back()->with('success', __('module_enabled', ['name' => $name]));
         }
     }
 }

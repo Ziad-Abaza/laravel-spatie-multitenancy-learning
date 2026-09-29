@@ -105,9 +105,9 @@ function confirmChangePlan() {
                         <div class="mt-2 text-xl font-bold text-text-main flex items-baseline gap-1">
                             <span v-if="plan && plan.price > 0">
                                 <CurrencyCell :amount="plan.price" :currency="plan.currency" />
-                                <span class="text-xs text-text-muted font-normal">/ {{ subscription?.billing_interval || 'monthly' }}</span>
+                                <span class="text-xs text-text-muted font-normal">/ {{ t(subscription?.billing_interval || 'monthly') }}</span>
                             </span>
-                            <span v-else class="text-success-fg text-sm font-semibold">Free Forever</span>
+                            <span v-else class="text-success-fg text-sm font-semibold">{{ t('free_forever', 'Free Forever') }}</span>
                         </div>
                     </div>
 
@@ -206,13 +206,13 @@ function confirmChangePlan() {
                                 <span class="text-3xl font-black text-text-main">
                                     <CurrencyCell :amount="targetPlan.price" :currency="targetPlan.currency" />
                                 </span>
-                                <span class="text-xs text-text-muted">/ {{ targetPlan.billing_interval || 'monthly' }}</span>
+                                <span class="text-xs text-text-muted">/ {{ t(targetPlan.billing_interval || 'monthly') }}</span>
                             </div>
 
                             <ul class="space-y-2.5 text-xs text-text-muted pt-4 border-t border-border-subtle">
                                 <li class="flex items-center gap-2">
                                     <CheckCircle2 class="w-3.5 h-3.5 text-success-fg shrink-0" />
-                                    <span>{{ t('max_users', 'Max Users') }}: <strong class="text-text-main">{{ targetPlan.limits?.max_users ?? 'Unlimited' }}</strong></span>
+                                    <span>{{ t('max_users', 'Max Users') }}: <strong class="text-text-main">{{ targetPlan.limits?.max_users ?? t('unlimited', 'Unlimited') }}</strong></span>
                                 </li>
                                 <li class="flex items-center gap-2">
                                     <CheckCircle2 class="w-3.5 h-3.5 text-success-fg shrink-0" />

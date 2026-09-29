@@ -65,7 +65,7 @@ const columns = computed<ColumnDefinition[]>(() => [
             </template>
 
             <template #cell-billing_interval="{ row }">
-                <span class="capitalize text-text-main">{{ row.billing_interval }}</span>
+                <span class="capitalize text-text-main">{{ t(row.billing_interval) }}</span>
             </template>
 
             <template #cell-status="{ row }">

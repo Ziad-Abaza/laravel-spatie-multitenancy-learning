@@ -91,6 +91,6 @@ class TenantRegistrationController extends Controller
 
         $tenantUrl = $tenant->url('/login');
 
-        return redirect()->away($tenantUrl)->with('success', 'Your workspace has been provisioned successfully! You can now log in.');
+        return redirect()->away($tenantUrl)->with('success', __('workspace_provisioned'));
     }
 }

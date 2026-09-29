@@ -1,12 +1,12 @@
 {
-    "theme": "Theme",
-    "choose_theme": "Choose theme",
-    "dark_mode": "Dark Mode",
-    "light_mode": "Light Mode",
-    "language": "Language",
-    "english": "English",
     "arabic": "العربية",
+    "choose_theme": "Choose theme",
     "collapse_sidebar": "Collapse sidebar",
+    "dark_mode": "Dark Mode",
+    "english": "English",
     "expand_sidebar": "Expand sidebar",
-    "system_preference": "System Preference"
+    "language": "Language",
+    "light_mode": "Light Mode",
+    "system_preference": "System Preference",
+    "theme": "Theme"
 }

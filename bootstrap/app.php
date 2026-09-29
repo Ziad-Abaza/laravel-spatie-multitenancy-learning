@@ -47,12 +47,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (NoCurrentTenant $e, Request $request) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
-                    'message' => 'No tenant found for this request.',
+                    'message' => __('error_tenant_not_found'),
                 ], 404);
             }
 
             return response()->view('errors.404', [
-                'message' => 'No tenant found for this request.',
+                'message' => __('error_tenant_not_found'),
             ], 404);
         });
     })->create();

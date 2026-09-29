@@ -58,6 +58,6 @@ class ProfileController extends Controller
 
         $user->update($payload);
 
-        return back()->with('success', 'Profile updated successfully.');
+        return back()->with('success', __('profile_updated'));
     }
 }

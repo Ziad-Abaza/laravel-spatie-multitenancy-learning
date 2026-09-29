@@ -82,7 +82,7 @@ class PlanController extends Controller
             ],
         ]);
 
-        return back()->with('success', 'Plan created successfully.');
+        return back()->with('success', __('plan_created'));
     }
 
     /**
@@ -115,6 +115,6 @@ class PlanController extends Controller
             'limits' => $limits,
         ]);
 
-        return back()->with('success', 'Plan updated successfully.');
+        return back()->with('success', __('plan_updated'));
     }
 }

@@ -75,7 +75,7 @@ class UserController extends Controller
 
         $this->userService->createUser($validated);
 
-        return back()->with('success', 'Team member invited successfully.');
+        return back()->with('success', __('member_invited'));
     }
 
     /**
@@ -95,7 +95,7 @@ class UserController extends Controller
 
         $this->userService->updateUser($user, $validated);
 
-        return back()->with('success', 'User updated successfully.');
+        return back()->with('success', __('user_updated'));
     }
 
     /**
@@ -104,11 +104,11 @@ class UserController extends Controller
     public function destroy(User $user): RedirectResponse
     {
         if ($user->id === auth()->id()) {
-            return back()->with('error', 'You cannot delete your own account.');
+            return back()->with('error', __('cannot_delete_own_account'));
         }
 
         $this->userService->deleteUser($user);
 
-        return back()->with('success', 'User removed successfully.');
+        return back()->with('success', __('user_removed'));
     }
 }

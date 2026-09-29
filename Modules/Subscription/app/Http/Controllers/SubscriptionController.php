@@ -125,6 +125,6 @@ class SubscriptionController extends Controller
 
         $this->subscriptionService->changePlan($tenant, $newPlan);
 
-        return back()->with('success', "Your plan has been updated to {$newPlan->getName()}!");
+        return back()->with('success', __('plan_changed', ['plan' => $newPlan->getName()]));
     }
 }

@@ -162,7 +162,7 @@ function submit() {
                             </div>
                             <div class="text-base font-extrabold text-text-main mt-auto">
                                 <CurrencyCell :amount="plan.price" :currency="plan.currency" />
-                                <span class="text-[11px] text-text-muted font-normal">/ mo</span>
+                                <span class="text-[11px] text-text-muted font-normal">{{ t('per_month', '/ mo') }}</span>
                             </div>
                             <span v-if="plan.trial_days > 0" class="text-[10px] text-primary-600 dark:text-primary-400 font-semibold mt-1">
                                 {{ plan.trial_days }} {{ t('days_trial', 'Days Free') }}

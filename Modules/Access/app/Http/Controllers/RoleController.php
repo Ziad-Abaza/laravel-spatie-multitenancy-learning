@@ -54,6 +54,6 @@ class RoleController extends Controller
             $role->syncPermissions($validated['permissions']);
         }
 
-        return back()->with('success', "Role {$role->name} created successfully.");
+        return back()->with('success', __('role_created', ['name' => $role->name]));
     }
 }

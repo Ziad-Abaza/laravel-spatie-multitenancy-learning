@@ -46,7 +46,7 @@ const props = defineProps<{
     recent_users: RecentUser[];
 }>();
 
-const { t } = useI18n();
+const { t, trans } = useI18n();
 </script>
 
 <template>
@@ -111,7 +111,7 @@ const { t } = useI18n();
                 <StatCard
                     :title="t('current_plan', 'Subscription Plan')"
                     :value="tenant.plan_name"
-                    :change="tenant.is_trialing ? 'Trialing' : 'Active'"
+                    :change="tenant.is_trialing ? t('trialing', 'Trialing') : t('active', 'Active')"
                     change-type="positive"
                     :icon="CreditCard"
                 />
@@ -119,7 +119,7 @@ const { t } = useI18n();
                 <StatCard
                     :title="t('team_members', 'Team Members')"
                     :value="quota.users.current"
-                    :change="`${quota.users.limit ? quota.users.limit - quota.users.current : '∞'} seats remaining`"
+                    :change="quota.users.limit ? trans('seats_remaining', { count: quota.users.limit - quota.users.current }) : t('unlimited', 'Unlimited')"
                     :change-type="quota.users.percentage > 85 ? 'negative' : 'positive'"
                     :icon="Users"
                 />
@@ -127,7 +127,7 @@ const { t } = useI18n();
                 <StatCard
                     :title="t('storage_usage', 'Workspace Storage')"
                     :value="`${quota.storage.current} MB`"
-                    :change="`${quota.storage.percentage}% utilized`"
+                    :change="trans('percent_utilized', { percent: quota.storage.percentage })"
                     change-type="neutral"
                     :icon="HardDrive"
                 />

@@ -104,13 +104,13 @@ function submit() {
         <Modal :is-open="isCreateModalOpen" :title="t('create_new_role', 'Create Custom Role')" max-width="lg" @close="isCreateModalOpen = false">
             <form @submit.prevent="submit" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-text-main mb-1">Role Name</label>
-                    <input v-model="form.name" type="text" required placeholder="e.g. Editor, Financial Officer" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('role_name', 'Role Name') }}</label>
+                    <input v-model="form.name" type="text" required :placeholder="t('role_name_example', 'e.g. Editor, Financial Officer')" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     <p v-if="form.errors.name" class="mt-1 text-xs text-danger-fg">{{ form.errors.name }}</p>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-text-main mb-2">Assign Permissions</label>
+                    <label class="block text-xs font-medium text-text-main mb-2">{{ t('assign_permissions', 'Assign Permissions') }}</label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-1">
                         <label
                             v-for="perm in permissions"
@@ -129,8 +129,8 @@ function submit() {
                 </div>
 
                 <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
-                    <button type="button" @click="isCreateModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main">Cancel</button>
-                    <button type="submit" :disabled="form.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold">Create Role</button>
+                    <button type="button" @click="isCreateModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main">{{ t('cancel', 'Cancel') }}</button>
+                    <button type="submit" :disabled="form.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold">{{ t('create_role', 'Create Role') }}</button>
                 </div>
             </form>
         </Modal>

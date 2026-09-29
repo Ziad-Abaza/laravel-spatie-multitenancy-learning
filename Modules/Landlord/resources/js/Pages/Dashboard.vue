@@ -43,7 +43,7 @@ const props = defineProps<{
     metrics: Metrics;
 }>();
 
-const { t } = useI18n();
+const { t, trans } = useI18n();
 </script>
 
 <template>
@@ -72,7 +72,7 @@ const { t } = useI18n();
                 <StatCard
                     :title="t('total_tenants', 'Total Tenants')"
                     :value="metrics.total_tenants"
-                    :change="`${metrics.active_tenants} active`"
+                    :change="trans('tenants_active', { count: metrics.active_tenants })"
                     change-type="positive"
                     :icon="Building2"
                 />
@@ -80,7 +80,7 @@ const { t } = useI18n();
                 <StatCard
                     :title="t('monthly_recurring_revenue', 'Estimated MRR')"
                     :value="`$${Math.round(metrics.mrr).toLocaleString()}`"
-                    :change="`${metrics.active_subscriptions} paying`"
+                    :change="trans('paying_subscriptions', { count: metrics.active_subscriptions })"
                     change-type="positive"
                     :icon="DollarSign"
                 />
@@ -88,7 +88,7 @@ const { t } = useI18n();
                 <StatCard
                     :title="t('active_subscriptions', 'Subscriptions')"
                     :value="metrics.active_subscriptions"
-                    :change="`${metrics.trialing_subscriptions} in trial`"
+                    :change="trans('in_trial', { count: metrics.trialing_subscriptions })"
                     change-type="neutral"
                     :icon="CreditCard"
                 />
@@ -96,7 +96,7 @@ const { t } = useI18n();
                 <StatCard
                     :title="t('suspended_tenants', 'Suspended Tenants')"
                     :value="metrics.suspended_tenants"
-                    :change="metrics.suspended_tenants > 0 ? 'Action needed' : 'Healthy'"
+                    :change="metrics.suspended_tenants > 0 ? t('action_needed', 'Action needed') : t('healthy', 'Healthy')"
                     :change-type="metrics.suspended_tenants > 0 ? 'negative' : 'positive'"
                     :icon="HardDrive"
                 />

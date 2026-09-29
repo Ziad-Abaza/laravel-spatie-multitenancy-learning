@@ -164,7 +164,7 @@ function deleteTenant() {
                         <span>{{ t('subscription_plan', 'Subscription Tier') }}</span>
                     </div>
                     <div class="text-lg font-bold text-text-main flex items-center justify-between">
-                        <span>{{ tenant.plan?.name ?? 'Free Tier' }}</span>
+                        <span>{{ tenant.plan?.name ?? t('free_tier', 'Free Tier') }}</span>
                         <span v-if="tenant.plan" class="text-sm font-normal text-text-muted">${{ tenant.plan.price }}/mo</span>
                     </div>
                     <div class="text-xs text-text-muted space-y-1">
@@ -250,8 +250,8 @@ function deleteTenant() {
         <!-- Delete Modal -->
         <ConfirmDialog
             :is-open="showDeleteModal"
-            :title="t('confirm_delete_title', 'Permanently Delete Workspace?')"
-            :message="t('confirm_delete_message', 'CAUTION: This will drop the dedicated database and delete all tenant records permanently. This action cannot be undone.')"
+            :title="t('confirm_delete_tenant_title', 'Permanently Delete Workspace?')"
+            :message="t('confirm_delete_tenant_message', 'CAUTION: This will drop the dedicated database and delete all tenant records permanently. This action cannot be undone.')"
             :confirm-text="t('delete_forever', 'Delete Forever')"
             variant="danger"
             @close="showDeleteModal = false"

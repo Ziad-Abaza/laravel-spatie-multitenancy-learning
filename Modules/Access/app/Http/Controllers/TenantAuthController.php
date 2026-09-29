@@ -51,7 +51,7 @@ class TenantAuthController extends Controller
         }
 
         throw ValidationException::withMessages([
-            'email' => ['These credentials do not match our records.'],
+            'email' => [__('auth_failed')],
         ]);
     }
 
@@ -91,7 +91,7 @@ class TenantAuthController extends Controller
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
 
-        return redirect('/dashboard')->with('success', 'Welcome to your workspace!');
+        return redirect('/dashboard')->with('success', __('welcome_to_workspace'));
     }
 
     /**

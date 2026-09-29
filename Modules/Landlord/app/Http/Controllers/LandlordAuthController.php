@@ -37,7 +37,7 @@ class LandlordAuthController extends Controller
         }
 
         throw ValidationException::withMessages([
-            'email' => ['The provided credentials do not match our records.'],
+            'email' => [__('auth_failed')],
         ]);
     }
 

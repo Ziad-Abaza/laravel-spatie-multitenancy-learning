@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" data-theme="{{ session('theme', 'indigo') }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" data-theme="{{ session('theme', 'indigo') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light dark">
-    <title>404 - الصفحة غير موجودة</title>
+    <title>404 - {{ __('error_404_title') }}</title>
     <script>
         (function() {
             try {
@@ -33,16 +33,16 @@
         <div class="text-7xl sm:text-8xl font-extrabold leading-none bg-gradient-to-r from-primary-600 via-secondary-500 to-accent-500 bg-clip-text text-transparent mb-4 tracking-tight">
             404
         </div>
-        <h1 class="text-xl sm:text-2xl font-bold text-text-main mb-3">لم يتم العثور على الصفحة أو المستأجر</h1>
+        <h1 class="text-xl sm:text-2xl font-bold text-text-main mb-3">{{ __('error_404_heading') }}</h1>
         <p class="text-sm text-text-muted leading-relaxed mb-8">
-            {{ $message ?? 'النطاق أو المستأجر الذي تحاول الوصول إليه غير موجود أو غير مفعل حالياً.' }}
+            {{ $message ?? __('error_404_message') }}
         </p>
         <a href="{{ config('app.url', '/') }}" class="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-sm shadow-lg shadow-primary-600/30 transition-all hover:-translate-y-0.5">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="rtl:rotate-180">
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                 <polyline points="9 22 9 12 15 12 15 22"/>
             </svg>
-            العودة إلى الصفحة الرئيسية
+            {{ __('error_return_home') }}
         </a>
     </div>
 </body>

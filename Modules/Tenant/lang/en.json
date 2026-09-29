@@ -1,3 +1,5 @@
 {
+    "percent_utilized": ":percent% utilized",
+    "seats_remaining": ":count seats remaining",
     "tenant_portal": "Tenant Portal"
 }

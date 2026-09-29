@@ -181,7 +181,7 @@ function getPlanDescription(plan: Plan): string {
                             <span class="text-3xl font-black text-text-main">
                                 <CurrencyCell :amount="plan.price" :currency="plan.currency" />
                             </span>
-                            <span class="text-xs text-text-muted">/ {{ plan.billing_interval }}</span>
+                            <span class="text-xs text-text-muted">{{ t(plan.billing_interval) }}</span>
                         </div>
 
                         <div class="mt-6 pt-5 border-t border-border-subtle space-y-2.5 text-xs text-text-muted">
@@ -236,45 +236,45 @@ function getPlanDescription(plan: Plan): string {
             <form @submit.prevent="submitCreate" class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Name (English)</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('name_english', 'Name (English)') }}</label>
                         <input v-model="createForm.name_en" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Name (Arabic)</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('name_arabic', 'Name (Arabic)') }}</label>
                         <input v-model="createForm.name_ar" type="text" required dir="rtl" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-text-main mb-1">Slug</label>
-                    <input v-model="createForm.slug" type="text" required placeholder="e.g. enterprise-plus" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
+                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('slug', 'Slug') }}</label>
+                    <input v-model="createForm.slug" type="text" required :placeholder="t('slug_example', 'e.g. enterprise-plus')" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Price (USD)</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('price_usd', 'Price (USD)') }}</label>
                         <input v-model.number="createForm.price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Interval</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('billing_interval', 'Interval') }}</label>
                         <select v-model="createForm.billing_interval" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
-                            <option value="monthly">Monthly</option>
-                            <option value="yearly">Yearly</option>
+                            <option value="monthly">{{ t('monthly', 'Monthly') }}</option>
+                            <option value="yearly">{{ t('yearly', 'Yearly') }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Trial Days</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('trial_days', 'Trial Days') }}</label>
                         <input v-model.number="createForm.trial_days" type="number" min="0" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Max Users</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('max_users', 'Max Users') }}</label>
                         <input v-model.number="createForm.max_users" type="number" min="1" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Max Storage (MB)</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('max_storage_mb', 'Max Storage (MB)') }}</label>
                         <input v-model.number="createForm.max_storage_mb" type="number" min="100" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
@@ -291,40 +291,40 @@ function getPlanDescription(plan: Plan): string {
             <form @submit.prevent="submitEdit" class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Name (English)</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('name_english', 'Name (English)') }}</label>
                         <input v-model="editForm.name_en" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Name (Arabic)</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('name_arabic', 'Name (Arabic)') }}</label>
                         <input v-model="editForm.name_ar" type="text" required dir="rtl" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Price (USD)</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('price_usd', 'Price (USD)') }}</label>
                         <input v-model.number="editForm.price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Interval</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('billing_interval', 'Interval') }}</label>
                         <select v-model="editForm.billing_interval" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
-                            <option value="monthly">Monthly</option>
-                            <option value="yearly">Yearly</option>
+                            <option value="monthly">{{ t('monthly', 'Monthly') }}</option>
+                            <option value="yearly">{{ t('yearly', 'Yearly') }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Trial Days</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('trial_days', 'Trial Days') }}</label>
                         <input v-model.number="editForm.trial_days" type="number" min="0" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Max Users</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('max_users', 'Max Users') }}</label>
                         <input v-model.number="editForm.max_users" type="number" min="1" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">Max Storage (MB)</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('max_storage_mb', 'Max Storage (MB)') }}</label>
                         <input v-model.number="editForm.max_storage_mb" type="number" min="100" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                 </div>

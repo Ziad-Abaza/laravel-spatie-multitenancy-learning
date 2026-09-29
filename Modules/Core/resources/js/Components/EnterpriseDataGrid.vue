@@ -250,7 +250,7 @@ const processedData = computed(() => {
                     :disabled="pagination.current_page === 1"
                     @click="emit('page-change', (pagination.current_page || 1) - 1)"
                 >
-                    Prev
+                    {{ t('prev', 'Previous') }}
                 </button>
                 <span>{{ pagination.current_page }} / {{ pagination.last_page }}</span>
                 <button
@@ -259,7 +259,7 @@ const processedData = computed(() => {
                     :disabled="pagination.current_page === pagination.last_page"
                     @click="emit('page-change', (pagination.current_page || 1) + 1)"
                 >
-                    Next
+                    {{ t('next', 'Next') }}
                 </button>
             </div>
         </div>

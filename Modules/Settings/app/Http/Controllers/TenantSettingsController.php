@@ -47,6 +47,6 @@ class TenantSettingsController extends Controller
             }
         }
 
-        return back()->with('success', 'Workspace settings updated successfully.');
+        return back()->with('success', __('workspace_settings_updated'));
     }
 }

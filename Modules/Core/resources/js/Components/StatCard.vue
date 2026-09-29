@@ -6,6 +6,8 @@ defineProps<{
     value: string | number;
     description?: string;
     icon?: Component;
+    change?: string;
+    changeType?: 'positive' | 'negative' | 'warning' | 'info' | 'neutral';
     trend?: {
         value: string;
         isPositive: boolean;
@@ -26,13 +28,26 @@ defineProps<{
             <div class="text-3xl font-bold tracking-tight text-text-main">
                 {{ value }}
             </div>
-            <div v-if="trend || description" class="mt-2 flex items-center gap-2 text-xs">
+            <div v-if="trend || change || description" class="mt-2 flex items-center gap-2 text-xs">
                 <span
                     v-if="trend"
                     class="font-semibold px-1.5 py-0.5 rounded"
                     :class="trend.isPositive ? 'bg-success/10 text-success-fg' : 'bg-danger/10 text-danger-fg'"
                 >
                     {{ trend.isPositive ? '↑' : '↓' }} {{ trend.value }}
+                </span>
+                <span
+                    v-else-if="change"
+                    class="font-semibold px-1.5 py-0.5 rounded"
+                    :class="{
+                        'bg-success/10 text-success-fg': changeType === 'positive',
+                        'bg-danger/10 text-danger-fg': changeType === 'negative',
+                        'bg-warning/10 text-warning-fg': changeType === 'warning',
+                        'bg-info/10 text-info-fg': changeType === 'info',
+                        'bg-surface-input text-text-muted': !changeType || changeType === 'neutral',
+                    }"
+                >
+                    {{ change }}
                 </span>
                 <span v-if="description" class="text-text-muted">{{ description }}</span>
             </div>

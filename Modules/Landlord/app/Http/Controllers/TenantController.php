@@ -102,7 +102,7 @@ class TenantController extends Controller
             'plan_id' => $validated['plan_id'] ?? null,
         ]);
 
-        return redirect()->route('landlord.tenants.index')->with('success', 'Tenant provisioned successfully.');
+        return redirect()->route('landlord.tenants.index')->with('success', __('tenant_provisioned'));
     }
 
     /**
@@ -158,7 +158,7 @@ class TenantController extends Controller
     {
         $this->lifecycleService->suspend($tenant, request('reason', 'Suspended by platform administrator'));
 
-        return back()->with('success', "Tenant {$tenant->name} has been suspended.");
+        return back()->with('success', __('tenant_suspended_notice', ['name' => $tenant->name]));
     }
 
     /**
@@ -168,7 +168,7 @@ class TenantController extends Controller
     {
         $this->lifecycleService->activate($tenant);
 
-        return back()->with('success', "Tenant {$tenant->name} has been activated.");
+        return back()->with('success', __('tenant_activated_notice', ['name' => $tenant->name]));
     }
 
     /**
@@ -181,6 +181,6 @@ class TenantController extends Controller
 
         $this->lifecycleService->delete($tenant, $dropDatabase);
 
-        return redirect()->route('landlord.tenants.index')->with('success', "Tenant {$name} was deleted successfully.");
+        return redirect()->route('landlord.tenants.index')->with('success', __('tenant_deleted_notice', ['name' => $name]));
     }
 }

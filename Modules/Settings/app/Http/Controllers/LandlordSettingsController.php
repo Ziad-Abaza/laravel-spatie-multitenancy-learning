@@ -49,6 +49,6 @@ class LandlordSettingsController extends Controller
             }
         }
 
-        return back()->with('success', 'Settings updated successfully.');
+        return back()->with('success', __('settings_updated'));
     }
 }

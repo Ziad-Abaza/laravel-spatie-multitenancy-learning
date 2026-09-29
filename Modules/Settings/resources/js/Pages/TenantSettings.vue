@@ -61,7 +61,7 @@ const palettes = THEME_PRESETS;
                         <input
                             v-model="brandingForm.settings.workspace_name"
                             type="text"
-                            placeholder="My Team Workspace"
+                            :placeholder="t('workspace_name_example', 'e.g. My Team Workspace')"
                             class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                         />
                     </div>
@@ -71,7 +71,7 @@ const palettes = THEME_PRESETS;
                         <input
                             v-model="brandingForm.settings.tagline"
                             type="text"
-                            placeholder="Innovating together"
+                            :placeholder="t('workspace_tagline_example', 'e.g. Innovating together')"
                             class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                         />
                     </div>
