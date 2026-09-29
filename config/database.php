@@ -44,8 +44,14 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
-        'landlord' => [
-            'driver' => 'mysql',
+        'landlord' => env('DB_LANDLORD_DRIVER', 'mysql') === 'sqlite' ? [
+            'driver' => 'sqlite',
+            'url' => env('DB_URL'),
+            'database' => env('DB_LANDLORD_DATABASE', database_path('landlord.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+        ] : [
+            'driver' => env('DB_LANDLORD_DRIVER', 'mysql'),
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
@@ -63,8 +69,14 @@ return [
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
-        'tenant' => [
-            'driver' => 'mysql',
+        'tenant' => env('DB_TENANT_DRIVER', 'mysql') === 'sqlite' ? [
+            'driver' => 'sqlite',
+            'url' => env('DB_URL'),
+            'database' => env('DB_TENANT_DATABASE', ''),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+        ] : [
+            'driver' => env('DB_TENANT_DRIVER', 'mysql'),
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),

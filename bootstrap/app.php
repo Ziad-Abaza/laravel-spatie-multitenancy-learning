@@ -1,10 +1,18 @@
 <?php
 
+use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\IdentifyTenant;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Spatie\Multitenancy\Exceptions\NoCurrentTenant;
+use Spatie\Multitenancy\Http\Middleware\EnsureValidTenantSession;
+use Spatie\Multitenancy\Http\Middleware\NeedsTenant;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,9 +21,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(prepend: [
+            IdentifyTenant::class,
+        ], append: [
+            SetLocale::class,
+            HandleInertiaRequests::class,
+        ]);
+
         $middleware->group('tenant', [
-            \Spatie\Multitenancy\Http\Middleware\NeedsTenant::class,
-            \Spatie\Multitenancy\Http\Middleware\EnsureValidTenantSession::class,
+            NeedsTenant::class,
+            EnsureValidTenantSession::class,
+        ]);
+
+        $middleware->alias([
+            'role' => RoleMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+            'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

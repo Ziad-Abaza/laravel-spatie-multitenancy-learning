@@ -2,32 +2,9 @@
 
 namespace App\Models;
 
-use Spatie\Multitenancy\Models\Tenant as BaseTenant;
+use Modules\Landlord\Models\Tenant as BaseLandlordTenant;
 
-class Tenant extends BaseTenant
+class Tenant extends BaseLandlordTenant
 {
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'domain',
-        'database',
-        'db_username',
-        'db_password',
-    ];
-
-    /**
-     * Get the full URL for the tenant.
-     */
-    public function url(string $path = '/'): string
-    {
-        $scheme = request()->getScheme();
-        $port = request()->getPort();
-        $portSuffix = ($port && ! in_array($port, [80, 443])) ? ":{$port}" : '';
-
-        return "{$scheme}://{$this->domain}{$portSuffix}/" . ltrim($path, '/');
-    }
+    // Inherits full SaaS tenant capabilities, relations, contracts, media, and status handling
 }

@@ -1,17 +1,19 @@
 <?php
 
-use Spatie\Multitenancy\Jobs\TenantAware;
+use App\Models\Tenant;
+use App\TenantFinder\SaaSTenantFinder;
 use Illuminate\Broadcasting\BroadcastEvent;
 use Illuminate\Events\CallQueuedListener;
 use Illuminate\Mail\SendQueuedMailable;
-use Spatie\Multitenancy\Jobs\NotTenantAware;
 use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Queue\CallQueuedClosure;
 use Spatie\Multitenancy\Actions\ForgetCurrentTenantAction;
 use Spatie\Multitenancy\Actions\MakeQueueTenantAwareAction;
 use Spatie\Multitenancy\Actions\MakeTenantCurrentAction;
 use Spatie\Multitenancy\Actions\MigrateTenantAction;
-use App\Models\Tenant;
+use Spatie\Multitenancy\Jobs\NotTenantAware;
+use Spatie\Multitenancy\Jobs\TenantAware;
+use Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask;
 
 return [
     /*
@@ -21,7 +23,7 @@ return [
      * This class should extend `Spatie\Multitenancy\TenantFinder\TenantFinder`
      *
      */
-    'tenant_finder' => Spatie\Multitenancy\TenantFinder\DomainTenantFinder::class,
+    'tenant_finder' => SaaSTenantFinder::class,
 
     /*
      * These fields are used by tenant:artisan command to match one or more tenant.
@@ -37,7 +39,7 @@ return [
      */
     'switch_tenant_tasks' => [
         // \Spatie\Multitenancy\Tasks\PrefixCacheTask::class,
-        \Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask::class,
+        SwitchTenantDatabaseTask::class,
         // \Spatie\Multitenancy\Tasks\SwitchRouteCacheTask::class,
     ],
 

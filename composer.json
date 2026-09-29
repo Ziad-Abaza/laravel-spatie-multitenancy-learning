@@ -7,10 +7,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "inertiajs/inertia-laravel": "3.4",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
         "nwidart/laravel-modules": "^13.0",
-        "spatie/laravel-multitenancy": "^4.2"
+        "spatie/laravel-medialibrary": "11.23",
+        "spatie/laravel-multitenancy": "^4.2",
+        "spatie/laravel-permission": "8.3",
+        "spatie/laravel-translatable": "6.14"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -27,7 +31,13 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "Modules\\": "Modules/"
+            "Modules\\": "Modules/",
+            "Modules\\Core\\": "Modules/Core/app/",
+            "Modules\\Landlord\\": "Modules/Landlord/app/",
+            "Modules\\Subscription\\": "Modules/Subscription/app/",
+            "Modules\\Access\\": "Modules/Access/app/",
+            "Modules\\Settings\\": "Modules/Settings/app/",
+            "Modules\\Tenant\\": "Modules/Tenant/app/"
         }
     },
     "autoload-dev": {
@@ -74,6 +84,11 @@
     "extra": {
         "laravel": {
             "dont-discover": []
+        },
+        "merge-plugin": {
+            "include": [
+                "Modules/*/composer.json"
+            ]
         }
     },
     "config": {

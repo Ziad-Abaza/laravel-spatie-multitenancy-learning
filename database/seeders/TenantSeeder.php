@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Tenant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use App\Models\Tenant;
 
 class TenantSeeder extends Seeder
 {
@@ -20,24 +20,24 @@ class TenantSeeder extends Seeder
         $defaultPassword = env('DB_PASSWORD', '');
         $landlordDatabase = env('DB_DATABASE', 'multivendor');
 
-        // Landlord on localhost and tenants with subdomains on localhost
+        // Tenants with subdomains on localhost
         $tenants = [
             [
-                'name' => 'Landlord',
-                'domain' => 'localhost',
-                'database' => $landlordDatabase,
-            ],
-            [
                 'name' => 'Tenant 1',
+                'slug' => 'tenant1',
                 'domain' => 'tenant1.localhost',
                 'database' => 'vendor_1',
             ],
             [
                 'name' => 'Tenant 2',
+                'slug' => 'tenant2',
                 'domain' => 'tenant2.localhost',
                 'database' => 'vendor_2',
             ],
         ];
+
+        $hasSlug = Schema::connection('landlord')->hasColumn('tenants', 'slug');
+        $hasStatus = Schema::connection('landlord')->hasColumn('tenants', 'status');
 
         foreach ($tenants as $data) {
             // Ensure the tenant database exists before creating or updating the record
@@ -47,6 +47,14 @@ class TenantSeeder extends Seeder
                 'name' => $data['name'],
                 'database' => $data['database'],
             ];
+
+            if ($hasSlug) {
+                $attributes['slug'] = $data['slug'];
+            }
+
+            if ($hasStatus) {
+                $attributes['status'] = 'active';
+            }
 
             // If the tenants table has extra credentials columns (db_username, db_password)
             if ($hasCustomCredentials) {

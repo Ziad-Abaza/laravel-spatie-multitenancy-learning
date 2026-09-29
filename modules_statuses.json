@@ -1,0 +1,8 @@
+{
+    "Core": true,
+    "Landlord": true,
+    "Subscription": true,
+    "Access": true,
+    "Settings": true,
+    "Tenant": true
+}
