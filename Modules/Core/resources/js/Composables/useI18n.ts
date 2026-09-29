@@ -1,8 +1,14 @@
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 
+interface LocaleProps {
+    current?: string;
+    is_rtl?: boolean;
+    translations?: Record<string, string>;
+}
+
 export function useI18n() {
-    const page = usePage();
+    const page = usePage<{ locale?: LocaleProps }>();
 
     const locale = computed(() => page.props.locale?.current || 'en');
     const isRtl = computed(() => Boolean(page.props.locale?.is_rtl));
