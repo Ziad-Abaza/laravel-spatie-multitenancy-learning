@@ -1,7 +1,7 @@
 {{--
     Theme initialization: data-theme, data-mode and the .dark class are already
-    rendered server-side by ThemeResolver. This script only resolves the
-    client-only "system" mode before first paint to prevent FOUC.
+    rendered server-side from SettingManagerContract::getTheme(). This script
+    only resolves the client-only "system" mode before first paint to prevent FOUC.
 --}}
 <script>
     (function () {

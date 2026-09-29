@@ -4,6 +4,9 @@ namespace Modules\Settings\Services;
 
 use App\Models\Tenant;
 use Modules\Core\Contracts\SettingManagerContract;
+use Modules\Core\Enums\Locale;
+use Modules\Core\Enums\ThemeMode;
+use Modules\Core\Enums\ThemePalette;
 use Modules\Settings\Models\Setting;
 use Modules\Settings\Models\TenantSetting;
 
@@ -14,15 +17,10 @@ class SettingService implements SettingManagerContract
      */
     public function get(string $key, mixed $default = null, string $domain = 'system'): mixed
     {
-        // Aliases mapping for unified settings access
-        $normalizedKey = $this->normalizeKey($key);
-
         if (Tenant::checkCurrent()) {
             try {
                 $setting = TenantSetting::where('domain', $domain)
-                    ->where(function ($q) use ($key, $normalizedKey) {
-                        $q->where('key', $key)->orWhere('key', $normalizedKey);
-                    })
+                    ->where('key', $key)
                     ->first();
 
                 if ($setting !== null) {
@@ -36,9 +34,7 @@ class SettingService implements SettingManagerContract
         // Landlord database lookup
         try {
             $setting = Setting::where('domain', $domain)
-                ->where(function ($q) use ($key, $normalizedKey) {
-                    $q->where('key', $key)->orWhere('key', $normalizedKey);
-                })
+                ->where('key', $key)
                 ->first();
 
             if ($setting !== null) {
@@ -68,37 +64,9 @@ class SettingService implements SettingManagerContract
             ]
         );
 
-        // Keep alias in sync
-        $alias = $this->getAliasKey($key);
-        if ($alias !== null) {
-            $model::updateOrCreate(
-                ['domain' => $domain, 'key' => $alias],
-                [
-                    'value' => $serialized['value'],
-                    'type' => $serialized['type'],
-                    'is_public' => $isPublic,
-                ]
-            );
-        }
-
-        // If in tenant context and updating company_name or workspace_name, sync tenant record
-        if (Tenant::checkCurrent() && in_array($key, ['company_name', 'workspace_name'], true) && is_string($value) && ! empty($value)) {
-            $currentTenant = Tenant::current();
-            if ($currentTenant) {
-                $currentTenant->name = $value;
-                $currentTenant->save();
-            }
-        }
-
-        // If in tenant context and updating theme or mode, sync tenant settings json column
-        if (Tenant::checkCurrent() && $domain === 'theme') {
-            $currentTenant = Tenant::current();
-            if ($currentTenant) {
-                $existing = $currentTenant->settings ?? [];
-                $existing[$key] = $value;
-                $currentTenant->settings = $existing;
-                $currentTenant->save();
-            }
+        // The tenant record's name is the canonical workspace identity.
+        if (Tenant::checkCurrent() && $key === 'workspace_name' && is_string($value) && ! empty($value)) {
+            Tenant::current()?->update(['name' => $value]);
         }
     }
 
@@ -134,41 +102,34 @@ class SettingService implements SettingManagerContract
     }
 
     /**
-     * Get theme configuration.
+     * Resolve the effective theme for the current context.
+     *
+     * Precedence: session override > tenant settings > landlord settings > defaults.
+     *
+     * @return array{theme: string, palette: string, mode: string, radius: string}
      */
     public function getTheme(): array
     {
-        $defaults = [
-            'theme' => 'indigo',
-            'palette' => 'indigo',
-            'mode' => 'dark',
-            'radius' => 'rounded-xl',
-        ];
+        $persisted = $this->allByDomain('theme');
 
-        $domainSettings = $this->allByDomain('theme');
+        $palette = ThemePalette::tryFrom((string) session('theme', ''))
+            ?? ThemePalette::tryFrom((string) ($persisted['palette'] ?? ''))
+            ?? ThemePalette::Indigo;
 
-        $theme = $domainSettings['theme']
-            ?? $domainSettings['palette']
-            ?? $domainSettings['default_palette']
-            ?? $domainSettings['default_theme']
-            ?? $defaults['theme'];
-
-        $mode = $domainSettings['mode']
-            ?? $domainSettings['default_mode']
-            ?? $defaults['mode'];
+        $mode = ThemeMode::tryFrom((string) session('theme_mode', ''))
+            ?? ThemeMode::tryFrom((string) ($persisted['mode'] ?? ''))
+            ?? ThemeMode::Dark;
 
         return [
-            'theme' => $theme,
-            'palette' => $theme,
-            'default_palette' => $theme,
-            'mode' => $mode,
-            'default_mode' => $mode,
-            'radius' => $domainSettings['radius'] ?? $defaults['radius'],
+            'theme' => $palette->value,
+            'palette' => $palette->value,
+            'mode' => $mode->value,
+            'radius' => is_string($persisted['radius'] ?? null) ? $persisted['radius'] : 'rounded-xl',
         ];
     }
 
     /**
-     * Get branding configuration.
+     * Resolve branding for the current context (landlord or tenant).
      */
     public function getBranding(): array
     {
@@ -194,36 +155,57 @@ class SettingService implements SettingManagerContract
                 $tenantBranding = [];
             }
 
-            $name = $tenantBranding['workspace_name']
-                ?? $tenantBranding['company_name']
-                ?? $currentTenant->name
-                ?? 'Workspace';
-
-            $tagline = $tenantBranding['tagline']
-                ?? $landlordBranding['tagline']
-                ?? 'Next-Generation Multi-Tenant Modular Platform';
+            $name = $tenantBranding['workspace_name'] ?? $currentTenant->name;
 
             return [
-                'company_name' => $name,
-                'workspace_name' => $name,
-                'tagline' => $tagline,
-                'logo_url' => $tenantBranding['logo_url'] ?? null,
                 'app_name' => $name,
+                'workspace_name' => $name,
+                'tagline' => $tenantBranding['tagline']
+                    ?? $landlordBranding['tagline']
+                    ?? 'Next-Generation Multi-Tenant Modular Platform',
+                'logo_url' => $tenantBranding['logo_url'] ?? null,
             ];
         }
 
         $appName = $landlordBranding['app_name'] ?? 'SaaS Cloud';
-        $tagline = $landlordBranding['tagline'] ?? 'Multi-Tenant Enterprise Architecture';
-        $supportEmail = $landlordBranding['support_email'] ?? 'support@saas.test';
 
         return [
             'app_name' => $appName,
-            'company_name' => $appName,
             'workspace_name' => $appName,
-            'tagline' => $tagline,
-            'support_email' => $supportEmail,
+            'tagline' => $landlordBranding['tagline'] ?? 'Multi-Tenant Enterprise Architecture',
+            'support_email' => $landlordBranding['support_email'] ?? 'support@saas.test',
             'logo_url' => $landlordBranding['logo_url'] ?? null,
         ];
+    }
+
+    /**
+     * Supported locales keyed by code, e.g. ['en' => 'English', 'ar' => 'العربية'].
+     */
+    public function supportedLocales(): array
+    {
+        $configured = $this->get('supported_locales', null, 'localization');
+        $configured = is_array($configured) ? $configured : [Locale::English->value, Locale::Arabic->value];
+
+        $supported = [];
+        foreach (Locale::cases() as $locale) {
+            if (in_array($locale->value, $configured, true)) {
+                $supported[$locale->value] = $locale->label();
+            }
+        }
+
+        return $supported !== [] ? $supported : [Locale::English->value => Locale::English->label()];
+    }
+
+    /**
+     * The configured default locale, guaranteed to be a supported one.
+     */
+    public function defaultLocale(): string
+    {
+        $default = $this->get('default_locale', config('app.locale', Locale::English->value), 'localization');
+
+        return array_key_exists($default, $this->supportedLocales())
+            ? $default
+            : Locale::English->value;
     }
 
     /**
@@ -232,40 +214,5 @@ class SettingService implements SettingManagerContract
     protected function resolveModel(): string
     {
         return Tenant::checkCurrent() ? TenantSetting::class : Setting::class;
-    }
-
-    /**
-     * Normalize settings keys between different conventions.
-     */
-    protected function normalizeKey(string $key): string
-    {
-        return match ($key) {
-            'default_palette', 'default_theme', 'palette' => 'theme',
-            'default_mode' => 'mode',
-            'registration_enabled' => 'allow_registration',
-            'allow_registration' => 'registration_enabled',
-            'workspace_name' => 'company_name',
-            'company_name' => 'workspace_name',
-            default => $key,
-        };
-    }
-
-    /**
-     * Return alias key for synchronization if applicable.
-     */
-    protected function getAliasKey(string $key): ?string
-    {
-        return match ($key) {
-            'default_palette' => 'theme',
-            'palette' => 'theme',
-            'theme' => 'default_palette',
-            'default_mode' => 'mode',
-            'mode' => 'default_mode',
-            'registration_enabled' => 'allow_registration',
-            'allow_registration' => 'registration_enabled',
-            'workspace_name' => 'company_name',
-            'company_name' => 'workspace_name',
-            default => null,
-        };
     }
 }

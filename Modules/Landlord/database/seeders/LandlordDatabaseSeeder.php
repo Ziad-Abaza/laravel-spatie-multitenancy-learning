@@ -49,11 +49,11 @@ class LandlordDatabaseSeeder extends Seeder
         $defaultSettings = [
             ['domain' => 'branding', 'key' => 'app_name', 'value' => 'SaaS Enterprise', 'type' => 'string', 'is_public' => true],
             ['domain' => 'branding', 'key' => 'tagline', 'value' => 'Multi-Tenant Modular Enterprise Architecture', 'type' => 'string', 'is_public' => true],
-            ['domain' => 'theme', 'key' => 'default_theme', 'value' => 'indigo', 'type' => 'string', 'is_public' => true],
-            ['domain' => 'theme', 'key' => 'default_mode', 'value' => 'dark', 'type' => 'string', 'is_public' => true],
+            ['domain' => 'theme', 'key' => 'palette', 'value' => 'indigo', 'type' => 'string', 'is_public' => true],
+            ['domain' => 'theme', 'key' => 'mode', 'value' => 'dark', 'type' => 'string', 'is_public' => true],
             ['domain' => 'localization', 'key' => 'default_locale', 'value' => 'en', 'type' => 'string', 'is_public' => true],
             ['domain' => 'localization', 'key' => 'supported_locales', 'value' => json_encode(['en', 'ar']), 'type' => 'json', 'is_public' => true],
-            ['domain' => 'system', 'key' => 'registration_enabled', 'value' => '1', 'type' => 'boolean', 'is_public' => true],
+            ['domain' => 'system', 'key' => 'allow_registration', 'value' => '1', 'type' => 'boolean', 'is_public' => true],
             ['domain' => 'system', 'key' => 'maintenance_mode', 'value' => '0', 'type' => 'boolean', 'is_public' => false],
         ];
 

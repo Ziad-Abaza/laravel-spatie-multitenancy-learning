@@ -41,11 +41,11 @@ class LandlordSettingsController extends Controller
         }
 
         if ($domain === 'theme') {
-            if (isset($settings['default_palette']) || isset($settings['theme'])) {
-                session(['theme' => $settings['default_palette'] ?? $settings['theme']]);
+            if (isset($settings['palette'])) {
+                session(['theme' => $settings['palette']]);
             }
-            if (isset($settings['default_mode']) || isset($settings['mode'])) {
-                session(['theme_mode' => $settings['default_mode'] ?? $settings['mode']]);
+            if (isset($settings['mode'])) {
+                session(['theme_mode' => $settings['mode']]);
             }
         }
 

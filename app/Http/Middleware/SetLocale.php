@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Modules\Settings\Services\SettingService;
+use Modules\Core\Contracts\SettingManagerContract;
 use Symfony\Component\HttpFoundation\Response;
 
 class SetLocale
@@ -14,15 +14,10 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $settingService = app(SettingService::class);
-        $enableArabic = (bool) $settingService->get('enable_arabic', true, 'localization');
+        $settings = app(SettingManagerContract::class);
 
-        $supportedLocales = $enableArabic ? ['en', 'ar'] : ['en'];
-
-        $defaultLocale = $settingService->get('default_locale', config('app.locale', 'en'), 'localization');
-        if (! in_array($defaultLocale, $supportedLocales, true)) {
-            $defaultLocale = 'en';
-        }
+        $supportedLocales = array_keys($settings->supportedLocales());
+        $defaultLocale = $settings->defaultLocale();
 
         $locale = $request->get('locale')
             ?? session('locale')

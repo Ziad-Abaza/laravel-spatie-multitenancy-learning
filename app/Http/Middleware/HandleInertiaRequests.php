@@ -5,9 +5,8 @@ namespace App\Http\Middleware;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use Modules\Core\Contracts\TranslationResolverContract;
-use Modules\Core\Services\ThemeResolver;
-use Modules\Settings\Services\SettingService;
+use Modules\Core\Contracts\SettingManagerContract;
+use Modules\Core\Enums\Locale;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -66,27 +65,10 @@ class HandleInertiaRequests extends Middleware
             ];
         }
 
+        $settings = app(SettingManagerContract::class);
+        $branding = $settings->getBranding();
+
         $tenantData = null;
-        if ($currentTenant) {
-            $tenantData = [
-                'id' => $currentTenant->id,
-                'name' => $currentTenant->name,
-                'slug' => $currentTenant->slug ?? $currentTenant->domain,
-                'domain' => $currentTenant->domain,
-                'status' => $currentTenant->status ?? 'active',
-                'plan' => $currentTenant->plan ? [
-                    'id' => $currentTenant->plan->id,
-                    'name' => $currentTenant->plan->name,
-                    'slug' => $currentTenant->plan->slug,
-                    'limits' => $currentTenant->plan->limits ?? [],
-                ] : null,
-                'settings' => $currentTenant->settings ?? [],
-            ];
-        }
-
-        $settingService = app(SettingService::class);
-        $branding = $settingService->getBranding();
-
         if ($currentTenant) {
             $tenantData = [
                 'id' => $currentTenant->id,
@@ -105,44 +87,20 @@ class HandleInertiaRequests extends Middleware
             ];
         }
 
-        $appName = $branding['app_name'] ?? $branding['company_name'] ?? config('app.name', 'SaaS Platform');
+        $appName = $branding['app_name'] ?? config('app.name', 'SaaS Platform');
         config(['app.name' => $appName]);
 
-        $enableArabic = (bool) $settingService->get('enable_arabic', true, 'localization');
-        $supportedLocales = ['en' => 'English'];
-        if ($enableArabic) {
-            $supportedLocales['ar'] = 'العربية';
-        }
-
-        $defaultLocale = $settingService->get('default_locale', config('app.locale', 'en'), 'localization');
-        if (! array_key_exists($defaultLocale, $supportedLocales)) {
-            $defaultLocale = 'en';
-        }
-
-        $locale = session('locale', $defaultLocale);
+        // The SetLocale middleware has already resolved and applied the locale.
+        $locale = app()->getLocale();
+        $supportedLocales = $settings->supportedLocales();
         if (! array_key_exists($locale, $supportedLocales)) {
-            $locale = $defaultLocale;
-            session(['locale' => $locale]);
+            $locale = $settings->defaultLocale();
+            app()->setLocale($locale);
         }
-        app()->setLocale($locale);
 
-        $isRtl = in_array($locale, ['ar', 'fa', 'ur', 'he'], true);
+        $isRtl = Locale::tryFrom($locale)?->isRtl() ?? false;
 
-        // Resolve translations from global layer and active modules via TranslationResolver
-        $translationResolver = app(TranslationResolverContract::class);
-        $translations = $translationResolver->resolve($locale);
-
-        // Active Theme Settings — resolved identically for props and Blade root view
-        $activeTheme = app(ThemeResolver::class)->resolve();
-
-        $themeSettings = [
-            'theme' => $activeTheme['theme'],
-            'palette' => $activeTheme['palette'],
-            'mode' => $activeTheme['mode'],
-            'font' => $isRtl ? 'cairo' : 'inter',
-        ];
-
-        $allowRegistration = (bool) $settingService->get('allow_registration', $settingService->get('registration_enabled', true, 'system'), 'system');
+        $theme = $settings->getTheme();
 
         return array_merge(parent::share($request), [
             'auth' => [
@@ -152,15 +110,20 @@ class HandleInertiaRequests extends Middleware
             'tenant' => $tenantData,
             'branding' => $branding,
             'system' => [
-                'allow_registration' => $allowRegistration,
+                'allow_registration' => (bool) $settings->get('allow_registration', true, 'system'),
             ],
             'locale' => [
                 'current' => $locale,
                 'is_rtl' => $isRtl,
                 'supported' => $supportedLocales,
-                'translations' => $translations,
+                'translations' => app('translator')->getLoader()->load($locale, '*', '*'),
             ],
-            'theme' => $themeSettings,
+            'theme' => [
+                'theme' => $theme['theme'],
+                'palette' => $theme['palette'],
+                'mode' => $theme['mode'],
+                'font' => $isRtl ? 'cairo' : 'inter',
+            ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

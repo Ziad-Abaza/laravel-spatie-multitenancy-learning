@@ -29,8 +29,8 @@ const brandingForm = useForm({
 const themeForm = useForm({
     domain: 'theme',
     settings: {
-        default_palette: props.themeSettings?.default_palette || props.themeSettings?.theme || 'indigo',
-        default_mode: props.themeSettings?.default_mode || props.themeSettings?.mode || 'dark',
+        palette: props.themeSettings?.palette || 'indigo',
+        mode: props.themeSettings?.mode || 'dark',
     },
 });
 
@@ -38,14 +38,14 @@ const localizationForm = useForm({
     domain: 'localization',
     settings: {
         default_locale: props.localization?.default_locale || 'en',
-        enable_arabic: props.localization?.enable_arabic ?? true,
+        supported_locales: props.localization?.supported_locales || ['en', 'ar'],
     },
 });
 
 const systemForm = useForm({
     domain: 'system',
     settings: {
-        allow_registration: props.system?.allow_registration ?? props.system?.registration_enabled ?? true,
+        allow_registration: props.system?.allow_registration ?? true,
         tenant_db_prefix: props.system?.tenant_db_prefix || 'tenant_',
         default_trial_days: props.system?.default_trial_days || 14,
     },
@@ -158,9 +158,9 @@ const palettes = THEME_PRESETS;
                                 v-for="p in palettes"
                                 :key="p.id"
                                 class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer capitalize text-xs transition-all"
-                                :class="themeForm.settings.default_palette === p.id ? 'bg-primary-500/10 border-primary-500 text-text-main font-semibold' : 'bg-surface-input border-border-subtle text-text-muted hover:text-text-main'"
+                                :class="themeForm.settings.palette === p.id ? 'bg-primary-500/10 border-primary-500 text-text-main font-semibold' : 'bg-surface-input border-border-subtle text-text-muted hover:text-text-main'"
                             >
-                                <input type="radio" v-model="themeForm.settings.default_palette" :value="p.id" class="sr-only" />
+                                <input type="radio" v-model="themeForm.settings.palette" :value="p.id" class="sr-only" />
                                 <span class="flex shrink-0">
                                     <span
                                         v-for="(c, i) in p.colors"
@@ -177,7 +177,7 @@ const palettes = THEME_PRESETS;
 
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-2">{{ t('default_theme_mode', 'Default Theme Mode') }}</label>
-                        <select v-model="themeForm.settings.default_mode" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                        <select v-model="themeForm.settings.mode" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
                             <option value="dark">{{ t('dark_mode', 'Dark Mode') }}</option>
                             <option value="light">{{ t('light_mode', 'Light Mode') }}</option>
                             <option value="system">{{ t('system_preference', 'System Preference') }}</option>
@@ -206,7 +206,7 @@ const palettes = THEME_PRESETS;
 
                     <div class="pt-2">
                         <label class="flex items-center gap-2 text-xs text-text-main cursor-pointer">
-                            <input type="checkbox" v-model="localizationForm.settings.enable_arabic" class="rounded bg-surface-input border-border-subtle text-primary-600 focus:ring-primary-500" />
+                            <input type="checkbox" value="ar" v-model="localizationForm.settings.supported_locales" class="rounded bg-surface-input border-border-subtle text-primary-600 focus:ring-primary-500" />
                             <span>{{ t('enable_arabic_desc', 'Enable Arabic (RTL) localization platform-wide') }}</span>
                         </label>
                     </div>

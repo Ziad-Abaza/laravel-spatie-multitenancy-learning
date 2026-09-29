@@ -1,6 +1,6 @@
-@php($activeTheme = app(\Modules\Core\Services\ThemeResolver::class)->resolve())
+@php($activeTheme = app(\Modules\Core\Contracts\SettingManagerContract::class)->getTheme())
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" data-theme="{{ $activeTheme['theme'] }}" data-mode="{{ $activeTheme['mode'] }}" class="{{ $activeTheme['mode'] === 'dark' ? 'dark' : '' }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ (\Modules\Core\Enums\Locale::tryFrom(app()->getLocale())?->isRtl() ?? false) ? 'rtl' : 'ltr' }}" data-theme="{{ $activeTheme['theme'] }}" data-mode="{{ $activeTheme['mode'] }}" class="{{ $activeTheme['mode'] === 'dark' ? 'dark' : '' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

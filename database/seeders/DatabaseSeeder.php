@@ -87,11 +87,11 @@ class DatabaseSeeder extends Seeder
         // 3. Seed default tenant settings
         if (Schema::hasTable('tenant_settings')) {
             TenantSetting::updateOrCreate(
-                ['domain' => 'branding', 'key' => 'company_name'],
+                ['domain' => 'branding', 'key' => 'workspace_name'],
                 ['value' => $tenant->name, 'type' => 'string', 'is_public' => true]
             );
             TenantSetting::updateOrCreate(
-                ['domain' => 'theme', 'key' => 'theme'],
+                ['domain' => 'theme', 'key' => 'palette'],
                 ['value' => 'indigo', 'type' => 'string', 'is_public' => true]
             );
             TenantSetting::updateOrCreate(

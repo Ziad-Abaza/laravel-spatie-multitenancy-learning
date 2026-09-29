@@ -14,7 +14,7 @@ function selectPalette(palette: ThemePalette) {
     themeStore.applyTheme(palette);
     isOpen.value = false;
 
-    router.post('/theme', { theme: palette }, {
+    router.post('/theme', { palette }, {
         preserveState: true,
         preserveScroll: true,
     });

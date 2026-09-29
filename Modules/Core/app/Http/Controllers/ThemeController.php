@@ -5,8 +5,9 @@ namespace Modules\Core\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Modules\Core\Services\ThemeResolver;
+use Illuminate\Validation\Rules\Enum;
+use Modules\Core\Enums\ThemeMode;
+use Modules\Core\Enums\ThemePalette;
 
 class ThemeController extends Controller
 {
@@ -16,14 +17,12 @@ class ThemeController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'theme' => ['nullable', 'string', Rule::in(ThemeResolver::PALETTES)],
-            'palette' => ['nullable', 'string', Rule::in(ThemeResolver::PALETTES)],
-            'mode' => ['nullable', 'string', Rule::in(ThemeResolver::MODES)],
+            'palette' => ['nullable', 'string', new Enum(ThemePalette::class)],
+            'mode' => ['nullable', 'string', new Enum(ThemeMode::class)],
         ]);
 
-        $palette = $validated['palette'] ?? $validated['theme'] ?? null;
-        if ($palette) {
-            session(['theme' => $palette]);
+        if (isset($validated['palette'])) {
+            session(['theme' => $validated['palette']]);
         }
 
         if (isset($validated['mode'])) {

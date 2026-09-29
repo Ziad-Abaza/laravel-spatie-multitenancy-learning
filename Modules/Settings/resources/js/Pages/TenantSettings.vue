@@ -16,7 +16,7 @@ const { t } = useI18n();
 const brandingForm = useForm({
     domain: 'branding',
     settings: {
-        workspace_name: props.branding?.workspace_name || props.branding?.company_name || '',
+        workspace_name: props.branding?.workspace_name || '',
         tagline: props.branding?.tagline || '',
     },
 });
@@ -24,7 +24,7 @@ const brandingForm = useForm({
 const themeForm = useForm({
     domain: 'theme',
     settings: {
-        palette: props.themeSettings?.palette || props.themeSettings?.theme || 'indigo',
+        palette: props.themeSettings?.palette || 'indigo',
         mode: props.themeSettings?.mode || 'dark',
     },
 });

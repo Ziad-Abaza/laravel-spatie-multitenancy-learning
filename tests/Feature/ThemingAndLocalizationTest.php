@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use Inertia\Testing\AssertableInertia;
 use Modules\Core\Contracts\SettingManagerContract;
-use Modules\Core\Contracts\TranslationResolverContract;
 use Modules\Settings\Services\SettingService;
 use Modules\Subscription\Models\Plan;
 use Tests\TestCase;
@@ -70,12 +69,12 @@ class ThemingAndLocalizationTest extends TestCase
         $this->assertArrayHasKey('roles', $accessAr);
     }
 
-    public function test_translation_resolver_resolves_all_module_and_global_translations(): void
+    public function test_translation_loader_resolves_all_module_and_global_translations(): void
     {
-        $resolver = app(TranslationResolverContract::class);
+        $loader = app('translator')->getLoader();
 
-        $en = $resolver->resolve('en');
-        $ar = $resolver->resolve('ar');
+        $en = $loader->load('en', '*', '*');
+        $ar = $loader->load('ar', '*', '*');
 
         $this->assertIsArray($en);
         $this->assertIsArray($ar);
@@ -91,12 +90,6 @@ class ThemingAndLocalizationTest extends TestCase
         $this->assertArrayHasKey('subscription_plans', $ar);
         $this->assertArrayHasKey('landlord_portal', $en);
         $this->assertArrayHasKey('roles', $en);
-
-        // Module keys (namespaced access to prevent collisions)
-        $this->assertArrayHasKey('settings::platform_settings', $en);
-        $this->assertArrayHasKey('settings.platform_settings', $en);
-        $this->assertArrayHasKey('subscription::subscription_plans', $en);
-        $this->assertArrayHasKey('subscription.subscription_plans', $en);
     }
 
     public function test_validation_translation_files_exist_and_are_valid(): void
@@ -142,16 +135,16 @@ class ThemingAndLocalizationTest extends TestCase
         $invalidResponse->assertSessionHasErrors(['locale']);
     }
 
-    public function test_post_locale_respects_enable_arabic_setting(): void
+    public function test_post_locale_respects_supported_locales_setting(): void
     {
         $settingService = app(SettingService::class);
-        $settingService->set('enable_arabic', false, 'localization', true);
+        $settingService->set('supported_locales', ['en'], 'localization', true);
 
         $response = $this->post('/locale', ['locale' => 'ar']);
         $response->assertSessionHasErrors(['locale']);
 
         // Restore
-        $settingService->set('enable_arabic', true, 'localization', true);
+        $settingService->set('supported_locales', ['en', 'ar'], 'localization', true);
     }
 
     public function test_post_theme_updates_palette_and_mode_in_session(): void
@@ -178,32 +171,27 @@ class ThemingAndLocalizationTest extends TestCase
     {
         $settingManager = app(SettingManagerContract::class);
 
-        $settingManager->set('default_palette', 'violet', 'theme', true);
+        $settingManager->set('palette', 'violet', 'theme', true);
 
-        $palette = $settingManager->get('default_palette', 'indigo', 'theme');
-        $this->assertEquals('violet', $palette);
+        $this->assertEquals('violet', $settingManager->get('palette', 'indigo', 'theme'));
 
         // Reset
-        $settingManager->set('default_palette', 'indigo', 'theme', true);
+        $settingManager->set('palette', 'indigo', 'theme', true);
     }
 
-    public function test_settings_service_handles_key_aliasing(): void
+    public function test_settings_service_persists_canonical_keys(): void
     {
         $settingService = app(SettingService::class);
 
-        // Alias: theme <=> palette <=> default_palette
-        $settingService->set('theme', 'rose', 'theme', true);
-        $this->assertEquals('rose', $settingService->get('default_palette', null, 'theme'));
+        $settingService->set('palette', 'rose', 'theme', true);
         $this->assertEquals('rose', $settingService->get('palette', null, 'theme'));
-        $this->assertEquals('rose', $settingService->get('theme', null, 'theme'));
+        $this->assertEquals('rose', $settingService->getTheme()['palette']);
 
-        // Alias: allow_registration <=> registration_enabled
         $settingService->set('allow_registration', false, 'system', true);
-        $this->assertFalse($settingService->get('registration_enabled', null, 'system'));
         $this->assertFalse($settingService->get('allow_registration', null, 'system'));
 
         // Reset
-        $settingService->set('theme', 'indigo', 'theme', true);
+        $settingService->set('palette', 'indigo', 'theme', true);
         $settingService->set('allow_registration', true, 'system', true);
     }
 
@@ -253,7 +241,7 @@ class ThemingAndLocalizationTest extends TestCase
     public function test_root_view_renders_the_same_resolved_theme_as_shared_props(): void
     {
         $settingManager = app(SettingManagerContract::class);
-        $settingManager->set('theme', 'violet', 'theme', true);
+        $settingManager->set('palette', 'violet', 'theme', true);
 
         // Persisted configuration is rendered into the HTML when no session override exists
         $response = $this->get('/');
@@ -283,6 +271,6 @@ class ThemingAndLocalizationTest extends TestCase
         $response->assertSee('data-theme="violet"', false);
         $response->assertInertia(fn (AssertableInertia $page) => $page->where('theme.theme', 'violet'));
 
-        $settingManager->set('theme', 'indigo', 'theme', true);
+        $settingManager->set('palette', 'indigo', 'theme', true);
     }
 }

@@ -25,7 +25,7 @@ class TenantRegistrationController extends Controller
      */
     public function show(): Response|RedirectResponse
     {
-        $allowRegistration = (bool) $this->settingService->get('allow_registration', $this->settingService->get('registration_enabled', true, 'system'), 'system');
+        $allowRegistration = (bool) $this->settingService->get('allow_registration', true, 'system');
         if (! $allowRegistration) {
             abort(403, 'Public workspace registration is currently disabled.');
         }
@@ -54,7 +54,7 @@ class TenantRegistrationController extends Controller
      */
     public function register(Request $request): RedirectResponse
     {
-        $allowRegistration = (bool) $this->settingService->get('allow_registration', $this->settingService->get('registration_enabled', true, 'system'), 'system');
+        $allowRegistration = (bool) $this->settingService->get('allow_registration', true, 'system');
         if (! $allowRegistration) {
             abort(403, 'Public workspace registration is currently disabled.');
         }

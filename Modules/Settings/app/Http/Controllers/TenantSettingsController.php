@@ -39,8 +39,8 @@ class TenantSettingsController extends Controller
         }
 
         if ($domain === 'theme') {
-            if (isset($settings['palette']) || isset($settings['theme'])) {
-                session(['theme' => $settings['palette'] ?? $settings['theme']]);
+            if (isset($settings['palette'])) {
+                session(['theme' => $settings['palette']]);
             }
             if (isset($settings['mode'])) {
                 session(['theme_mode' => $settings['mode']]);

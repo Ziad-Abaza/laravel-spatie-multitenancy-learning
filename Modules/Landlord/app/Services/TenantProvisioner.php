@@ -61,10 +61,10 @@ class TenantProvisioner
         // 1. Create tenant database if MySQL (or prepare sqlite in test)
         $this->createDatabaseIfNotExists($databaseName);
 
-        // Retrieve system defaults for trial duration and theme
+        // Retrieve system defaults for trial duration, theme and locale
         $defaultTrialDays = (int) $this->settingService->get('default_trial_days', 14, 'system');
-        $defaultTheme = (string) $this->settingService->get('default_palette', $this->settingService->get('theme', 'indigo', 'theme'), 'theme');
-        $defaultMode = (string) $this->settingService->get('default_mode', $this->settingService->get('mode', 'dark', 'theme'), 'theme');
+        $defaultPalette = (string) $this->settingService->get('palette', 'indigo', 'theme');
+        $defaultMode = (string) $this->settingService->get('mode', 'dark', 'theme');
         $defaultLocale = (string) $this->settingService->get('default_locale', 'en', 'localization');
 
         // 2. Create Tenant record on landlord connection
@@ -76,7 +76,7 @@ class TenantProvisioner
             'status' => TenantStatus::Trialing,
             'trial_ends_at' => now()->addDays($defaultTrialDays),
             'settings' => [
-                'theme' => $defaultTheme,
+                'palette' => $defaultPalette,
                 'mode' => $defaultMode,
                 'language' => $defaultLocale,
             ],
@@ -174,20 +174,12 @@ class TenantProvisioner
 
             // Default tenant settings
             TenantSetting::updateOrCreate(
-                ['domain' => 'branding', 'key' => 'company_name'],
-                ['value' => $tenant->name, 'type' => 'string', 'is_public' => true]
-            );
-            TenantSetting::updateOrCreate(
                 ['domain' => 'branding', 'key' => 'workspace_name'],
                 ['value' => $tenant->name, 'type' => 'string', 'is_public' => true]
             );
             TenantSetting::updateOrCreate(
-                ['domain' => 'theme', 'key' => 'theme'],
-                ['value' => $tenant->settings['theme'] ?? 'indigo', 'type' => 'string', 'is_public' => true]
-            );
-            TenantSetting::updateOrCreate(
                 ['domain' => 'theme', 'key' => 'palette'],
-                ['value' => $tenant->settings['theme'] ?? 'indigo', 'type' => 'string', 'is_public' => true]
+                ['value' => $tenant->settings['palette'] ?? 'indigo', 'type' => 'string', 'is_public' => true]
             );
             TenantSetting::updateOrCreate(
                 ['domain' => 'theme', 'key' => 'mode'],

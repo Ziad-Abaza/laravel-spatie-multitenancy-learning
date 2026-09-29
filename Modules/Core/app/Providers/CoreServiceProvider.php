@@ -2,8 +2,6 @@
 
 namespace Modules\Core\Providers;
 
-use Modules\Core\Contracts\TranslationResolverContract;
-use Modules\Core\Services\TranslationResolver;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class CoreServiceProvider extends ModuleServiceProvider
@@ -19,13 +17,6 @@ class CoreServiceProvider extends ModuleServiceProvider
     protected string $nameLower = 'core';
 
     /**
-     * Command classes to register.
-     *
-     * @var string[]
-     */
-    // protected array $commands = [];
-
-    /**
      * Provider classes to register.
      *
      * @var string[]
@@ -34,24 +25,4 @@ class CoreServiceProvider extends ModuleServiceProvider
         EventServiceProvider::class,
         RouteServiceProvider::class,
     ];
-
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        parent::register();
-
-        $this->app->singleton(TranslationResolverContract::class, TranslationResolver::class);
-    }
-
-    /**
-     * Boot the application events.
-     */
-    public function boot(): void
-    {
-        parent::boot();
-
-        $this->app->make(TranslationResolverContract::class)->registerWithTranslator();
-    }
 }
