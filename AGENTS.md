@@ -5,6 +5,21 @@
 
 The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to ensure the best experience when building Laravel applications.
 
+## Application Quality Rules
+
+- Every concern must have a single source of truth.
+- No hardcoded business rules, permissions, routes, settings, statuses, currencies, locales, themes, or configuration.
+- Follow Laravel conventions and architecture before introducing custom patterns.
+- Keep controllers, models, Vue pages, stores, and components focused on their responsibilities.
+- Centralize reusable business logic instead of duplicating it.
+- Centralize reusable UI behavior instead of duplicating it.
+- Prefer extension of existing abstractions over parallel implementations.
+- Every user action must produce clear and consistent feedback.
+- State changes must propagate through the established application state flow without requiring manual page refreshes.
+- Disabled or unavailable functionality must not remain reachable through UI, routes, actions, or APIs.
+- Every implementation must handle loading, success, validation, empty, authorization, and error states where applicable.
+- Fix root causes, not symptoms.
+
 ## Foundational Context
 
 This application is a Laravel application running on PHP 8.4. You are an expert with the Laravel ecosystem. Always use the APIs that match the installed major version of each package — do not assume a version.
@@ -35,6 +50,100 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 ## Frontend Bundling
 
 - If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
+
+## Performance, Architecture & UI Engineering Rules
+
+These rules are mandatory for all application changes, especially Vue 3, Inertia.js, Pinia, TypeScript, and reusable UI components.
+
+### 1. Performance Patterns
+
+- **Internal Navigation:** Use Inertia.js `<Link>` or `router.visit()` for internal navigation. Do not use normal `<a href>` navigation when an Inertia navigation is appropriate, as this causes unnecessary full-page reloads.
+
+- **Event Listeners:** Never register global listeners such as `window.addEventListener()` or `document.addEventListener()` inside components rendered repeatedly by `v-for`. Route shared/global listeners through a reusable Singleton Composable with proper lifecycle cleanup.
+
+- **Pure Transformations:** Filtering, mapping, formatting, and transformation functions must not mutate Pinia state, props, or other source data. Return new objects/collections instead.
+
+- **Pinia State:** When extracting reactive state from Pinia stores, prefer `storeToRefs()` over recreating equivalent `computed()` wrappers in individual components.
+
+- **Long Lists:** Do not render unbounded or very large collections directly with `v-for`. Use windowing/virtualization so only the visible portion of the dataset is rendered when the dataset can become large.
+
+- **Fast Membership Checks:** For repeated membership checks during rendering or iteration, prefer precomputed `Set`/`Map` structures over repeated `Array.includes()` calls when the data size or frequency makes this materially beneficial.
+
+- **Shared Global Resources:** Resources such as scroll locking must use reusable reference-counted utilities. Do not manage shared resources with independent boolean flags that can conflict when multiple consumers are active.
+
+- **Transformation Caching:** Cache expensive object-based transformations in `WeakMap` when the transformation is derived from an object reference and can safely reuse the result while that reference remains valid.
+
+### 2. Component & Architecture Rules
+
+- **Extend, Don't Duplicate:** Extend existing reusable components such as `EnterpriseDataGrid` and `EnterpriseFormEngine` instead of creating parallel alternatives that duplicate their responsibilities.
+
+- **Safe Extensibility:** Prefer established extension mechanisms such as slots, composables, configuration, dependency injection, and typed extension points before introducing new component architectures.
+
+- **Architectural Invariants:** Existing architectural invariants are mandatory. For example:
+  - `useThemeStore` remains the single source of truth for application theme state.
+  - `setupInertiaStateBridge` remains the established bridge between Inertia state and Pinia.
+  - Do not introduce competing state or theme sources without explicit architectural justification.
+
+- **No Parallel Architecture:** Do not introduce a new abstraction, framework pattern, store, composable, service, or component hierarchy when an existing project abstraction already provides the required capability.
+
+### 3. Type Safety & Reusability
+
+- **Generics:** Reusable Vue components should use TypeScript generics where the component operates on caller-defined data types, e.g. `<script setup lang="ts" generic="T">`.
+
+- **Type Integrity:** Do not weaken type safety with unnecessary `any`, unsafe casts, duplicated interfaces, or type assertions merely to make an implementation compile.
+
+- **Reusable Contracts:** Generic components must preserve type inference between their inputs, outputs, slots, and emitted events.
+
+### 4. UI State Requirements
+
+Reusable data-driven components must explicitly support:
+
+- **Loading State:** Provide structural Skeleton loading states that preserve the final layout and minimize layout shift.
+- **Empty State:** Provide a clear, intentional empty state rather than rendering a blank area.
+- **Error State:** Provide an integrated error state with an understandable message and an appropriate recovery/action mechanism where applicable.
+
+### 5. Semantic Data Formatting
+
+Use standardized semantic formatter components wherever the project provides them.
+
+Examples:
+- `BadgeCell` for statuses, labels, and semantic states.
+- `CurrencyCell` for monetary values.
+- Other existing formatter components for dates, numbers, users, percentages, or domain-specific values.
+
+Do not duplicate formatting logic across table columns when an established semantic formatter exists.
+
+### 6. UI/UX & Design-System Rules
+
+- **Design Tokens:** Use the project's CSS variables/design tokens instead of hardcoded colors, spacing, typography, borders, shadows, or other theme-dependent values.
+
+- **Theme Compatibility:** UI implementations must remain compatible with all supported themes, including light and dark modes. Do not introduce hardcoded values that only work in one theme.
+
+- **Icons:** Use the project's standard SVG icon system/components. Do not use emojis as UI icons.
+
+- **Stable Hover States:** Hover, focus, and active states must not cause layout shifts. Avoid changing dimensions, borders, padding, font metrics, or other layout-affecting properties on interaction unless the layout explicitly reserves the required space.
+
+- **Visual Consistency:** Reuse established design-system components and patterns before introducing new visual primitives.
+
+### 7. Review Gate
+
+Before considering a change complete, verify:
+
+1. No unnecessary full-page navigation was introduced.
+2. No repeated component creates unmanaged global listeners.
+3. No props or Pinia state are mutated by transformation logic.
+4. Existing Pinia state extraction patterns are preserved.
+5. Large collections use appropriate rendering strategies.
+6. Existing reusable components were extended before creating alternatives.
+7. Architectural invariants remain intact.
+8. Generic reusable components preserve TypeScript type safety.
+9. Loading, empty, and error states are handled where applicable.
+10. Existing semantic formatters are reused.
+11. Design tokens are used instead of hardcoded theme values.
+12. Icons follow the project's SVG icon system.
+13. Interaction states do not introduce layout shift.
+
+If an existing project pattern conflicts with one of these rules, inspect the actual implementation and project conventions first. Do not silently create a second pattern. Document the conflict and choose the solution that preserves the established architecture and consistency.
 
 ## Documentation Files
 
