@@ -249,4 +249,40 @@ class ThemingAndLocalizationTest extends TestCase
             ->has('branding')
         );
     }
+
+    public function test_root_view_renders_the_same_resolved_theme_as_shared_props(): void
+    {
+        $settingManager = app(SettingManagerContract::class);
+        $settingManager->set('theme', 'violet', 'theme', true);
+
+        // Persisted configuration is rendered into the HTML when no session override exists
+        $response = $this->get('/');
+
+        $response->assertStatus(200);
+        $response->assertSee('data-theme="violet"', false);
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('theme.theme', 'violet')
+            ->where('theme.palette', 'violet')
+        );
+
+        // Session override beats persisted configuration, identically in HTML and props
+        $response = $this->withSession(['theme' => 'emerald', 'theme_mode' => 'light'])->get('/');
+
+        $response->assertStatus(200);
+        $response->assertSee('data-theme="emerald"', false);
+        $response->assertSee('data-mode="light"', false);
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('theme.theme', 'emerald')
+            ->where('theme.mode', 'light')
+        );
+
+        // Invalid session values fall back to the resolved theme instead of leaking through
+        $response = $this->withSession(['theme' => 'not-a-real-theme', 'theme_mode' => 'bogus'])->get('/');
+
+        $response->assertStatus(200);
+        $response->assertSee('data-theme="violet"', false);
+        $response->assertInertia(fn (AssertableInertia $page) => $page->where('theme.theme', 'violet'));
+
+        $settingManager->set('theme', 'indigo', 'theme', true);
+    }
 }

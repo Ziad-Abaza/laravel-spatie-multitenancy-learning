@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Modules\Core\Contracts\TranslationResolverContract;
+use Modules\Core\Services\ThemeResolver;
 use Modules\Settings\Services\SettingService;
 
 class HandleInertiaRequests extends Middleware
@@ -131,15 +132,13 @@ class HandleInertiaRequests extends Middleware
         $translationResolver = app(TranslationResolverContract::class);
         $translations = $translationResolver->resolve($locale);
 
-        // Active Theme Settings (from session override, tenant settings, or landlord settings)
-        $configuredTheme = $settingService->getTheme();
-        $activeTheme = session('theme', $configuredTheme['theme'] ?? 'indigo');
-        $activeMode = session('theme_mode', $configuredTheme['mode'] ?? 'dark');
+        // Active Theme Settings — resolved identically for props and Blade root view
+        $activeTheme = app(ThemeResolver::class)->resolve();
 
         $themeSettings = [
-            'theme' => $activeTheme,
-            'palette' => $activeTheme,
-            'mode' => $activeMode,
+            'theme' => $activeTheme['theme'],
+            'palette' => $activeTheme['palette'],
+            'mode' => $activeTheme['mode'],
             'font' => $isRtl ? 'cairo' : 'inter',
         ];
 

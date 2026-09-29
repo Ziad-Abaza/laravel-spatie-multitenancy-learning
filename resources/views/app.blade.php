@@ -1,5 +1,6 @@
+@php($activeTheme = $page['props']['theme'] ?? app(\Modules\Core\Services\ThemeResolver::class)->resolve())
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ in_array(app()->getLocale(), ['ar', 'fa', 'ur', 'he']) ? 'rtl' : 'ltr' }}" class="h-full" data-theme="{{ session('theme', 'indigo') }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ in_array(app()->getLocale(), ['ar', 'fa', 'ur', 'he']) ? 'rtl' : 'ltr' }}" class="h-full{{ $activeTheme['mode'] === 'dark' ? ' dark' : '' }}" data-theme="{{ $activeTheme['theme'] }}" data-mode="{{ $activeTheme['mode'] }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,20 +8,7 @@
     <title inertia>{{ config('app.name', 'SaaS Platform') }}</title>
 
     <!-- Theme & Mode Initialization (prevents FOUC) -->
-    <script>
-        (function() {
-            try {
-                const storedTheme = localStorage.getItem('saas_theme') || '{{ session('theme', 'indigo') }}';
-                const storedMode = localStorage.getItem('saas_mode') || '{{ session('theme_mode', 'dark') }}';
-                document.documentElement.setAttribute('data-theme', storedTheme);
-                if (storedMode === 'dark' || (storedMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
-            } catch (e) {}
-        })();
-    </script>
+    @include('partials.theme-init')
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">

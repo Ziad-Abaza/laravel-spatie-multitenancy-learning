@@ -28,46 +28,53 @@ function asMode(value: string | null | undefined): ThemeMode | undefined {
     return THEME_MODES.includes(value as ThemeMode) ? (value as ThemeMode) : undefined;
 }
 
+function systemPrefersDark(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+/**
+ * The server-resolved `theme` prop (shared on every Inertia response) is the
+ * single source of truth. The store only mirrors it onto <html> as
+ * `data-theme` / `data-mode` / `.dark`, which drive the CSS design tokens.
+ */
 export const useThemeStore = defineStore('theme', () => {
     const currentTheme = ref<ThemePalette>('indigo');
     const currentMode = ref<ThemeMode>('dark');
+    const isDark = ref(true);
 
     function applyTheme(theme: ThemePalette) {
         currentTheme.value = theme;
         if (typeof document !== 'undefined') {
             document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('saas_theme', theme);
         }
     }
 
     function applyMode(mode: ThemeMode) {
         currentMode.value = mode;
+        isDark.value = mode === 'dark' || (mode === 'system' && systemPrefersDark());
         if (typeof document !== 'undefined') {
-            if (mode === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else if (mode === 'light') {
-                document.documentElement.classList.remove('dark');
-            } else {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.classList.toggle('dark', prefersDark);
-            }
-            localStorage.setItem('saas_mode', mode);
+            document.documentElement.setAttribute('data-mode', mode);
+            document.documentElement.classList.toggle('dark', isDark.value);
         }
     }
 
     function initTheme(initialTheme?: string, initialMode?: string) {
-        if (typeof window === 'undefined') return;
+        applyTheme(asPalette(initialTheme) ?? 'indigo');
+        applyMode(asMode(initialMode) ?? 'dark');
 
-        const storedTheme = asPalette(localStorage.getItem('saas_theme')) ?? asPalette(initialTheme) ?? 'indigo';
-        const storedMode = asMode(localStorage.getItem('saas_mode')) ?? asMode(initialMode) ?? 'dark';
-
-        applyTheme(storedTheme);
-        applyMode(storedMode);
+        if (typeof window !== 'undefined') {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                if (currentMode.value === 'system') {
+                    applyMode('system');
+                }
+            });
+        }
     }
 
     return {
         currentTheme,
         currentMode,
+        isDark,
         applyTheme,
         applyMode,
         initTheme,

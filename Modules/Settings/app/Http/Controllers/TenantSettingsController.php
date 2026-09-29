@@ -22,7 +22,7 @@ class TenantSettingsController extends Controller
     {
         return Inertia::render('Settings/TenantSettings', [
             'branding' => $this->settingService->getBranding(),
-            'theme' => $this->settingService->getTheme(),
+            'themeSettings' => $this->settingService->getTheme(),
         ]);
     }
 

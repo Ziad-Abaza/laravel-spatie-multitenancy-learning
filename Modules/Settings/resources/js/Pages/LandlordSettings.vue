@@ -8,7 +8,7 @@ import { THEME_PRESETS } from '@core/Stores/useThemeStore';
 
 const props = defineProps<{
     branding: Record<string, any>;
-    theme: Record<string, any>;
+    themeSettings: Record<string, any>;
     localization: Record<string, any>;
     system: Record<string, any>;
 }>();
@@ -29,8 +29,8 @@ const brandingForm = useForm({
 const themeForm = useForm({
     domain: 'theme',
     settings: {
-        default_palette: props.theme?.default_palette || props.theme?.theme || 'indigo',
-        default_mode: props.theme?.default_mode || props.theme?.mode || 'dark',
+        default_palette: props.themeSettings?.default_palette || props.themeSettings?.theme || 'indigo',
+        default_mode: props.themeSettings?.default_mode || props.themeSettings?.mode || 'dark',
     },
 });
 

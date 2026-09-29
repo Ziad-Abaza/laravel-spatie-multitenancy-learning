@@ -22,7 +22,7 @@ class LandlordSettingsController extends Controller
     {
         return Inertia::render('Settings/LandlordSettings', [
             'branding' => $this->settingService->allByDomain('branding'),
-            'theme' => $this->settingService->allByDomain('theme'),
+            'themeSettings' => $this->settingService->allByDomain('theme'),
             'localization' => $this->settingService->allByDomain('localization'),
             'system' => $this->settingService->allByDomain('system'),
         ]);

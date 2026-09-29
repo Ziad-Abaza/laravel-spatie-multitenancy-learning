@@ -21,7 +21,7 @@ function selectPalette(palette: ThemePalette) {
 }
 
 function toggleMode() {
-    const nextMode: ThemeMode = themeStore.currentMode === 'dark' ? 'light' : 'dark';
+    const nextMode: ThemeMode = themeStore.isDark ? 'light' : 'dark';
     themeStore.applyMode(nextMode);
 
     router.post('/theme', { mode: nextMode }, {
@@ -47,10 +47,10 @@ function toggleMode() {
         <button
             type="button"
             class="p-2 rounded-xl text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors border border-transparent hover:border-border-subtle"
-            :title="themeStore.currentMode === 'dark' ? t('light_mode', 'Light Mode') : t('dark_mode', 'Dark Mode')"
+            :title="themeStore.isDark ? t('light_mode', 'Light Mode') : t('dark_mode', 'Dark Mode')"
             @click="toggleMode"
         >
-            <Sun v-if="themeStore.currentMode === 'dark'" class="w-4 h-4 text-accent-500" />
+            <Sun v-if="themeStore.isDark" class="w-4 h-4 text-accent-500" />
             <Moon v-else class="w-4 h-4 text-primary-600" />
         </button>
 

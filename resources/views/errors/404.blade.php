@@ -1,24 +1,12 @@
+@php($activeTheme = app(\Modules\Core\Services\ThemeResolver::class)->resolve())
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" data-theme="{{ session('theme', 'indigo') }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" data-theme="{{ $activeTheme['theme'] }}" data-mode="{{ $activeTheme['mode'] }}" class="{{ $activeTheme['mode'] === 'dark' ? 'dark' : '' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light dark">
     <title>404 - {{ __('error_404_title') }}</title>
-    <script>
-        (function() {
-            try {
-                const storedTheme = localStorage.getItem('saas_theme') || '{{ session('theme', 'indigo') }}';
-                const storedMode = localStorage.getItem('saas_mode') || '{{ session('theme_mode', 'dark') }}';
-                document.documentElement.setAttribute('data-theme', storedTheme);
-                if (storedMode === 'dark' || (storedMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
-            } catch (e) {}
-        })();
-    </script>
+    @include('partials.theme-init')
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cairo:400,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css'])

@@ -5,6 +5,8 @@ namespace Modules\Core\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Modules\Core\Services\ThemeResolver;
 
 class ThemeController extends Controller
 {
@@ -14,9 +16,9 @@ class ThemeController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'theme' => ['nullable', 'string', 'in:indigo,emerald,violet,amber,cyan,rose'],
-            'palette' => ['nullable', 'string', 'in:indigo,emerald,violet,amber,cyan,rose'],
-            'mode' => ['nullable', 'string', 'in:light,dark,system'],
+            'theme' => ['nullable', 'string', Rule::in(ThemeResolver::PALETTES)],
+            'palette' => ['nullable', 'string', Rule::in(ThemeResolver::PALETTES)],
+            'mode' => ['nullable', 'string', Rule::in(ThemeResolver::MODES)],
         ]);
 
         $palette = $validated['palette'] ?? $validated['theme'] ?? null;

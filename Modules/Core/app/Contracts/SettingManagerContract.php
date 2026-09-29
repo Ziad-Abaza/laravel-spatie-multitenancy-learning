@@ -12,4 +12,9 @@ interface SettingManagerContract
      * @return array<string, mixed>
      */
     public function allByDomain(string $domain): array;
+
+    /**
+     * @return array{theme: string, palette: string, default_palette: string, mode: string, default_mode: string, radius: string}
+     */
+    public function getTheme(): array;
 }
