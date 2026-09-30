@@ -77,7 +77,7 @@ class LandlordDatabaseSeeder extends Seeder
                 'plan_id' => $proPlan?->id ?? $starterPlan?->id,
             ]);
             if (! $tenant1->currentSubscription && $proPlan) {
-                $subscriptionService->subscribeTenant($tenant1, $proPlan, 'monthly', false);
+                $subscriptionService->subscribeTenant($tenant1, $proPlan, false);
             }
         }
 
@@ -89,7 +89,7 @@ class LandlordDatabaseSeeder extends Seeder
                 'plan_id' => $starterPlan?->id,
             ]);
             if (! $tenant2->currentSubscription && $starterPlan) {
-                $subscriptionService->subscribeTenant($tenant2, $starterPlan, 'monthly', false);
+                $subscriptionService->subscribeTenant($tenant2, $starterPlan, false);
             }
         }
     }

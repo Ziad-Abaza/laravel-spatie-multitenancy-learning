@@ -5,6 +5,7 @@ namespace Modules\Subscription\Services;
 use App\Models\Tenant;
 use App\Models\User;
 use Modules\Core\Contracts\QuotaManagerContract;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class QuotaService implements QuotaManagerContract
 {
@@ -104,5 +105,30 @@ class QuotaService implements QuotaManagerContract
         $limit = $tenant->plan->getLimit('max_storage_mb');
 
         return is_numeric($limit) ? (int) $limit : null;
+    }
+
+    /**
+     * Current tenant storage usage in MB — real bytes held by the media
+     * library, summed inside the tenant database.
+     */
+    public function getStorageUsageMb(mixed $tenant): int
+    {
+        if (! $tenant instanceof Tenant) {
+            $tenant = Tenant::current();
+        }
+
+        if (! $tenant) {
+            return 0;
+        }
+
+        $tenantConnection = config('multitenancy.tenant_database_connection_name', 'tenant');
+
+        return $tenant->execute(function () use ($tenantConnection) {
+            try {
+                return (int) round(Media::on($tenantConnection)->sum('size') / 1048576);
+            } catch (\Throwable) {
+                return 0;
+            }
+        });
     }
 }

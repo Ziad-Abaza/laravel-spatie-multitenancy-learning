@@ -14,26 +14,25 @@ use Modules\Subscription\Models\Subscription;
 class SubscriptionService
 {
     /**
-     * Subscribe a tenant to a plan.
+     * Subscribe a tenant to a plan. The plan is the single source of truth
+     * for price, currency, and billing interval.
      */
     public function subscribeTenant(
         Tenant $tenant,
         Plan $plan,
-        string $billingInterval = 'monthly',
         bool $startTrial = true
     ): Subscription {
         $trialDays = $startTrial ? $plan->trial_days : 0;
         $trialEndsAt = $trialDays > 0 ? Carbon::now()->addDays($trialDays) : null;
         $status = $trialDays > 0 ? SubscriptionStatus::Trialing : SubscriptionStatus::Active;
-
-        $amount = $billingInterval === 'yearly' ? $plan->price * 10 : $plan->price;
+        $billingInterval = $plan->billing_interval === 'yearly' ? 'yearly' : 'monthly';
 
         $subscription = Subscription::create([
             'tenant_id' => $tenant->id,
             'plan_id' => $plan->id,
             'status' => $status,
             'billing_interval' => $billingInterval,
-            'amount' => $amount,
+            'amount' => $plan->price,
             'currency' => $plan->currency,
             'trial_ends_at' => $trialEndsAt,
             'starts_at' => Carbon::now(),
@@ -60,14 +59,18 @@ class SubscriptionService
 
         if ($currentSubscription) {
             $oldStatus = $currentSubscription->getStatus();
+            $billingInterval = $newPlan->billing_interval === 'yearly' ? 'yearly' : 'monthly';
             $currentSubscription->update([
                 'plan_id' => $newPlan->id,
+                'billing_interval' => $billingInterval,
                 'amount' => $newPlan->price,
+                'currency' => $newPlan->currency,
+                'ends_at' => $billingInterval === 'yearly' ? Carbon::now()->addYear() : Carbon::now()->addMonth(),
             ]);
 
             event(new SubscriptionUpdated($currentSubscription, $oldStatus, $currentSubscription->getStatus()));
         } else {
-            return $this->subscribeTenant($tenant, $newPlan, 'monthly', false);
+            return $this->subscribeTenant($tenant, $newPlan, false);
         }
 
         $tenant->update(['plan_id' => $newPlan->id]);

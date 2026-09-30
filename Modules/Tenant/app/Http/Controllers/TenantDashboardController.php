@@ -25,6 +25,7 @@ class TenantDashboardController extends Controller
         $userCount = $this->quotaManager->getUserCount($tenant);
         $userLimit = $this->quotaManager->getUserLimit($tenant);
         $storageLimit = $this->quotaManager->getStorageLimitMb($tenant);
+        $storageUsage = $this->quotaManager->getStorageUsageMb($tenant);
 
         $recentUsers = User::latest()
             ->take(5)
@@ -54,9 +55,9 @@ class TenantDashboardController extends Controller
                     'percentage' => $userLimit ? min(100, round(($userCount / $userLimit) * 100)) : 0,
                 ],
                 'storage' => [
-                    'current' => 120, // Estimated MB used
+                    'current' => $storageUsage,
                     'limit' => $storageLimit,
-                    'percentage' => $storageLimit ? min(100, round((120 / $storageLimit) * 100)) : 0,
+                    'percentage' => $storageLimit ? min(100, round(($storageUsage / $storageLimit) * 100)) : 0,
                 ],
             ],
             'recent_users' => $recentUsers,

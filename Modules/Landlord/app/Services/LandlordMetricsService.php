@@ -24,16 +24,11 @@ class LandlordMetricsService
         $activeSubscriptions = Subscription::where('status', SubscriptionStatus::Active)->count();
         $trialingSubscriptions = Subscription::where('status', SubscriptionStatus::Trialing)->count();
 
-        // Calculate estimated MRR
-        $monthlyRevenue = Subscription::whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Trialing])
-            ->get()
-            ->sum(function (Subscription $subscription) {
-                if ($subscription->billing_interval === 'yearly') {
-                    return $subscription->amount / 12;
-                }
-
-                return $subscription->amount;
-            });
+        // Estimated MRR as a single SQL aggregate — yearly subs are
+        // normalized to their monthly equivalent.
+        $monthlyRevenue = (float) Subscription::whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Trialing])
+            ->selectRaw("SUM(CASE WHEN billing_interval = 'yearly' THEN amount / 12 ELSE amount END) as mrr")
+            ->value('mrr');
 
         // Distribution by plan
         $plansDistribution = Plan::withCount('tenants')
@@ -67,7 +62,7 @@ class LandlordMetricsService
             'suspended_tenants' => $suspendedTenants,
             'active_subscriptions' => $activeSubscriptions,
             'trialing_subscriptions' => $trialingSubscriptions,
-            'monthly_revenue' => round($monthlyRevenue, 2),
+            'mrr' => round($monthlyRevenue, 2),
             'plans_distribution' => $plansDistribution,
             'recent_tenants' => $recentTenants,
         ];

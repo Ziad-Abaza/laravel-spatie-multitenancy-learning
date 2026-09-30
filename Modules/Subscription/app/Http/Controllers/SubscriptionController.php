@@ -60,6 +60,7 @@ class SubscriptionController extends Controller
         $userCount = $this->quotaManager->getUserCount($tenant);
         $userLimit = $this->quotaManager->getUserLimit($tenant);
         $storageLimit = $this->quotaManager->getStorageLimitMb($tenant);
+        $storageUsage = $this->quotaManager->getStorageUsageMb($tenant);
 
         $plans = Plan::where('is_active', true)
             ->orderBy('sort_order')
@@ -98,9 +99,9 @@ class SubscriptionController extends Controller
                     'percentage' => $userLimit ? min(100, round(($userCount / $userLimit) * 100)) : 0,
                 ],
                 'storage_mb' => [
-                    'current' => 120, // Estimated storage
+                    'current' => $storageUsage,
                     'limit' => $storageLimit,
-                    'percentage' => $storageLimit ? min(100, round((120 / $storageLimit) * 100)) : 0,
+                    'percentage' => $storageLimit ? min(100, round(($storageUsage / $storageLimit) * 100)) : 0,
                 ],
             ],
             'available_plans' => $plans,

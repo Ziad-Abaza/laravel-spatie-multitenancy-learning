@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { router } from '@inertiajs/vue3';
 import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
 import EnterpriseDataGrid, { ColumnDefinition } from '@core/Components/EnterpriseDataGrid.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
@@ -24,6 +25,7 @@ interface Paginated<T> {
     data: T[];
     current_page: number;
     last_page: number;
+    per_page: number;
     total: number;
 }
 
@@ -32,6 +34,10 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+
+function goToPage(page: number) {
+    router.get('/landlord/subscriptions', { page }, { preserveState: true, replace: true });
+}
 
 const columns = computed<ColumnDefinition[]>(() => [
     { key: 'tenant_name', label: t('tenant', 'Tenant') },
@@ -52,6 +58,13 @@ const columns = computed<ColumnDefinition[]>(() => [
             :columns="columns"
             :rows="subscriptions.data"
             :total-count="subscriptions.total"
+            :pagination="{
+                current_page: subscriptions.current_page,
+                last_page: subscriptions.last_page,
+                total: subscriptions.total,
+                per_page: subscriptions.per_page,
+            }"
+            @page-change="goToPage"
         >
             <template #cell-tenant_name="{ row }">
                 <div>

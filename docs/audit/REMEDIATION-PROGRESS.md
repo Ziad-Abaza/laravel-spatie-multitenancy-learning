@@ -14,15 +14,15 @@ tags: []
 
 ## CURRENT STATE
 
-- **Current Phase:** Phase 7
-- **Current Cluster:** C7 — Billing/subscription integrity
-- **Current Finding:** FND-063
+- **Current Phase:** Phase 8
+- **Current Cluster:** C8 — Lifecycle atomicity
+- **Current Finding:** FND-055
 
 ### Queue
 
-- **Pending:** C7 → C11 (see phase plan below)
-- **In Progress:** C7
-- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037)
+- **Pending:** C8 → C11 (see phase plan below)
+- **In Progress:** C8
+- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037), C7 (FND-063, FND-061, FND-056, FND-064, FND-066)
 - **Blocked:** —
 
 ### Phase plan (order = cluster order per mandate; tiers per §11.2)
@@ -140,11 +140,11 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 
 | ID | Severity | Root Cause | Files | Status | Started | Completed | Verification | Notes |
 |---|---|---|---|---|---|---|---|---|
-| FND-063 | MEDIUM | Yearly = `price*10` hardcoded; `changePlan` leaves billing_interval/currency/ends_at stale | Modules/Subscription/.../SubscriptionService.php | PENDING | — | — | — | Fix recalculation; source multiplier from plan/model |
-| FND-061 | MEDIUM | Dashboard.vue reads `metrics.mrr`; service emits `monthly_revenue` → MRR card renders $0 | Dashboard.vue; LandlordMetricsService.php | PENDING | — | — | — | Align prop key (P0 — small diff) |
-| FND-056 | LOW | MRR via `->get()->sum()` — unbounded hydration for one scalar | LandlordMetricsService.php | PENDING | — | — | — | SQL `sum('amount')` |
-| FND-064 | LOW-MEDIUM | `usage.storage_mb.current = 120` hardcoded fake rendered as real usage | SubscriptionController.php | PENDING | — | — | — | Real metric or remove field |
-| FND-066 | LOW | LandlordSubscriptions.vue doesn't wire `pagination`/`page-change` — paginate(15) stuck on page 1 | LandlordSubscriptions.vue | PENDING | — | — | — | Wire grid pagination |
+| FND-063 | MEDIUM | Yearly = `price*10` hardcoded; `changePlan` leaves billing_interval/currency/ends_at stale | Modules/Subscription/app/Services/SubscriptionService.php; TenantProvisioner; LandlordDatabaseSeeder | COMPLETED | 2026-10-01 | 2026-10-01 | `test_subscription_amount_and_interval_come_from_the_plan`, `test_change_plan_refreshes_interval_currency_and_ends_at` | Root cause: plans already carry `billing_interval` + `price` — the subscription now inherits all of them (`subscribeTenant` no longer takes an interval arg; `changePlan` rewrites interval/amount/currency/ends_at from the new plan). `*10` hack deleted |
+| FND-061 | MEDIUM | Dashboard.vue reads `metrics.mrr`; service emits `monthly_revenue` → MRR card renders $0 | LandlordMetricsService.php | COMPLETED | 2026-10-01 | 2026-10-01 | `test_metrics_emit_real_mrr_key_with_sql_aggregation` | Emitted key renamed to `mrr` (matches the sole consumer) |
+| FND-056 | LOW | MRR via `->get()->sum()` — unbounded hydration for one scalar | LandlordMetricsService.php | COMPLETED | 2026-10-01 | 2026-10-01 | same test asserts exact 129.0 (29 + 1200/12) | Single SQL aggregate: `SUM(CASE WHEN billing_interval='yearly' THEN amount/12 ELSE amount END)` — no row hydration, sqlite+mysql compatible |
+| FND-064 | LOW-MEDIUM | `usage.storage_mb.current = 120` hardcoded fake rendered as real usage | QuotaManagerContract; QuotaService; SubscriptionController; TenantDashboardController | COMPLETED | 2026-10-01 | 2026-10-01 | `test_storage_usage_reflects_real_tenant_media_bytes` (2MB media → 2) | New `getStorageUsageMb` on the quota contract sums `media.size` on the tenant connection; both fabrication sites wired to it |
+| FND-066 | LOW | LandlordSubscriptions.vue doesn't wire `pagination`/`page-change` — paginate(15) stuck on page 1 | LandlordSubscriptions.vue | COMPLETED | 2026-10-01 | 2026-10-01 | Convention diff vs Tenants/Index.vue pattern | Wired `:pagination` + `@page-change` → router.get('/landlord/subscriptions', {page}) — server pagination now reachable |
 
 ### Phase 8 — Cluster C8: Lifecycle atomicity (MEDIUM)
 
@@ -254,6 +254,13 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - Modules/Landlord/routes/web.php (FND-041 — throttle on landlord login + register-tenant)
 - Modules/Access/app/Http/Controllers/TenantAuthController.php (FND-037 — allow_registration enforcement)
 - config/auth.php (FND-031 — users broker → tenant connection)
+- Modules/Subscription/app/Services/SubscriptionService.php (FND-063)
+- Modules/Landlord/app/Services/TenantProvisioner.php (FND-063 — caller update)
+- Modules/Landlord/database/seeders/LandlordDatabaseSeeder.php (FND-063 — caller update)
+- Modules/Landlord/app/Services/LandlordMetricsService.php (FND-056, FND-061)
+- Modules/Core/app/Contracts/QuotaManagerContract.php + Modules/Subscription/app/Services/QuotaService.php (FND-064 — getStorageUsageMb)
+- Modules/Subscription/app/Http/Controllers/SubscriptionController.php + Modules/Tenant/app/Http/Controllers/TenantDashboardController.php (FND-064)
+- Modules/Subscription/resources/js/Pages/LandlordSubscriptions.vue (FND-066)
 
 ### Migrations Added
 - database/migrations/tenant/2026_10_02_000001_add_is_system_to_roles_table.php (FND-032)
@@ -266,6 +273,7 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - test_role_and_permission_models_follow_tenancy_context (TenantAccessControlTest)
 - test_tenant_login_attempts_are_rate_limited, test_tenant_provisioning_endpoint_is_rate_limited (TenancySecurityTest)
 - test_tenant_member_registration_respects_platform_allow_registration, test_password_reset_tokens_are_stored_in_the_tenant_database (TenantAccessControlTest)
+- test_subscription_amount_and_interval_come_from_the_plan, test_change_plan_refreshes_interval_currency_and_ends_at, test_metrics_emit_real_mrr_key_with_sql_aggregation, test_storage_usage_reflects_real_tenant_media_bytes (QuotaEnforcementTest)
 
 ### Risks
 - `docs/audit/` contains this file + MASTER-AUDIT.md only; do not regenerate findings.

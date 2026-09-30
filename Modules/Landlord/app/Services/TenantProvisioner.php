@@ -95,7 +95,6 @@ class TenantProvisioner
             $this->subscriptionService->subscribeTenant(
                 $tenant,
                 $plan,
-                $data['billing_interval'] ?? 'monthly',
                 true
             );
         }

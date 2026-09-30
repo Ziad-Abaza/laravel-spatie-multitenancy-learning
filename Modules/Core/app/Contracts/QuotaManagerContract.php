@@ -13,4 +13,6 @@ interface QuotaManagerContract
     public function getUserCount(mixed $tenant): int;
 
     public function getStorageLimitMb(mixed $tenant): ?int;
+
+    public function getStorageUsageMb(mixed $tenant): int;
 }
