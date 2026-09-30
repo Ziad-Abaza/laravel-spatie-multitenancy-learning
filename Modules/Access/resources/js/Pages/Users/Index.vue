@@ -21,6 +21,8 @@ interface UserItem {
     status: string;
     role: string;
     avatar_url: string | null;
+    can_edit: boolean;
+    can_delete: boolean;
     created_at: string;
 }
 
@@ -200,9 +202,9 @@ function confirmDelete() {
                 <!-- Actions -->
                 <template #cell-actions="{ row }">
                     <div class="flex items-center justify-end gap-1" @click.stop>
-                        <IconButton :icon="Edit2" :title="t('edit', 'Edit')" @click="openEditModal(row)" />
+                        <IconButton v-if="row.can_edit" :icon="Edit2" :title="t('edit', 'Edit')" @click="openEditModal(row)" />
                         <IconButton
-                            v-if="row.role !== 'Owner'"
+                            v-if="row.can_delete"
                             :icon="Trash2"
                             variant="danger"
                             :title="t('delete', 'Delete')"

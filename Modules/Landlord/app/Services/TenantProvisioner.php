@@ -6,11 +6,11 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Access\Services\AccessBaselineProvisioner;
+use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Core\Events\TenantCreated;
 use Modules\Core\Events\TenantProvisioned;
-use Modules\Access\Models\Role;
-use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Landlord\Models\Tenant;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Services\SubscriptionService;
@@ -149,12 +149,9 @@ class TenantProvisioner
      */
     protected function seedTenantInitialData(Tenant $tenant, array $adminData, string $defaultPalette = 'indigo', string $defaultMode = 'dark'): void
     {
-        $tenant->execute(function () use ($adminData, $tenant, $defaultPalette, $defaultMode) {
-            // Setup default roles on tenant connection
-            $roles = ['Owner', 'Admin', 'Member'];
-            foreach ($roles as $roleName) {
-                Role::findOrCreate($roleName, 'web');
-            }
+        $tenant->execute(function () use ($adminData, $defaultPalette, $defaultMode) {
+            // Permission catalog + baseline roles (Owner/Admin/Member) on tenant connection
+            app(AccessBaselineProvisioner::class)->ensureBaseline();
 
             // Create initial Owner user
             $user = User::updateOrCreate(

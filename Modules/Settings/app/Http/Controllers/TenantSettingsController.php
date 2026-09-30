@@ -7,8 +7,8 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Core\Contracts\SettingManagerContract;
-use Spatie\Multitenancy\Models\Tenant;
 use Modules\Settings\Http\Requests\UpdateSettingsRequest;
+use Spatie\Multitenancy\Models\Tenant;
 
 class TenantSettingsController extends Controller
 {

@@ -4,14 +4,14 @@ namespace Modules\Landlord\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Modules\Access\Services\AccessBaselineProvisioner;
+use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Landlord\Models\LandlordUser;
 use Modules\Landlord\Models\Tenant;
-use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Subscription\Database\Seeders\PlanSeeder;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Services\SubscriptionService;
-use Modules\Access\Models\Role;
 
 class LandlordDatabaseSeeder extends Seeder
 {
@@ -23,12 +23,8 @@ class LandlordDatabaseSeeder extends Seeder
         // 1. Seed SaaS Subscription Plans
         $this->call(PlanSeeder::class);
 
-        // 2. Setup Landlord Super Admin role and user
-        try {
-            $role = Role::findOrCreate('Super Admin', 'landlord');
-        } catch (\Throwable) {
-            // Guard role creation if already exists
-        }
+        // 2. Setup Landlord permission catalog + Super Admin role and user
+        app(AccessBaselineProvisioner::class)->ensureLandlordBaseline();
 
         $admin = LandlordUser::updateOrCreate(
             ['email' => 'admin@landlord.test'],

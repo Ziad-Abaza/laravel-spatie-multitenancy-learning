@@ -3,6 +3,8 @@
 namespace Modules\Access\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Modules\Access\Console\SyncLandlordAccessCommand;
+use Modules\Access\Console\SyncTenantAccessCommand;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class AccessServiceProvider extends ModuleServiceProvider
@@ -22,7 +24,10 @@ class AccessServiceProvider extends ModuleServiceProvider
      *
      * @var string[]
      */
-    // protected array $commands = [];
+    protected array $commands = [
+        SyncTenantAccessCommand::class,
+        SyncLandlordAccessCommand::class,
+    ];
 
     /**
      * Provider classes to register.

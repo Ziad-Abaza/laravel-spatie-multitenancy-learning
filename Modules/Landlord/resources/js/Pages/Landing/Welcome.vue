@@ -37,7 +37,11 @@ const props = defineProps<{
     plans: Plan[];
 }>();
 
-const page = usePage();
+const page = usePage<{
+    system?: {
+        allow_registration?: boolean;
+    };
+}>();
 const { t } = useI18n();
 
 const allowRegistration = computed(() => page.props.system?.allow_registration !== false);

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Inertia\Testing\AssertableInertia;
 use Modules\Core\Enums\TenantStatus;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class TenancySecurityTest extends TestCase
@@ -126,7 +127,7 @@ class TenancySecurityTest extends TestCase
             );
 
             $this->fail('Landlord routes must not be served in tenant context.');
-        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        } catch (HttpException $e) {
             $this->assertSame(404, $e->getStatusCode());
         } finally {
             Tenant::forgetCurrent();

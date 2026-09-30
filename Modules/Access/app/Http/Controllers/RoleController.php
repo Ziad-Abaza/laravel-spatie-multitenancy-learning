@@ -5,17 +5,23 @@ namespace Modules\Access\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Access\Models\Permission;
 use Modules\Access\Models\Role;
+use Modules\Access\Services\AccessGuard;
 
 class RoleController extends Controller
 {
+    public function __construct(
+        protected AccessGuard $accessGuard
+    ) {}
+
     /**
      * Display listing of roles and permissions in current tenant scope.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $roles = Role::where('guard_name', 'web')
             ->with('permissions')
@@ -27,7 +33,8 @@ class RoleController extends Controller
                 'permissions' => $role->permissions->pluck('name'),
             ]);
 
-        $permissions = Permission::where('guard_name', 'web')->pluck('name');
+        // A role can only carry permissions the actor already holds.
+        $permissions = $request->user()->getAllPermissions()->pluck('name');
 
         return Inertia::render('Access/Roles/Index', [
             'roles' => $roles,
@@ -41,9 +48,13 @@ class RoleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:50', 'unique:roles,name'],
+            'name' => ['required', 'string', 'max:50', Rule::unique(Role::class, 'name')->where('guard_name', 'web')],
             'permissions' => ['nullable', 'array'],
         ]);
+
+        // Server-side scope check: a role may only carry permissions the
+        // actor already holds — prevents minting a superset role.
+        $this->accessGuard->assertPermissionsWithinScope($request->user(), $validated['permissions'] ?? [], 'web');
 
         $role = Role::create([
             'name' => $validated['name'],

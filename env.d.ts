@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import '@inertiajs/core';
 
 export interface SharedTenantData {
     id?: number;

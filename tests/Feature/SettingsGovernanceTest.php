@@ -4,13 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Modules\Access\Models\Role;
 use Modules\Landlord\Models\LandlordUser;
 use Modules\Settings\Models\Setting;
 use Modules\Settings\Models\TenantSetting;
 use Modules\Settings\Services\SettingService;
-use Modules\Access\Models\Role;
 use Tests\TestCase;
 
 class SettingsGovernanceTest extends TestCase

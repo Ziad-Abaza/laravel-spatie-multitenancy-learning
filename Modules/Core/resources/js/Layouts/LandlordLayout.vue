@@ -40,14 +40,22 @@ const branding = computed(() => (page.props as any).branding || {});
 const appName = computed(() => branding.value.app_name || 'Landlord Central');
 const tagline = computed(() => branding.value.tagline || 'Multi-Tenant Core');
 
-const navItems = computed(() => [
-    { name: t('dashboard', 'Dashboard'), href: '/landlord', icon: LayoutDashboard },
-    { name: t('tenants', 'Tenants'), href: '/landlord/tenants', icon: Building2 },
-    { name: t('plans', 'Plans'), href: '/landlord/plans', icon: Layers },
-    { name: t('subscriptions', 'Subscriptions'), href: '/landlord/subscriptions', icon: CreditCard },
-    { name: t('settings', 'Settings'), href: '/landlord/settings', icon: Settings },
-    { name: t('modules', 'Modules'), href: '/landlord/modules', icon: Box },
-]);
+// Navigation visibility mirrors the landlord permissions table exactly.
+const userPermissions = computed<string[]>(() => (page.props as any).auth?.user?.permissions || []);
+function can(permission: string): boolean {
+    return userPermissions.value.includes(permission);
+}
+
+const navItems = computed(() =>
+    [
+        { name: t('dashboard', 'Dashboard'), href: '/landlord', icon: LayoutDashboard, visible: true },
+        { name: t('tenants', 'Tenants'), href: '/landlord/tenants', icon: Building2, visible: can('tenants.view') },
+        { name: t('plans', 'Plans'), href: '/landlord/plans', icon: Layers, visible: can('plans.view') },
+        { name: t('subscriptions', 'Subscriptions'), href: '/landlord/subscriptions', icon: CreditCard, visible: can('subscriptions.view') },
+        { name: t('settings', 'Settings'), href: '/landlord/settings', icon: Settings, visible: can('platform.settings.view') },
+        { name: t('modules', 'Modules'), href: '/landlord/modules', icon: Box, visible: can('modules.view') },
+    ].filter((item) => item.visible)
+);
 
 function isItemActive(href: string): boolean {
     const currentPath = page.url.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';

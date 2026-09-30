@@ -7,7 +7,12 @@ import BaseButton from '@core/Components/BaseButton.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import { Lock, Mail, ArrowRight, UserPlus } from 'lucide-vue-next';
 
-const page = usePage();
+const page = usePage<{
+    tenant?: {
+        name?: string;
+        domain?: string;
+    } | null;
+}>();
 const { t } = useI18n();
 
 const tenant = computed(() => page.props.tenant);

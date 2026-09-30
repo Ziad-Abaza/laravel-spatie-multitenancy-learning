@@ -39,28 +39,21 @@ function toggleCollapse() {
 
 const tenant = computed(() => (page.props as any).tenant);
 const authUser = computed(() => (page.props as any).auth?.user);
-const userRoles = computed<string[]>(() => authUser.value?.roles || []);
 const userPermissions = computed<string[]>(() => authUser.value?.permissions || []);
 
-const isOwnerOrAdmin = computed(() => {
-    return userRoles.value.includes('Owner') ||
-        userRoles.value.includes('Admin') ||
-        userRoles.value.includes('Super Admin') ||
-        Boolean(authUser.value?.is_landlord);
-});
-
-function hasPermissionOrRole(requiredPerm: string): boolean {
-    if (isOwnerOrAdmin.value) return true;
-    return userPermissions.value.includes(requiredPerm);
+// Navigation visibility mirrors the permissions table exactly — role names
+// are never consulted (they are display data, not an authorization source).
+function can(permission: string): boolean {
+    return userPermissions.value.includes(permission);
 }
 
 const navItems = computed(() => {
     const items = [
         { name: t('dashboard', 'Dashboard'), href: '/dashboard', icon: LayoutDashboard, visible: true },
-        { name: t('team', 'Team'), href: '/users', icon: Users, visible: true },
-        { name: t('roles', 'Roles & Permissions'), href: '/roles', icon: ShieldCheck, visible: hasPermissionOrRole('roles.view') },
-        { name: t('subscriptions', 'Subscription & Quotas'), href: '/subscription', icon: CreditCard, visible: isOwnerOrAdmin.value },
-        { name: t('settings', 'Workspace Settings'), href: '/settings', icon: Settings, visible: isOwnerOrAdmin.value },
+        { name: t('team', 'Team'), href: '/users', icon: Users, visible: can('users.view') },
+        { name: t('roles', 'Roles & Permissions'), href: '/roles', icon: ShieldCheck, visible: can('roles.view') },
+        { name: t('subscriptions', 'Subscription & Quotas'), href: '/subscription', icon: CreditCard, visible: can('subscription.view') },
+        { name: t('settings', 'Workspace Settings'), href: '/settings', icon: Settings, visible: can('settings.view') },
         { name: t('profile', 'Profile'), href: '/profile', icon: UserIcon, visible: true },
     ];
 

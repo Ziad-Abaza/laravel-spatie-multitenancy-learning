@@ -102,7 +102,7 @@ class SettingService implements SettingManagerContract
 
     /**
      * @throws InvalidArgumentException when the key is unregistered or owned
-     * by a different surface.
+     *                                  by a different surface.
      */
     protected function assertWritable(string $domain, string $key): void
     {

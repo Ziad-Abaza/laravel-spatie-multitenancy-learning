@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Core\Tasks\ScopePermissionCacheTask;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // The default permission cache scope is the landlord context; tenant
         // switches re-scope it via ScopePermissionCacheTask.
-        config(['permission.cache.key' => \Modules\Core\Tasks\ScopePermissionCacheTask::BASE_KEY.'.landlord']);
+        config(['permission.cache.key' => ScopePermissionCacheTask::BASE_KEY.'.landlord']);
     }
 
     /**
