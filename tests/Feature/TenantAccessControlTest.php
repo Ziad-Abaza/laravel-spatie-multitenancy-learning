@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Support\Facades\Password;
 use Modules\Access\Models\Permission;
 use Modules\Access\Models\Role;
 use Modules\Access\Services\AccessBaselineProvisioner;
@@ -11,6 +12,7 @@ use Modules\Access\Services\ManagementPolicy;
 use Modules\Access\Support\LandlordPermissions;
 use Modules\Access\Support\TenantPermissions;
 use Modules\Landlord\Models\LandlordUser;
+use Modules\Settings\Services\SettingService;
 use Tests\TestCase;
 
 class TenantAccessControlTest extends TestCase
@@ -43,6 +45,43 @@ class TenantAccessControlTest extends TestCase
         }
 
         $this->assertSame($landlord, (new Role)->getConnectionName());
+    }
+
+    public function test_tenant_member_registration_respects_platform_allow_registration(): void
+    {
+        $tenant = $this->tenant();
+        $settings = app(SettingService::class);
+        $settings->set('allow_registration', false, 'system', true);
+
+        try {
+            $this->get("http://{$tenant->domain}/register")->assertForbidden();
+            $this->post("http://{$tenant->domain}/register", [
+                'name' => 'Blocked Member',
+                'email' => 'blocked@example.test',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+            ])->assertForbidden();
+        } finally {
+            // Tenant-domain requests leave the tenant bound as current in the
+            // test app — landlord-owned settings need landlord context.
+            Tenant::forgetCurrent();
+            $settings->set('allow_registration', true, 'system', true);
+        }
+    }
+
+    public function test_password_reset_tokens_are_stored_in_the_tenant_database(): void
+    {
+        $tenant = $this->tenant();
+
+        $tenant->execute(function () {
+            $user = User::factory()->create();
+
+            Password::broker('users')->createToken($user);
+
+            $this->assertDatabaseHas('password_reset_tokens', [
+                'email' => $user->email,
+            ], 'tenant');
+        });
     }
 
     public function test_access_baseline_seeds_full_permission_catalog_and_roles(): void

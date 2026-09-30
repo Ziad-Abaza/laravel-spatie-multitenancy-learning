@@ -14,11 +14,13 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Access\Services\TenantUserService;
 use Modules\Access\Support\TenantPermissions;
+use Modules\Core\Contracts\SettingManagerContract;
 
 class TenantAuthController extends Controller
 {
     public function __construct(
-        protected TenantUserService $userService
+        protected TenantUserService $userService,
+        protected SettingManagerContract $settings
     ) {}
 
     /**
@@ -67,6 +69,8 @@ class TenantAuthController extends Controller
             return redirect()->route('tenant.register.show');
         }
 
+        abort_unless((bool) $this->settings->get('allow_registration', true, 'system'), 403, 'Registration is currently disabled.');
+
         return Inertia::render('Access/Auth/Register');
     }
 
@@ -78,6 +82,8 @@ class TenantAuthController extends Controller
         if (! Tenant::checkCurrent()) {
             return redirect()->route('tenant.register.show');
         }
+
+        abort_unless((bool) $this->settings->get('allow_registration', true, 'system'), 403, 'Registration is currently disabled.');
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:150', Rule::unique(User::class, 'email')],

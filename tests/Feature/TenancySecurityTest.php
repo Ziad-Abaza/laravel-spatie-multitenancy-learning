@@ -101,6 +101,30 @@ class TenancySecurityTest extends TestCase
             ->assertJson(fn ($json) => $json->has('message'));
     }
 
+    public function test_tenant_login_attempts_are_rate_limited(): void
+    {
+        $tenant = $this->provisionTenant(['slug' => 'throttled']);
+
+        $credentials = ['email' => 'nobody@example.test', 'password' => 'wrong-password'];
+
+        for ($i = 0; $i < 6; $i++) {
+            $this->post("http://{$tenant->domain}/login", $credentials);
+        }
+
+        $this->post("http://{$tenant->domain}/login", $credentials)->assertTooManyRequests();
+    }
+
+    public function test_tenant_provisioning_endpoint_is_rate_limited(): void
+    {
+        // Invalid payload still consumes limiter attempts — throttle runs
+        // before controller validation.
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/register-tenant', []);
+        }
+
+        $this->post('/register-tenant', [])->assertTooManyRequests();
+    }
+
     public function test_sanctum_scaffold_api_routes_are_not_registered(): void
     {
         // No API surface exists: every /api/v1/* scaffold resource must 404

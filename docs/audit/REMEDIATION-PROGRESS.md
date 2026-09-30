@@ -14,15 +14,15 @@ tags: []
 
 ## CURRENT STATE
 
-- **Current Phase:** Phase 6
-- **Current Cluster:** C6 — Auth completeness
-- **Current Finding:** FND-041
+- **Current Phase:** Phase 7
+- **Current Cluster:** C7 — Billing/subscription integrity
+- **Current Finding:** FND-063
 
 ### Queue
 
-- **Pending:** C6 → C11 (see phase plan below)
-- **In Progress:** C6
-- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022)
+- **Pending:** C7 → C11 (see phase plan below)
+- **In Progress:** C7
+- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037)
 - **Blocked:** —
 
 ### Phase plan (order = cluster order per mandate; tiers per §11.2)
@@ -131,10 +131,10 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 
 | ID | Severity | Root Cause | Files | Status | Started | Completed | Verification | Notes |
 |---|---|---|---|---|---|---|---|---|
-| FND-041 | MEDIUM | Zero `throttle:`/`RateLimiter` anywhere — login/register/register-tenant unthrottled | routes; controllers | PENDING | — | — | — | Add throttle middleware (P0) |
-| FND-031 | MEDIUM | `password_reset_tokens` only in tenant DBs; broker `users` lacks `connection` → token repo hits landlord conn where table absent; `landlord_users` no broker | config/auth.php | PENDING | — | — | — | Fix broker wiring or remove surface |
-| FND-017 | LOW | No landlord_users password broker — landlord reset unwired | config/auth.php | PENDING | — | — | — | Same fix area as FND-031 |
-| FND-037 | MEDIUM | `system.allow_registration` shared to UI but never enforced server-side in register flow | TenantAuthController; TenantUserService | PENDING | — | — | — | Enforce setting server-side |
+| FND-041 | MEDIUM | Zero `throttle:`/`RateLimiter` anywhere — login/register/register-tenant unthrottled | Modules/Access/routes/web.php; Modules/Landlord/routes/web.php | COMPLETED | 2026-10-01 | 2026-10-01 | `test_tenant_login_attempts_are_rate_limited`, `test_tenant_provisioning_endpoint_is_rate_limited` → 429 | `throttle:6,1` on tenant login/register POSTs + landlord login POST; `throttle:5,1` on public `POST /register-tenant` provisioning |
+| FND-031 | MEDIUM | `password_reset_tokens` only in tenant DBs; broker `users` lacks `connection` → token repo hits landlord conn where table absent; `landlord_users` no broker | config/auth.php | COMPLETED | 2026-10-01 | 2026-10-01 | `test_password_reset_tokens_are_stored_in_the_tenant_database` — real broker createToken lands in tenant DB | Added `'connection' => 'tenant'` to the users broker — DatabaseTokenRepository now resolves the tenant connection |
+| FND-017 | LOW | No landlord_users password broker — landlord reset unwired | config/auth.php | COMPLETED | 2026-10-01 | 2026-10-01 | grep: zero forgot/reset routes, controllers, or pages exist anywhere | Verified feature gap, not a defect: no landlord self-service reset surface exists (admin password resets are privileged management actions via LandlordAdminController). Broker deliberately left absent — wiring it now would point at a flow that does not exist |
+| FND-037 | MEDIUM | `system.allow_registration` shared to UI but never enforced server-side in register flow | Modules/Access/app/Http/Controllers/TenantAuthController.php | COMPLETED | 2026-10-01 | 2026-10-01 | `test_tenant_member_registration_respects_platform_allow_registration` — 403 GET+POST | Controller enforces the landlord-owned flag on showRegisterForm + register, same abort(403) contract as /register-tenant |
 
 ### Phase 7 — Cluster C7: Billing/subscription integrity (MEDIUM)
 
@@ -250,6 +250,10 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - Modules/Access/app/Services/AuditWriter.php (FND-042 — landlord-context guard)
 - database/migrations/tenant/0001_01_01_000000_create_users_table.php (FND-022 — sessions block removed)
 - deleted: database/migrations/tenant/0001_01_01_000001_create_cache_table.php, 0001_01_01_000002_create_jobs_table.php (FND-022)
+- Modules/Access/routes/web.php (FND-041 — throttle on login/register POSTs)
+- Modules/Landlord/routes/web.php (FND-041 — throttle on landlord login + register-tenant)
+- Modules/Access/app/Http/Controllers/TenantAuthController.php (FND-037 — allow_registration enforcement)
+- config/auth.php (FND-031 — users broker → tenant connection)
 
 ### Migrations Added
 - database/migrations/tenant/2026_10_02_000001_add_is_system_to_roles_table.php (FND-032)
@@ -260,6 +264,8 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - test_plan_with_attached_tenant_cannot_be_deleted, test_plan_with_subscriptions_cannot_be_deleted, test_orphan_plan_can_be_deleted (LandlordTenantProvisioningTest)
 - test_tenant_context_scopes_cache_keyspace, test_tenant_schema_is_isolated_without_shared_infrastructure_tables, test_media_paths_are_scoped_to_the_owning_tenant (TenantIsolationTest)
 - test_role_and_permission_models_follow_tenancy_context (TenantAccessControlTest)
+- test_tenant_login_attempts_are_rate_limited, test_tenant_provisioning_endpoint_is_rate_limited (TenancySecurityTest)
+- test_tenant_member_registration_respects_platform_allow_registration, test_password_reset_tokens_are_stored_in_the_tenant_database (TenantAccessControlTest)
 
 ### Risks
 - `docs/audit/` contains this file + MASTER-AUDIT.md only; do not regenerate findings.

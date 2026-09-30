@@ -18,13 +18,13 @@ Route::middleware('landlord')->group(function () {
     Route::get('/', [LandingController::class, 'welcome'])->name('landing.welcome');
     Route::get('/pricing', [LandingController::class, 'pricing'])->name('landing.pricing');
     Route::get('/register-tenant', [TenantRegistrationController::class, 'show'])->name('tenant.register.show');
-    Route::post('/register-tenant', [TenantRegistrationController::class, 'register'])->name('tenant.register');
+    Route::post('/register-tenant', [TenantRegistrationController::class, 'register'])->name('tenant.register')->middleware('throttle:5,1');
 });
 
 // Landlord Authentication & Administration — landlord hosts only
 Route::middleware('landlord')->prefix('landlord')->group(function () {
     Route::get('/login', [LandlordAuthController::class, 'showLoginForm'])->name('landlord.login');
-    Route::post('/login', [LandlordAuthController::class, 'login'])->name('landlord.login.post');
+    Route::post('/login', [LandlordAuthController::class, 'login'])->name('landlord.login.post')->middleware('throttle:6,1');
     Route::post('/logout', [LandlordAuthController::class, 'logout'])->name('landlord.logout');
 
     // Landlord Protected Administration — auth first, then live status check

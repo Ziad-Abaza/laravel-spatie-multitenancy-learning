@@ -10,9 +10,9 @@ use Modules\Access\Support\TenantPermissions as P;
 // Guest Authentication & Registration (Context-aware: Landlord redirects to landlord auth, Tenant renders workspace auth)
 Route::middleware('guest:web')->group(function () {
     Route::get('/login', [TenantAuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [TenantAuthController::class, 'login'])->name('login.post');
+    Route::post('/login', [TenantAuthController::class, 'login'])->name('login.post')->middleware('throttle:6,1');
     Route::get('/register', [TenantAuthController::class, 'showRegisterForm'])->name('register');
-    Route::post('/register', [TenantAuthController::class, 'register'])->name('register.post');
+    Route::post('/register', [TenantAuthController::class, 'register'])->name('register.post')->middleware('throttle:6,1');
 });
 
 // Tenant Protected Workspace Access

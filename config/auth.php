@@ -97,8 +97,11 @@ return [
     */
 
     'passwords' => [
+        // Tenant users reset inside tenant context — the token table lives in
+        // each tenant database, never on the landlord connection.
         'users' => [
             'provider' => 'users',
+            'connection' => 'tenant',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             'expire' => 60,
             'throttle' => 60,
