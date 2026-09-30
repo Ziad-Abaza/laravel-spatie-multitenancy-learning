@@ -174,7 +174,7 @@ const features = computed(() => [
 
                             <div class="mt-6 flex items-baseline gap-1 text-text-main">
                                 <span class="text-4xl font-extrabold tracking-tight">
-                                    <CurrencyCell :amount="plan.price" :currency="plan.currency" />
+                                    <CurrencyCell :amount="plan.price" />
                                 </span>
                                 <span class="text-xs text-text-muted font-medium">/ {{ plan.billing_interval }}</span>
                             </div>

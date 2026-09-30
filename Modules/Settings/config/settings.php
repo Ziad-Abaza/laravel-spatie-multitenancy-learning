@@ -1,5 +1,6 @@
 <?php
 
+use Modules\Core\Enums\Currency;
 use Modules\Core\Enums\Locale;
 use Modules\Core\Enums\ThemeMode;
 use Modules\Core\Enums\ThemePalette;
@@ -32,7 +33,7 @@ return [
             'default_trial_days' => ['owner' => 'landlord', 'type' => 'integer', 'rules' => 'integer|min:0|max:365'],
         ],
         'billing' => [
-            'default_currency' => ['owner' => 'landlord', 'type' => 'string', 'rules' => 'string|size:3|alpha'],
+            'default_currency' => ['owner' => 'landlord', 'type' => 'string', 'rules' => 'in:'.implode(',', Currency::values())],
             'default_plan_id' => ['owner' => 'landlord', 'type' => 'integer', 'rules' => 'nullable|integer|exists:plans,id'],
         ],
     ],

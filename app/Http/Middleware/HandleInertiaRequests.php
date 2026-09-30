@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Modules\Core\Contracts\SettingManagerContract;
+use Modules\Core\Enums\Currency;
 use Modules\Core\Enums\Locale;
 use Modules\Core\Enums\ThemePalette;
 
@@ -108,6 +109,9 @@ class HandleInertiaRequests extends Middleware
             'branding' => $branding,
             'system' => [
                 'allow_registration' => (bool) $settings->get('allow_registration', true, 'system'),
+            ],
+            'billing' => [
+                'currency' => $settings->get('default_currency', Currency::Usd->value, 'billing'),
             ],
             'locale' => [
                 'current' => $locale,

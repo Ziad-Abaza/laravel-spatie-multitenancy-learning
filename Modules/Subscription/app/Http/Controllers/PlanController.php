@@ -42,7 +42,6 @@ class PlanController extends Controller
 
         return Inertia::render('Subscription/Plans', [
             'plans' => $plans,
-            'defaultCurrency' => $this->settings->get('default_currency', 'USD', 'billing'),
         ]);
     }
 
@@ -58,7 +57,6 @@ class PlanController extends Controller
             'description_en' => ['nullable', 'string'],
             'description_ar' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
-            'currency' => ['required', 'string', 'size:3'],
             'billing_interval' => ['required', 'in:monthly,yearly'],
             'trial_days' => ['required', 'integer', 'min:0'],
             'max_users' => ['required', 'integer', 'min:1'],
@@ -77,7 +75,9 @@ class PlanController extends Controller
                 'ar' => $validated['description_ar'] ?? '',
             ],
             'price' => $validated['price'],
-            'currency' => strtoupper($validated['currency']),
+            // Platform billing currency is the single source — plans do not
+            // carry their own currency selection.
+            'currency' => strtoupper((string) $this->settings->get('default_currency', 'USD', 'billing')),
             'billing_interval' => $validated['billing_interval'],
             'trial_days' => $validated['trial_days'],
             'is_active' => true,

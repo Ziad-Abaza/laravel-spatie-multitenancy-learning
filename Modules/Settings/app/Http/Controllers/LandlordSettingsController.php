@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Core\Contracts\SettingManagerContract;
+use Modules\Core\Enums\Currency;
 use Modules\Settings\Http\Requests\UpdateSettingsRequest;
 use Modules\Subscription\Models\Plan;
 
@@ -27,6 +28,7 @@ class LandlordSettingsController extends Controller
             'localization' => $this->settings->allByDomain('localization'),
             'system' => $this->settings->allByDomain('system'),
             'billing' => $this->settings->allByDomain('billing'),
+            'currencies' => Currency::options(),
             'plans' => Plan::where('is_active', true)->orderBy('sort_order')->get()
                 ->map(fn (Plan $plan) => ['id' => $plan->id, 'name' => $plan->getName(), 'slug' => $plan->slug]),
         ]);

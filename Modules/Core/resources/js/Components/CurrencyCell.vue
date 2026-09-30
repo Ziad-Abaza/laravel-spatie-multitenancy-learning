@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useCurrency } from '@core/Composables/useCurrency';
 
 const props = withDefaults(
     defineProps<{
@@ -8,20 +9,14 @@ const props = withDefaults(
         period?: string;
     }>(),
     {
-        currency: 'USD',
+        currency: undefined,
         period: '',
     }
 );
 
-const formatted = computed(() => {
-    const num = Number(props.amount) || 0;
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: props.currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-    }).format(num);
-});
+const { format } = useCurrency();
+
+const formatted = computed(() => format(props.amount, props.currency));
 </script>
 
 <template>

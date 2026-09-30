@@ -12,6 +12,7 @@ const props = defineProps<{
     localization: Record<string, any>;
     system: Record<string, any>;
     billing: Record<string, any>;
+    currencies: Record<string, string>;
     plans: { id: number; name: any; slug: string }[];
 }>();
 
@@ -279,7 +280,9 @@ const palettes = THEME_PRESETS.filter((p) => allowedPalettes.has(p.id));
                 <form @submit.prevent="saveBilling" class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">{{ t('default_currency_label', 'Default Currency') }}</label>
-                        <input v-model="billingForm.settings.default_currency" type="text" maxlength="3" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 font-mono uppercase" />
+                        <select v-model="billingForm.settings.default_currency" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                            <option v-for="(label, code) in currencies" :key="code" :value="code">{{ label }}</option>
+                        </select>
                         <p v-if="billingForm.errors['settings.default_currency']" class="mt-1 text-xs text-danger-fg">{{ billingForm.errors['settings.default_currency'] }}</p>
                     </div>
 

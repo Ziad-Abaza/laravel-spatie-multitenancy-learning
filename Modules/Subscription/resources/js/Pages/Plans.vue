@@ -34,7 +34,6 @@ interface Plan {
 
 const props = defineProps<{
     plans: Plan[];
-    defaultCurrency?: string;
 }>();
 
 const { t, locale } = useI18n();
@@ -51,7 +50,6 @@ const createForm = useForm({
     description_en: '',
     description_ar: '',
     price: 0,
-    currency: props.defaultCurrency || 'USD',
     billing_interval: 'monthly',
     trial_days: 14,
     max_users: 5,
@@ -64,7 +62,6 @@ const editForm = useForm({
     description_en: '',
     description_ar: '',
     price: 0,
-    currency: props.defaultCurrency || 'USD',
     billing_interval: 'monthly',
     trial_days: 14,
     max_users: 5,
@@ -96,7 +93,6 @@ function openEditModal(plan: Plan) {
     editForm.description_en = descs.en || '';
     editForm.description_ar = descs.ar || '';
     editForm.price = plan.price;
-    editForm.currency = plan.currency;
     editForm.billing_interval = plan.billing_interval;
     editForm.trial_days = plan.trial_days;
     editForm.max_users = plan.limits?.max_users ?? 5;
@@ -180,7 +176,7 @@ function getPlanDescription(plan: Plan): string {
 
                         <div class="mt-6 flex items-baseline gap-1">
                             <span class="text-3xl font-black text-text-main">
-                                <CurrencyCell :amount="plan.price" :currency="plan.currency" />
+                                <CurrencyCell :amount="plan.price"  />
                             </span>
                             <span class="text-xs text-text-muted">{{ t(plan.billing_interval) }}</span>
                         </div>
@@ -253,7 +249,7 @@ function getPlanDescription(plan: Plan): string {
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('price_usd', 'Price (USD)') }}</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('price', 'Price') }}</label>
                         <input v-model.number="createForm.price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>
@@ -303,7 +299,7 @@ function getPlanDescription(plan: Plan): string {
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('price_usd', 'Price (USD)') }}</label>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('price', 'Price') }}</label>
                         <input v-model.number="editForm.price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
                     </div>
                     <div>

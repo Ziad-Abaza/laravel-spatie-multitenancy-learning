@@ -104,7 +104,7 @@ function confirmChangePlan() {
                         <h2 class="text-2xl font-black text-text-main">{{ plan?.name || 'Free Workspace' }}</h2>
                         <div class="mt-2 text-xl font-bold text-text-main flex items-baseline gap-1">
                             <span v-if="plan && plan.price > 0">
-                                <CurrencyCell :amount="plan.price" :currency="plan.currency" />
+                                <CurrencyCell :amount="plan.price" />
                                 <span class="text-xs text-text-muted font-normal">/ {{ t(subscription?.billing_interval || 'monthly') }}</span>
                             </span>
                             <span v-else class="text-success-fg text-sm font-semibold">{{ t('free_forever', 'Free Forever') }}</span>
@@ -204,7 +204,7 @@ function confirmChangePlan() {
 
                             <div class="flex items-baseline gap-1 my-4">
                                 <span class="text-3xl font-black text-text-main">
-                                    <CurrencyCell :amount="targetPlan.price" :currency="targetPlan.currency" />
+                                    <CurrencyCell :amount="targetPlan.price" />
                                 </span>
                                 <span class="text-xs text-text-muted">/ {{ t(targetPlan.billing_interval || 'monthly') }}</span>
                             </div>

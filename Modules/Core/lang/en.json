@@ -46,5 +46,6 @@
     "light_mode": "Light Mode",
     "system_preference": "System Preference",
     "theme": "Theme",
-    "toggle_navigation": "Toggle navigation menu"
+    "toggle_navigation": "Toggle navigation menu",
+    "price": "Price"
 }

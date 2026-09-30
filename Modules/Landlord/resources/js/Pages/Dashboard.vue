@@ -5,6 +5,7 @@ import StatCard from '@core/Components/StatCard.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
 import CurrencyCell from '@core/Components/CurrencyCell.vue';
 import { useI18n } from '@core/Composables/useI18n';
+import { useCurrency } from '@core/Composables/useCurrency';
 import {
     Building2,
     CreditCard,
@@ -44,6 +45,7 @@ const props = defineProps<{
 }>();
 
 const { t, trans } = useI18n();
+const { format: formatCurrency } = useCurrency();
 </script>
 
 <template>
@@ -79,7 +81,7 @@ const { t, trans } = useI18n();
 
                 <StatCard
                     :title="t('monthly_recurring_revenue', 'Estimated MRR')"
-                    :value="`$${Math.round(metrics.mrr).toLocaleString()}`"
+                    :value="formatCurrency(metrics.mrr)"
                     :change="trans('paying_subscriptions', { count: metrics.active_subscriptions })"
                     change-type="positive"
                     :icon="DollarSign"
@@ -192,7 +194,7 @@ const { t, trans } = useI18n();
 
                             <div class="flex items-center justify-between text-[11px] text-text-muted pt-1">
                                 <span>{{ plan.slug }}</span>
-                                <span>${{ plan.price }}/mo</span>
+                                <span><CurrencyCell :amount="plan.price" period="mo" /></span>
                             </div>
                         </div>
                     </div>

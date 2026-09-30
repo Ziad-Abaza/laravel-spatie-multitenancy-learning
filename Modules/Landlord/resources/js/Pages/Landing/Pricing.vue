@@ -66,7 +66,7 @@ const allowRegistration = computed(() => page.props.system?.allow_registration !
 
                         <div class="mt-8 flex items-baseline gap-1 text-text-main">
                             <span class="text-4xl sm:text-5xl font-extrabold tracking-tight">
-                                <CurrencyCell :amount="plan.price" :currency="plan.currency" />
+                                <CurrencyCell :amount="plan.price" />
                             </span>
                             <span class="text-xs text-text-muted font-medium">/ {{ plan.billing_interval }}</span>
                         </div>
