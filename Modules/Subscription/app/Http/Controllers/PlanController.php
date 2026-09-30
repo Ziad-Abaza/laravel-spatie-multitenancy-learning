@@ -130,4 +130,23 @@ class PlanController extends Controller
 
         return back()->with('success', __('plan_updated'));
     }
+
+    /**
+     * Delete a plan. Plans with attached tenants or subscription history are
+     * refused — retire them with is_active=false instead.
+     */
+    public function destroy(Plan $plan): RedirectResponse
+    {
+        if ($plan->tenants()->exists() || $plan->subscriptions()->exists()) {
+            return back()->with('error', __('plan_delete_blocked'));
+        }
+
+        if ((int) $this->settings->get('default_plan_id', 0, 'billing') === (int) $plan->getKey()) {
+            $this->settings->unset('default_plan_id', 'billing');
+        }
+
+        $plan->delete();
+
+        return back()->with('success', __('plan_deleted'));
+    }
 }

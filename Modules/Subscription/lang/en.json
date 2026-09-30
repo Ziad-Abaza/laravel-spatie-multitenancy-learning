@@ -44,6 +44,8 @@
     "plan_breakdown": "Plan Distribution",
     "plan_changed": "Your plan has been updated to :plan!",
     "plan_created": "Plan created successfully.",
+    "plan_delete_blocked": "This plan cannot be deleted because tenants or subscriptions are attached. Deactivate it instead.",
+    "plan_deleted": "Plan deleted successfully.",
     "plan_id": "Plan",
     "plan_updated": "Plan updated successfully.",
     "plans": "Plans",

@@ -217,4 +217,53 @@ class LandlordTenantProvisioningTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_plan_with_attached_tenant_cannot_be_deleted(): void
+    {
+        $plan = Plan::where('slug', 'starter')->first();
+        $this->assertNotNull($plan);
+
+        $this->createTenantRecord(['plan_id' => $plan->id]);
+
+        $this->actingAs($this->admin, 'landlord')
+            ->delete("/landlord/plans/{$plan->id}")
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        $this->assertNotNull($plan->fresh());
+    }
+
+    public function test_plan_with_subscriptions_cannot_be_deleted(): void
+    {
+        $tenant = $this->provisionTenant(['plan_id' => Plan::where('slug', 'pro')->first()?->id]);
+        $plan = $tenant->plan;
+
+        $this->actingAs($this->admin, 'landlord')
+            ->delete("/landlord/plans/{$plan->id}")
+            ->assertRedirect()
+            ->assertSessionHas('error');
+    }
+
+    public function test_orphan_plan_can_be_deleted(): void
+    {
+        $plan = Plan::create([
+            'name' => ['en' => 'Disposable', 'ar' => 'للاستعمال مرة واحدة'],
+            'slug' => 'disposable-'.uniqid(),
+            'description' => ['en' => '', 'ar' => ''],
+            'price' => 10,
+            'currency' => 'USD',
+            'billing_interval' => 'monthly',
+            'is_active' => true,
+            'trial_days' => 0,
+            'limits' => ['max_users' => 1, 'max_storage_mb' => 100],
+            'sort_order' => 99,
+        ]);
+
+        $this->actingAs($this->admin, 'landlord')
+            ->delete("/landlord/plans/{$plan->id}")
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertNull($plan->fresh());
+    }
 }

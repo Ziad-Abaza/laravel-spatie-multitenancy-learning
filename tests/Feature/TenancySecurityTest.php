@@ -96,9 +96,18 @@ class TenancySecurityTest extends TestCase
 
     public function test_unknown_host_api_request_gets_json_404(): void
     {
-        $this->getJson('http://ghost.localhost/api/v1/tenants')
+        $this->getJson('http://ghost.localhost/dashboard')
             ->assertStatus(404)
             ->assertJson(fn ($json) => $json->has('message'));
+    }
+
+    public function test_sanctum_scaffold_api_routes_are_not_registered(): void
+    {
+        // No API surface exists: every /api/v1/* scaffold resource must 404
+        // rather than 500 on the missing sanctum middleware.
+        foreach (['accesses', 'landlords', 'subscriptions', 'tenants'] as $resource) {
+            $this->getJson("/api/v1/{$resource}")->assertNotFound();
+        }
     }
 
     // ── Landlord surface ─────────────────────────────────────────────
@@ -154,7 +163,7 @@ class TenancySecurityTest extends TestCase
     {
         $tenant = $this->makeTenant(['status' => TenantStatus::Suspended]);
 
-        $this->getJson('http://'.$tenant->domain.'/api/v1/tenants')
+        $this->getJson('http://'.$tenant->domain.'/login')
             ->assertStatus(423)
             ->assertJson(fn ($json) => $json->has('message'));
     }

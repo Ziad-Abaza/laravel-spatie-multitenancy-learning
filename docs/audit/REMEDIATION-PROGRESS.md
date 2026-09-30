@@ -14,15 +14,15 @@ tags: []
 
 ## CURRENT STATE
 
-- **Current Phase:** Phase 4
-- **Current Cluster:** C4 — Dead/missing API surface
-- **Current Finding:** FND-065
+- **Current Phase:** Phase 5
+- **Current Cluster:** C5 — Tenant isolation soft spots
+- **Current Finding:** FND-015
 
 ### Queue
 
-- **Pending:** C4 → C11 (see phase plan below)
-- **In Progress:** C4
-- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052) — plus dependency fixes FND-027 and the provisioner tenant-migration defect
+- **Pending:** C5 → C11 (see phase plan below)
+- **In Progress:** C5
+- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065)
 - **Blocked:** —
 
 ### Phase plan (order = cluster order per mandate; tiers per §11.2)
@@ -112,9 +112,9 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 
 | ID | Severity | Root Cause | Files | Status | Started | Completed | Verification | Notes |
 |---|---|---|---|---|---|---|---|---|
-| FND-058 | LOW-MEDIUM | 4 module api.php register `auth:sanctum` apiResources; sanctum not installed → guaranteed 500 | Modules/{Access,Landlord,Subscription,Tenant}/routes/api.php | PENDING | — | — | — | Delete dead api routes (or install sanctum — not chosen; no API requirement) |
-| FND-039 | MEDIUM | Same root cause in Access module + scaffold AccessController reachable | Modules/Access/routes/api.php; AccessController.php | PENDING | — | — | — | Same fix as FND-058 |
-| FND-065 | MEDIUM | `DELETE /landlord/plans/{plan}` → nonexistent `PlanController::destroy`; Plans.vue ConfirmDialog calls it → guaranteed 500 | routes/web.php; PlanController.php; Plans.vue | PENDING | — | — | — | P0: implement destroy (UI already exists) — or remove both ends |
+| FND-058 | LOW-MEDIUM | 4 module api.php register `auth:sanctum` apiResources; sanctum not installed → guaranteed 500 | Modules/{Access,Landlord,Subscription,Tenant}/routes/api.php | COMPLETED | 2026-10-01 | 2026-10-01 | `test_sanctum_scaffold_api_routes_are_not_registered` — all /api/v1/* → 404; suite green | Files emptied to comment-only stubs (same convention as Core/Settings api.php); RouteServiceProviders still require the files so the api.php shell is kept |
+| FND-039 | MEDIUM | Same root cause in Access module + scaffold AccessController reachable | Modules/Access/routes/api.php | COMPLETED | 2026-10-01 | 2026-10-01 | same test | Route registration removed → scaffold controller unreachable. Controller file deletion deferred to C10 scaffold sweep |
+| FND-065 | MEDIUM | `DELETE /landlord/plans/{plan}` → nonexistent `PlanController::destroy`; Plans.vue ConfirmDialog calls it → guaranteed 500 | PlanController.php; en/ar.json | COMPLETED | 2026-10-01 | 2026-10-01 | 3 new tests: attached-tenant/refused, attached-subscription/refused, orphan/deleted | Implemented destroy: refuses plans with tenants or subscriptions (matches UI warning text), unsets default_plan_id reference, deletes orphan plans. New plan_delete_blocked/plan_deleted keys added to both locales (parity test requires identical key sets) |
 
 ### Phase 5 — Cluster C5: Tenant isolation soft spots (MEDIUM)
 
@@ -238,12 +238,18 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - Modules/Landlord/app/Services/TenantLifecycleService.php (sqlite delete uses stored path)
 - database/seeders/TenantSeeder.php (sqlite-aware fixture DBs)
 - FND-027 canonical-model swaps (App\Models\Tenant / App\Models\User): TenantController, TenantRegistrationController, LandlordMetricsService, LandlordDatabaseSeeder, TenantUserService, SyncTenantAccessCommand, SubscriptionService, QuotaService, Plan, Subscription
+- Modules/{Access,Landlord,Subscription,Tenant}/routes/api.php (FND-058/039 — emptied)
+- Modules/Subscription/app/Http/Controllers/PlanController.php (FND-065 — destroy)
+- Modules/Subscription/lang/{en,ar}.json (FND-065 — plan_deleted, plan_delete_blocked)
+- tests/Feature/TenancySecurityTest.php (C4 regression test + retargeted suspended/ghost-api URLs)
+- tests/Feature/LandlordTenantProvisioningTest.php (FND-065 destroy coverage)
 
 ### Migrations Added
 (none yet)
 
 ### Tests Added
-(none yet)
+- test_sanctum_scaffold_api_routes_are_not_registered (TenancySecurityTest)
+- test_plan_with_attached_tenant_cannot_be_deleted, test_plan_with_subscriptions_cannot_be_deleted, test_orphan_plan_can_be_deleted (LandlordTenantProvisioningTest)
 
 ### Risks
 - `docs/audit/` contains this file + MASTER-AUDIT.md only; do not regenerate findings.
