@@ -67,7 +67,7 @@ class SubscriptionService
 
             event(new SubscriptionUpdated($currentSubscription, $oldStatus, $currentSubscription->getStatus()));
         } else {
-            $this->subscribeTenant($tenant, $newPlan, 'monthly', false);
+            return $this->subscribeTenant($tenant, $newPlan, 'monthly', false);
         }
 
         $tenant->update(['plan_id' => $newPlan->id]);
@@ -76,7 +76,7 @@ class SubscriptionService
             event(new PlanChanged($tenant, $oldPlan, $newPlan));
         }
 
-        return $tenant->currentSubscription;
+        return $currentSubscription;
     }
 
     /**

@@ -8,16 +8,19 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Core\Enums\TenantStatus;
 use Modules\Landlord\Models\Tenant;
 use Modules\Landlord\Services\TenantLifecycleService;
 use Modules\Landlord\Services\TenantProvisioner;
 use Modules\Subscription\Models\Plan;
+use Modules\Subscription\Services\SubscriptionService;
 
 class TenantController extends Controller
 {
     public function __construct(
         protected TenantProvisioner $provisioner,
-        protected TenantLifecycleService $lifecycleService
+        protected TenantLifecycleService $lifecycleService,
+        protected SubscriptionService $subscriptionService
     ) {}
 
     /**
@@ -26,6 +29,8 @@ class TenantController extends Controller
     public function index(Request $request): Response
     {
         $search = $request->query('search');
+        $status = $request->query('status');
+        $planId = $request->query('plan_id');
 
         $tenants = Tenant::query()
             ->when($search, function ($query, $search) {
@@ -34,6 +39,8 @@ class TenantController extends Controller
                     ->orWhere('slug', 'like', "%{$search}%")
                     ->orWhere('database', 'like', "%{$search}%");
             })
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($planId, fn ($query) => $query->where('plan_id', $planId))
             ->with(['plan', 'currentSubscription'])
             ->latest()
             ->paginate(15)
@@ -52,8 +59,12 @@ class TenantController extends Controller
 
         return Inertia::render('Landlord/Tenants/Index', [
             'tenants' => $tenants,
+            'plans' => Plan::orderBy('sort_order')->get()
+                ->map(fn (Plan $plan) => ['id' => $plan->id, 'name' => $plan->getName()]),
             'filters' => [
                 'search' => $search,
+                'status' => $status,
+                'plan_id' => $planId,
             ],
         ]);
     }
@@ -108,17 +119,106 @@ class TenantController extends Controller
     /**
      * Show details of a specific tenant.
      */
+    /**
+     * Update tenant identity fields (name / slug / domain).
+     */
+    public function update(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'slug' => ['required', 'string', 'min:3', 'max:30', 'alpha_dash', "unique:tenants,slug,{$tenant->id}"],
+            'domain' => ['required', 'string', 'max:190', "unique:tenants,domain,{$tenant->id}"],
+        ]);
+
+        $tenant->update($validated);
+
+        return back()->with('success', __('tenant_updated'));
+    }
+
+    /**
+     * Change the tenant's subscription plan and billing interval.
+     */
+    public function changePlan(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $validated = $request->validate([
+            'plan_id' => ['required', 'exists:plans,id'],
+            'billing_interval' => ['required', 'in:monthly,yearly'],
+        ]);
+
+        $plan = Plan::where('is_active', true)->findOrFail($validated['plan_id']);
+        $this->subscriptionService->changePlan($tenant, $plan);
+
+        return back()->with('success', __('tenant_plan_changed', ['plan' => $plan->getName()]));
+    }
+
+    /**
+     * Extend or set the tenant's trial end date.
+     */
+    public function extendTrial(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $validated = $request->validate([
+            'trial_ends_at' => ['required', 'date', 'after:today'],
+        ]);
+
+        $tenant->update([
+            'trial_ends_at' => $validated['trial_ends_at'],
+            'status' => TenantStatus::Trialing,
+        ]);
+
+        $tenant->currentSubscription?->update(['trial_ends_at' => $validated['trial_ends_at']]);
+
+        return back()->with('success', __('tenant_trial_extended'));
+    }
+
+    /**
+     * Cancel the tenant's current subscription.
+     */
+    public function cancelSubscription(Tenant $tenant): RedirectResponse
+    {
+        $this->subscriptionService->cancelSubscription($tenant);
+
+        return back()->with('success', __('tenant_subscription_canceled'));
+    }
+
+    /**
+     * Archive an inactive tenant (data retained, access closed).
+     */
+    public function archive(Tenant $tenant): RedirectResponse
+    {
+        $this->lifecycleService->archive($tenant);
+
+        return back()->with('success', __('tenant_archived_notice', ['name' => $tenant->name]));
+    }
+
     public function show(Tenant $tenant): Response
     {
         $tenant->load(['plan', 'subscriptions.plan']);
 
-        $userCount = 0;
+        $users = [];
         try {
-            $userCount = $tenant->execute(fn () => User::count());
+            $users = $tenant->execute(fn () => User::query()
+                ->with('roles:name')
+                ->latest()
+                ->limit(50)
+                ->get()
+                ->map(fn ($user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'roles' => $user->roles->pluck('name'),
+                    'created_at' => $user->created_at?->format('Y-m-d') ?? '-',
+                ])
+                ->all());
         } catch (\Throwable) {
         }
 
         return Inertia::render('Landlord/Tenants/Show', [
+            'plans' => Plan::where('is_active', true)->orderBy('sort_order')->get()
+                ->map(fn (Plan $plan) => [
+                    'id' => $plan->id,
+                    'name' => $plan->getName(),
+                    'price' => $plan->price,
+                ]),
             'tenant' => [
                 'id' => $tenant->id,
                 'name' => $tenant->name,
@@ -128,8 +228,10 @@ class TenantController extends Controller
                 'status' => $tenant->getStatus(),
                 'trial_ends_at' => $tenant->trial_ends_at?->format('Y-m-d') ?? null,
                 'suspended_at' => $tenant->suspended_at?->format('Y-m-d H:i') ?? null,
+                'suspension_reason' => $tenant->settings['suspension_reason'] ?? null,
                 'url' => $tenant->url(),
-                'user_count' => $userCount,
+                'user_count' => count($users),
+                'users' => $users,
                 'plan' => $tenant->plan ? [
                     'id' => $tenant->plan->id,
                     'name' => $tenant->plan->getName(),

@@ -78,6 +78,8 @@ const iconColorClass = computed(() => {
             {{ message || t('confirm_delete_text', 'Are you sure you want to proceed? This action cannot be undone.') }}
         </p>
 
+        <slot />
+
         <template #footer>
             <button
                 type="button"

@@ -29,13 +29,28 @@ interface Paginated<T> {
 
 const props = defineProps<{
     tenants: Paginated<TenantItem>;
+    plans: Array<{ id: number; name: string }>;
     filters: {
         search?: string;
+        status?: string;
+        plan_id?: string | number;
     };
 }>();
 
 const { t } = useI18n();
 const search = ref(props.filters.search || '');
+const status = ref(props.filters.status || '');
+const planId = ref(props.filters.plan_id || '');
+
+const statusOptions = ['active', 'trialing', 'suspended', 'archived'];
+
+function applyFilters() {
+    router.get(
+        '/landlord/tenants',
+        { search: search.value || undefined, status: status.value || undefined, plan_id: planId.value || undefined },
+        { preserveState: true, replace: true }
+    );
+}
 
 const columns = computed<ColumnDefinition[]>(() => [
     { key: 'name', label: t('organization', 'Organization'), sortable: true },
@@ -49,11 +64,7 @@ const columns = computed<ColumnDefinition[]>(() => [
 
 function handleSearch(val: string) {
     search.value = val;
-    router.get(
-        '/landlord/tenants',
-        { search: val },
-        { preserveState: true, replace: true }
-    );
+    applyFilters();
 }
 
 function rowClick(row: TenantItem) {
@@ -74,6 +85,22 @@ function rowClick(row: TenantItem) {
             @row-click="rowClick"
         >
             <template #toolbar-actions>
+                <select
+                    v-model="status"
+                    @change="applyFilters"
+                    class="px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500"
+                >
+                    <option value="">{{ t('all_statuses', 'All Statuses') }}</option>
+                    <option v-for="s in statusOptions" :key="s" :value="s" class="capitalize">{{ t(s, s) }}</option>
+                </select>
+                <select
+                    v-model="planId"
+                    @change="applyFilters"
+                    class="px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500"
+                >
+                    <option value="">{{ t('all_plans', 'All Plans') }}</option>
+                    <option v-for="plan in plans" :key="plan.id" :value="plan.id">{{ plan.name }}</option>
+                </select>
                 <Link
                     href="/landlord/tenants/create"
                     class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-md shadow-primary-600/20 transition-all cursor-pointer"
