@@ -128,7 +128,10 @@ function logout() {
             ]"
         >
             <!-- Tenant Workspace Header -->
-            <div class="p-4 border-b border-border-subtle flex items-center justify-between shrink-0 h-16">
+            <div
+                class="p-4 border-b border-border-subtle flex items-center justify-between shrink-0 h-16"
+                :class="isCollapsed ? 'md:flex-col md:justify-center md:gap-2 md:h-auto md:py-3 md:px-2' : ''"
+            >
                 <div class="flex items-center gap-3 overflow-hidden min-w-0">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 flex items-center justify-center text-on-primary shadow-md shadow-primary-500/20 font-bold text-sm shrink-0">
                         {{ tenant?.name ? tenant.name.charAt(0).toUpperCase() : 'W' }}
@@ -180,8 +183,11 @@ function logout() {
             </nav>
 
             <!-- Bottom User Profile Section -->
-            <div class="p-3.5 border-t border-border-subtle bg-surface-card/40 shrink-0">
-                <div class="flex items-center justify-between gap-2">
+            <div class="p-3.5 border-t border-border-subtle bg-surface-card/40 shrink-0" :class="isCollapsed ? 'md:p-2' : ''">
+                <div
+                    class="flex items-center justify-between gap-2"
+                    :class="isCollapsed ? 'md:flex-col md:justify-center' : ''"
+                >
                     <div class="flex items-center gap-2.5 overflow-hidden min-w-0">
                         <div class="w-8 h-8 rounded-full bg-secondary-500/10 border border-secondary-500/20 flex items-center justify-center text-secondary-600 dark:text-secondary-400 font-bold text-xs uppercase shrink-0">
                             {{ authUser?.name ? authUser.name.charAt(0) : 'U' }}
