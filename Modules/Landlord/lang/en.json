@@ -89,7 +89,7 @@
     "start_free_trial": "Start Free Trial",
     "subdomain": "Subdomain",
     "subdomain_help": "Only lowercase letters, numbers, and hyphens.",
-    "subdomain_identifier": "Workspace Subdomain / URL",
+    "subdomain_identifier": "Workspace Subdomain \/ URL",
     "subscription_history": "Subscription History",
     "subscription_plan": "Subscription Plan",
     "suspend": "Suspend",
@@ -97,7 +97,7 @@
     "suspended_tenants": "Suspended Tenants",
     "switch_tenant": "Switch Tenant",
     "system_modules": "Modular Monolith Modules",
-    "system_modules_sub": "Self-contained domain modules powered by nwidart/laravel-modules.",
+    "system_modules_sub": "Self-contained domain modules powered by nwidart\/laravel-modules.",
     "team_collaboration": "Team Collaboration",
     "team_collaboration_desc": "Invite team members, assign workspace roles, and control access permissions easily.",
     "tenant": "Tenant",
@@ -118,5 +118,6 @@
     "workspace_provisioned": "Your workspace has been provisioned successfully! You can now log in.",
     "workspace_provisioning_hint": "Zero-downtime deployment: Migrates dedicated schema & seeds administrative roles instantly.",
     "workspace_url": "Workspace URL",
-    "workspace_users": "Current Users"
+    "workspace_users": "Current Users",
+    "open_workspace": "Open Workspace"
 }

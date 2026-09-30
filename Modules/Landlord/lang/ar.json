@@ -68,7 +68,7 @@
     "no_tenants_found": "لم يتم إنشاء أي مستأجرين بعد.",
     "organization": "المنشأة",
     "organization_details": "بيانات مساحة العمل",
-    "organization_name": "اسم المنشأة / الشركة",
+    "organization_name": "اسم المنشأة \/ الشركة",
     "paying_subscriptions": ":count مدفوع",
     "platform_core": "الأساس الجوهري",
     "platform_features": "البنية المعمارية والمميزات",
@@ -89,7 +89,7 @@
     "start_free_trial": "ابدأ التجربة المجانية",
     "subdomain": "النطاق الفرعي",
     "subdomain_help": "أحرف صغيرة وأرقام وشرطات فقط.",
-    "subdomain_identifier": "النطاق الفرعي / رابط المنشأة",
+    "subdomain_identifier": "النطاق الفرعي \/ رابط المنشأة",
     "subscription_history": "سجل الاشتراكات",
     "subscription_plan": "باقة الاشتراك",
     "suspend": "تعليق",
@@ -97,7 +97,7 @@
     "suspended_tenants": "المستأجرون المعلقون",
     "switch_tenant": "تبديل المستأجر",
     "system_modules": "وحدات النظام المعيارية",
-    "system_modules_sub": "وحدات نطاق مستقلة تعمل بـ nwidart/laravel-modules.",
+    "system_modules_sub": "وحدات نطاق مستقلة تعمل بـ nwidart\/laravel-modules.",
     "team_collaboration": "التعاون بين فرق العمل",
     "team_collaboration_desc": "دعوة أعضاء الفريق وتعيين أدوارهم والتحكم في صلاحيات الوصول بكل سهولة.",
     "tenant": "المستأجر",
@@ -118,5 +118,6 @@
     "workspace_provisioned": "تم تجهيز مساحة عملك بنجاح! يمكنك الآن تسجيل الدخول.",
     "workspace_provisioning_hint": "إعداد فوري: يرحل الجداول المستقلة ويهيئ الأدوار والصلاحيات للمشرف لحظياً.",
     "workspace_url": "رابط مساحة العمل",
-    "workspace_users": "المستخدمون الحاليون"
+    "workspace_users": "المستخدمون الحاليون",
+    "open_workspace": "فتح مساحة العمل"
 }

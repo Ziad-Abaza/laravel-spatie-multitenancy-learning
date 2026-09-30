@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
 import { ref, computed, watch } from 'vue';
-import { Search, ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-vue-next';
+import { usePage } from '@inertiajs/vue3';
+import { Search, ChevronDown, ChevronUp, ChevronsUpDown, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import SkeletonLoader from './SkeletonLoader.vue';
 import EmptyState from './EmptyState.vue';
 import { useI18n } from '../Composables/useI18n';
@@ -59,6 +60,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const page = usePage();
 
 const localSearch = ref(props.searchQuery || '');
 const sortKey = ref<string>('');
@@ -99,6 +101,31 @@ const resolvedData = computed<T[]>(() => {
         return (raw as any).data;
     }
     return [];
+});
+
+/**
+ * Sliding page window: first/last anchors + neighbors around current.
+ * e.g. [1, '…', 4, 5, 6, '…', 12]
+ */
+const pageWindow = computed<(number | '…')[]>(() => {
+    const current = props.pagination?.current_page ?? 1;
+    const last = props.pagination?.last_page ?? 1;
+    if (last <= 7) {
+        return Array.from({ length: last }, (_, i) => i + 1);
+    }
+
+    const pages = new Set<number>([1, last, current - 1, current, current + 1]);
+    const sorted = [...pages].filter((p) => p >= 1 && p <= last).sort((a, b) => a - b);
+    const window: (number | '…')[] = [];
+    let prev = 0;
+    for (const p of sorted) {
+        if (prev && p - prev > 1) {
+            window.push('…');
+        }
+        window.push(p);
+        prev = p;
+    }
+    return window;
 });
 
 const processedData = computed(() => {
@@ -243,23 +270,41 @@ const processedData = computed(() => {
             <span>
                 {{ t('total', 'Total') }}: <strong class="text-text-main">{{ totalCount ?? pagination?.total ?? processedData.length }}</strong>
             </span>
-            <div v-if="pagination && pagination.last_page && pagination.last_page > 1" class="flex items-center gap-2">
+            <div v-if="pagination && pagination.last_page && pagination.last_page > 1" class="flex items-center gap-1" :aria-label="t('pagination', 'Pagination')">
                 <button
                     type="button"
-                    class="px-2.5 py-1 rounded-lg border border-border-subtle bg-surface-input hover:bg-surface-hover text-text-main disabled:opacity-40 transition-colors"
+                    class="w-7 h-7 rounded-lg border border-border-subtle bg-surface-input hover:bg-surface-hover text-text-main disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center"
                     :disabled="pagination.current_page === 1"
+                    :aria-label="t('prev', 'Previous')"
                     @click="emit('page-change', (pagination.current_page || 1) - 1)"
                 >
-                    {{ t('prev', 'Previous') }}
+                    <ChevronRight v-if="page.props.locale?.is_rtl" class="w-3.5 h-3.5" />
+                    <ChevronLeft v-else class="w-3.5 h-3.5" />
                 </button>
-                <span>{{ pagination.current_page }} / {{ pagination.last_page }}</span>
+                <template v-for="(page, i) in pageWindow" :key="i">
+                    <span v-if="page === '…'" class="w-7 text-center text-text-subtle select-none">…</span>
+                    <button
+                        v-else
+                        type="button"
+                        class="w-7 h-7 rounded-lg text-xs font-semibold transition-colors"
+                        :class="page === pagination.current_page
+                            ? 'bg-primary-600 text-on-primary shadow-sm'
+                            : 'border border-border-subtle bg-surface-input hover:bg-surface-hover text-text-main'"
+                        :aria-current="page === pagination.current_page ? 'page' : undefined"
+                        @click="emit('page-change', page)"
+                    >
+                        {{ page }}
+                    </button>
+                </template>
                 <button
                     type="button"
-                    class="px-2.5 py-1 rounded-lg border border-border-subtle bg-surface-input hover:bg-surface-hover text-text-main disabled:opacity-40 transition-colors"
+                    class="w-7 h-7 rounded-lg border border-border-subtle bg-surface-input hover:bg-surface-hover text-text-main disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center"
                     :disabled="pagination.current_page === pagination.last_page"
+                    :aria-label="t('next', 'Next')"
                     @click="emit('page-change', (pagination.current_page || 1) + 1)"
                 >
-                    {{ t('next', 'Next') }}
+                    <ChevronLeft v-if="page.props.locale?.is_rtl" class="w-3.5 h-3.5" />
+                    <ChevronRight v-else class="w-3.5 h-3.5" />
                 </button>
             </div>
         </div>
