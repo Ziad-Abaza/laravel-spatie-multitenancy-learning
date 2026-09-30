@@ -2,17 +2,15 @@
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
-import Modal from '@core/Components/Modal.vue';
 import ConfirmDialog from '@core/Components/ConfirmDialog.vue';
 import CurrencyCell from '@core/Components/CurrencyCell.vue';
+import PageHeader from '@core/Components/PageHeader.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
+import IconButton from '@core/Components/IconButton.vue';
+import FormModal from '@core/Components/FormModal.vue';
+import PlanFormFields from '../Components/PlanFormFields.vue';
 import { useI18n } from '@core/Composables/useI18n';
-import {
-    Plus,
-    Users,
-    HardDrive,
-    Edit2,
-    Trash2,
-} from 'lucide-vue-next';
+import { Plus, Users, HardDrive, Edit2, Trash2 } from 'lucide-vue-next';
 
 interface Plan {
     id: number;
@@ -32,7 +30,7 @@ interface Plan {
     };
 }
 
-const props = defineProps<{
+defineProps<{
     plans: Plan[];
 }>();
 
@@ -136,21 +134,16 @@ function getPlanDescription(plan: Plan): string {
 <template>
     <LandlordLayout>
         <div class="space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-2xl font-bold text-text-main tracking-tight">{{ t('subscription_plans', 'Subscription Plans') }}</h1>
-                    <p class="text-xs text-text-muted mt-1">{{ t('subscription_plans_sub', 'Manage pricing tiers, quotas, translatable names (EN/AR), and limits.') }}</p>
-                </div>
-
-                <button
-                    type="button"
-                    @click="openCreateModal"
-                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-md shadow-primary-600/20 transition-all cursor-pointer"
-                >
-                    <Plus class="w-4 h-4" />
-                    <span>{{ t('create_plan', 'Create New Plan') }}</span>
-                </button>
-            </div>
+            <PageHeader
+                :title="t('subscription_plans', 'Subscription Plans')"
+                :subtitle="t('subscription_plans_sub', 'Manage pricing tiers, quotas, translatable names (EN/AR), and limits.')"
+            >
+                <template #actions>
+                    <BaseButton :icon="Plus" @click="openCreateModal">
+                        {{ t('create_plan', 'Create New Plan') }}
+                    </BaseButton>
+                </template>
+            </PageHeader>
 
             <!-- Plans Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -176,7 +169,7 @@ function getPlanDescription(plan: Plan): string {
 
                         <div class="mt-6 flex items-baseline gap-1">
                             <span class="text-3xl font-black text-text-main">
-                                <CurrencyCell :amount="plan.price"  />
+                                <CurrencyCell :amount="plan.price" />
                             </span>
                             <span class="text-xs text-text-muted">{{ t(plan.billing_interval) }}</span>
                         </div>
@@ -206,132 +199,38 @@ function getPlanDescription(plan: Plan): string {
                     </div>
 
                     <div class="mt-6 pt-4 border-t border-border-subtle flex items-center justify-end gap-2">
-                        <button
-                            type="button"
-                            @click="openEditModal(plan)"
-                            class="p-2 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors cursor-pointer"
-                            :title="t('edit_plan', 'Edit Plan')"
-                        >
-                            <Edit2 class="w-4 h-4" />
-                        </button>
-
-                        <button
-                            type="button"
-                            @click="openDeleteModal(plan)"
-                            class="p-2 rounded-lg text-danger-fg hover:bg-danger/10 transition-colors cursor-pointer"
-                            :title="t('delete_plan', 'Delete Plan')"
-                        >
-                            <Trash2 class="w-4 h-4" />
-                        </button>
+                        <IconButton :icon="Edit2" :title="t('edit_plan', 'Edit Plan')" @click="openEditModal(plan)" />
+                        <IconButton :icon="Trash2" variant="danger" :title="t('delete_plan', 'Delete Plan')" @click="openDeleteModal(plan)" />
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Create Plan Modal -->
-        <Modal :is-open="isCreateModalOpen" :title="t('create_new_plan', 'Create Subscription Plan')" max-width="lg" @close="isCreateModalOpen = false">
-            <form @submit.prevent="submitCreate" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('name_english', 'Name (English)') }}</label>
-                        <input v-model="createForm.name_en" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('name_arabic', 'Name (Arabic)') }}</label>
-                        <input v-model="createForm.name_ar" type="text" required dir="rtl" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('slug', 'Slug') }}</label>
-                    <input v-model="createForm.slug" type="text" required :placeholder="t('slug_example', 'e.g. enterprise-plus')" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('price', 'Price') }}</label>
-                        <input v-model.number="createForm.price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('billing_interval', 'Interval') }}</label>
-                        <select v-model="createForm.billing_interval" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
-                            <option value="monthly">{{ t('monthly', 'Monthly') }}</option>
-                            <option value="yearly">{{ t('yearly', 'Yearly') }}</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('trial_days', 'Trial Days') }}</label>
-                        <input v-model.number="createForm.trial_days" type="number" min="0" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('max_users', 'Max Users') }}</label>
-                        <input v-model.number="createForm.max_users" type="number" min="1" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('max_storage_mb', 'Max Storage (MB)') }}</label>
-                        <input v-model.number="createForm.max_storage_mb" type="number" min="100" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                </div>
-
-                <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
-                    <button type="button" @click="isCreateModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main cursor-pointer">{{ t('cancel', 'Cancel') }}</button>
-                    <button type="submit" :disabled="createForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold cursor-pointer">{{ t('save', 'Save Plan') }}</button>
-                </div>
-            </form>
-        </Modal>
+        <FormModal
+            :is-open="isCreateModalOpen"
+            :title="t('create_new_plan', 'Create Subscription Plan')"
+            max-width="lg"
+            :submit-text="t('save', 'Save Plan')"
+            :loading="createForm.processing"
+            @close="isCreateModalOpen = false"
+            @submit="submitCreate"
+        >
+            <PlanFormFields :form="createForm" with-slug />
+        </FormModal>
 
         <!-- Edit Plan Modal -->
-        <Modal :is-open="isEditModalOpen" :title="t('edit_plan', 'Edit Subscription Plan')" max-width="lg" @close="isEditModalOpen = false">
-            <form @submit.prevent="submitEdit" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('name_english', 'Name (English)') }}</label>
-                        <input v-model="editForm.name_en" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('name_arabic', 'Name (Arabic)') }}</label>
-                        <input v-model="editForm.name_ar" type="text" required dir="rtl" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('price', 'Price') }}</label>
-                        <input v-model.number="editForm.price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('billing_interval', 'Interval') }}</label>
-                        <select v-model="editForm.billing_interval" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
-                            <option value="monthly">{{ t('monthly', 'Monthly') }}</option>
-                            <option value="yearly">{{ t('yearly', 'Yearly') }}</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('trial_days', 'Trial Days') }}</label>
-                        <input v-model.number="editForm.trial_days" type="number" min="0" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('max_users', 'Max Users') }}</label>
-                        <input v-model.number="editForm.max_users" type="number" min="1" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('max_storage_mb', 'Max Storage (MB)') }}</label>
-                        <input v-model.number="editForm.max_storage_mb" type="number" min="100" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                </div>
-
-                <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
-                    <button type="button" @click="isEditModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main cursor-pointer">{{ t('cancel', 'Cancel') }}</button>
-                    <button type="submit" :disabled="editForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold cursor-pointer">{{ t('save', 'Update Plan') }}</button>
-                </div>
-            </form>
-        </Modal>
+        <FormModal
+            :is-open="isEditModalOpen"
+            :title="t('edit_plan', 'Edit Subscription Plan')"
+            max-width="lg"
+            :submit-text="t('save', 'Update Plan')"
+            :loading="editForm.processing"
+            @close="isEditModalOpen = false"
+            @submit="submitEdit"
+        >
+            <PlanFormFields :form="editForm" />
+        </FormModal>
 
         <!-- Delete Modal -->
         <ConfirmDialog

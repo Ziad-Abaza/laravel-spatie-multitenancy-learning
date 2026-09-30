@@ -2,9 +2,12 @@
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import TenantLayout from '@core/Layouts/TenantLayout.vue';
-import Modal from '@core/Components/Modal.vue';
+import PageHeader from '@core/Components/PageHeader.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
+import FormModal from '@core/Components/FormModal.vue';
+import FormField from '@core/Components/FormField.vue';
 import { useI18n } from '@core/Composables/useI18n';
-import { ShieldCheck, Plus, Check, Lock } from 'lucide-vue-next';
+import { ShieldCheck, Plus, Check } from 'lucide-vue-next';
 
 interface RoleItem {
     id: number;
@@ -45,21 +48,16 @@ function submit() {
 <template>
     <TenantLayout>
         <div class="space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-2xl font-bold text-text-main tracking-tight">{{ t('roles_permissions', 'Roles & Permissions') }}</h1>
-                    <p class="text-xs text-text-muted mt-1">{{ t('roles_permissions_sub', 'Role-based access control inside current tenant database using Spatie Permission.') }}</p>
-                </div>
-
-                <button
-                    type="button"
-                    @click="openCreateModal"
-                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-md shadow-primary-600/20 transition-all"
-                >
-                    <Plus class="w-4 h-4" />
-                    <span>{{ t('create_role', 'Create New Role') }}</span>
-                </button>
-            </div>
+            <PageHeader
+                :title="t('roles_permissions', 'Roles & Permissions')"
+                :subtitle="t('roles_permissions_sub', 'Role-based access control inside current tenant database using Spatie Permission.')"
+            >
+                <template #actions>
+                    <BaseButton :icon="Plus" @click="openCreateModal">
+                        {{ t('create_role', 'Create New Role') }}
+                    </BaseButton>
+                </template>
+            </PageHeader>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div
@@ -101,38 +99,42 @@ function submit() {
         </div>
 
         <!-- Create Role Modal -->
-        <Modal :is-open="isCreateModalOpen" :title="t('create_new_role', 'Create Custom Role')" max-width="lg" @close="isCreateModalOpen = false">
-            <form @submit.prevent="submit" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('role_name', 'Role Name') }}</label>
-                    <input v-model="form.name" type="text" required :placeholder="t('role_name_example', 'e.g. Editor, Financial Officer')" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    <p v-if="form.errors.name" class="mt-1 text-xs text-danger-fg">{{ form.errors.name }}</p>
-                </div>
+        <FormModal
+            :is-open="isCreateModalOpen"
+            :title="t('create_new_role', 'Create Custom Role')"
+            max-width="lg"
+            :submit-text="t('create_role', 'Create Role')"
+            :loading="form.processing"
+            @close="isCreateModalOpen = false"
+            @submit="submit"
+        >
+            <FormField
+                v-model="form.name"
+                :label="t('role_name', 'Role Name')"
+                size="sm"
+                required
+                :placeholder="t('role_name_example', 'e.g. Editor, Financial Officer')"
+                :error="form.errors.name"
+            />
 
-                <div>
-                    <label class="block text-xs font-medium text-text-main mb-2">{{ t('assign_permissions', 'Assign Permissions') }}</label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-1">
-                        <label
-                            v-for="perm in permissions"
-                            :key="perm"
-                            class="flex items-center gap-2 p-2 rounded-lg bg-surface-input border border-border-subtle cursor-pointer text-xs text-text-muted hover:text-text-main"
-                        >
-                            <input
-                                type="checkbox"
-                                :value="perm"
-                                v-model="form.permissions"
-                                class="rounded bg-surface-hover border-border-subtle text-primary-600 focus:ring-primary-500"
-                            />
-                            <span class="font-mono text-[11px]">{{ perm }}</span>
-                        </label>
-                    </div>
+            <div>
+                <label class="block text-xs font-medium text-text-main mb-2">{{ t('assign_permissions', 'Assign Permissions') }}</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-1">
+                    <label
+                        v-for="perm in permissions"
+                        :key="perm"
+                        class="flex items-center gap-2 p-2 rounded-lg bg-surface-input border border-border-subtle cursor-pointer text-xs text-text-muted hover:text-text-main"
+                    >
+                        <input
+                            type="checkbox"
+                            :value="perm"
+                            v-model="form.permissions"
+                            class="rounded bg-surface-hover border-border-subtle text-primary-600 focus:ring-primary-500"
+                        />
+                        <span class="font-mono text-[11px]">{{ perm }}</span>
+                    </label>
                 </div>
-
-                <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
-                    <button type="button" @click="isCreateModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main">{{ t('cancel', 'Cancel') }}</button>
-                    <button type="submit" :disabled="form.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold">{{ t('create_role', 'Create Role') }}</button>
-                </div>
-            </form>
-        </Modal>
+            </div>
+        </FormModal>
     </TenantLayout>
 </template>

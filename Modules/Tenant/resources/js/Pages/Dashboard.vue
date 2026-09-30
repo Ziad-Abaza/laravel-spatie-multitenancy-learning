@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/vue3';
 import TenantLayout from '@core/Layouts/TenantLayout.vue';
 import StatCard from '@core/Components/StatCard.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
+import DataTable from '@core/Components/DataTable.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import {
     Users,
@@ -149,36 +150,28 @@ const { t, trans } = useI18n();
                             </Link>
                         </div>
 
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-start text-xs">
-                                <thead>
-                                    <tr class="border-b border-border-subtle text-text-muted uppercase tracking-wider font-semibold">
-                                        <th class="py-2.5 px-3 text-start">{{ t('name', 'Name') }}</th>
-                                        <th class="py-2.5 px-3 text-start">{{ t('role', 'Role') }}</th>
-                                        <th class="py-2.5 px-3 text-start">{{ t('joined', 'Joined') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-border-subtle">
-                                    <tr v-for="user in recent_users" :key="user.id" class="hover:bg-surface-hover transition-colors">
-                                        <td class="py-3 px-3">
-                                            <div class="font-semibold text-text-main">{{ user.name }}</div>
-                                            <div class="text-[11px] text-text-muted">{{ user.email }}</div>
-                                        </td>
-                                        <td class="py-3 px-3">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20">
-                                                {{ user.role }}
-                                            </span>
-                                        </td>
-                                        <td class="py-3 px-3 text-text-muted font-mono text-[11px]">{{ user.created_at }}</td>
-                                    </tr>
-                                    <tr v-if="recent_users.length === 0">
-                                        <td colspan="3" class="py-8 text-center text-text-subtle">
-                                            {{ t('no_users_found', 'No users found.') }}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <DataTable
+                            :columns="[
+                                { key: 'name', label: t('name', 'Name') },
+                                { key: 'role', label: t('role', 'Role') },
+                                { key: 'created_at', label: t('joined', 'Joined') },
+                            ]"
+                            :rows="recent_users"
+                            :empty-title="t('no_users_found', 'No users found.')"
+                        >
+                            <template #cell-name="{ row }">
+                                <div class="font-semibold text-text-main">{{ row.name }}</div>
+                                <div class="text-[11px] text-text-muted">{{ row.email }}</div>
+                            </template>
+                            <template #cell-role="{ value }">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20">
+                                    {{ value }}
+                                </span>
+                            </template>
+                            <template #cell-created_at="{ value }">
+                                <span class="font-mono text-[11px]">{{ value }}</span>
+                            </template>
+                        </DataTable>
                     </div>
                 </div>
 

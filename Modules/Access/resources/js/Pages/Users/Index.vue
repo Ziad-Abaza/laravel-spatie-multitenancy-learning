@@ -4,10 +4,13 @@ import { useForm, router, Link } from '@inertiajs/vue3';
 import TenantLayout from '@core/Layouts/TenantLayout.vue';
 import EnterpriseDataGrid, { ColumnDefinition } from '@core/Components/EnterpriseDataGrid.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
-import Modal from '@core/Components/Modal.vue';
 import ConfirmDialog from '@core/Components/ConfirmDialog.vue';
+import FormModal from '@core/Components/FormModal.vue';
+import FormField from '@core/Components/FormField.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
+import IconButton from '@core/Components/IconButton.vue';
 import { useI18n } from '@core/Composables/useI18n';
-import { Users, UserPlus, Edit2, Trash2, Shield, AlertCircle } from 'lucide-vue-next';
+import { UserPlus, Edit2, Trash2, Shield, AlertCircle } from 'lucide-vue-next';
 
 interface UserItem {
     id: number;
@@ -162,16 +165,9 @@ function confirmDelete() {
                         <span class="text-xs text-text-muted">
                             {{ t('quota', 'Seats') }}: <strong class="text-text-main">{{ quota.current }} / {{ quota.limit ?? '∞' }}</strong>
                         </span>
-
-                        <button
-                            type="button"
-                            :disabled="!quota.can_add"
-                            @click="openAddModal"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed text-on-primary font-semibold text-xs shadow-md shadow-primary-600/20 transition-all"
-                        >
-                            <UserPlus class="w-4 h-4" />
-                            <span>{{ t('add_member', 'Add Member') }}</span>
-                        </button>
+                        <BaseButton :icon="UserPlus" :disabled="!quota.can_add" @click="openAddModal">
+                            {{ t('add_member', 'Add Member') }}
+                        </BaseButton>
                     </div>
                 </template>
 
@@ -204,109 +200,75 @@ function confirmDelete() {
                 <!-- Actions -->
                 <template #cell-actions="{ row }">
                     <div class="flex items-center justify-end gap-1" @click.stop>
-                        <button
-                            type="button"
-                            @click="openEditModal(row)"
-                            class="p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors"
-                            :title="t('edit', 'Edit')"
-                        >
-                            <Edit2 class="w-3.5 h-3.5" />
-                        </button>
-
-                        <button
+                        <IconButton :icon="Edit2" :title="t('edit', 'Edit')" @click="openEditModal(row)" />
+                        <IconButton
                             v-if="row.role !== 'Owner'"
-                            type="button"
-                            @click="openDeleteModal(row)"
-                            class="p-1.5 rounded-lg text-danger-fg hover:bg-danger/10 transition-colors"
+                            :icon="Trash2"
+                            variant="danger"
                             :title="t('delete', 'Delete')"
-                        >
-                            <Trash2 class="w-3.5 h-3.5" />
-                        </button>
+                            @click="openDeleteModal(row)"
+                        />
                     </div>
                 </template>
             </EnterpriseDataGrid>
         </div>
 
         <!-- Add Member Modal -->
-        <Modal :is-open="isAddModalOpen" :title="t('add_team_member', 'Add New Team Member')" @close="isAddModalOpen = false">
-            <form @submit.prevent="submitAdd" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('full_name', 'Full Name') }}</label>
-                    <input v-model="addForm.name" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('email', 'Email Address') }}</label>
-                    <input v-model="addForm.email" type="email" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('password', 'Initial Password') }}</label>
-                    <input v-model="addForm.password" type="password" required minlength="8" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('role', 'Role') }}</label>
-                        <select v-model="addForm.role" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
-                            <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('job_title', 'Job Title') }}</label>
-                        <input v-model="addForm.job_title" type="text" :placeholder="t('job_title_example', 'e.g. Engineer')" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                    </div>
-                </div>
-
-                <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
-                    <button type="button" @click="isAddModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main">{{ t('cancel', 'Cancel') }}</button>
-                    <button type="submit" :disabled="addForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold">{{ t('add_member', 'Add Member') }}</button>
-                </div>
-            </form>
-        </Modal>
+        <FormModal
+            :is-open="isAddModalOpen"
+            :title="t('add_team_member', 'Add New Team Member')"
+            :submit-text="t('add_member', 'Add Member')"
+            :loading="addForm.processing"
+            @close="isAddModalOpen = false"
+            @submit="submitAdd"
+        >
+            <FormField v-model="addForm.name" :label="t('full_name', 'Full Name')" size="sm" required :error="addForm.errors.name" />
+            <FormField v-model="addForm.email" :label="t('email', 'Email Address')" type="email" size="sm" required :error="addForm.errors.email" />
+            <FormField v-model="addForm.password" :label="t('password', 'Initial Password')" type="password" size="sm" required :min="8" :error="addForm.errors.password" />
+            <div class="grid grid-cols-2 gap-3">
+                <FormField
+                    v-model="addForm.role"
+                    :label="t('role', 'Role')"
+                    type="select"
+                    size="sm"
+                    :options="roles.map((r) => ({ value: r, label: r }))"
+                    :error="addForm.errors.role"
+                />
+                <FormField v-model="addForm.job_title" :label="t('job_title', 'Job Title')" size="sm" :placeholder="t('job_title_example', 'e.g. Engineer')" :error="addForm.errors.job_title" />
+            </div>
+        </FormModal>
 
         <!-- Edit Member Modal -->
-        <Modal :is-open="isEditModalOpen" :title="t('edit_team_member', 'Edit Team Member')" @close="isEditModalOpen = false">
-            <form @submit.prevent="submitEdit" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('full_name', 'Full Name') }}</label>
-                    <input v-model="editForm.name" type="text" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('email', 'Email Address') }}</label>
-                    <input v-model="editForm.email" type="email" required class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('role', 'Role') }}</label>
-                        <select v-model="editForm.role" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
-                            <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('status', 'Status') }}</label>
-                        <select v-model="editForm.status" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
-                            <option value="active">{{ t('active', 'Active') }}</option>
-                            <option value="suspended">{{ t('suspended', 'Suspended') }}</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-text-main mb-1">{{ t('job_title', 'Job Title') }}</label>
-                    <input v-model="editForm.job_title" type="text" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                </div>
-
-                <div class="pt-4 border-t border-border-subtle flex justify-end gap-2">
-                    <button type="button" @click="isEditModalOpen = false" class="px-4 py-2 rounded-xl text-xs text-text-muted hover:text-text-main">{{ t('cancel', 'Cancel') }}</button>
-                    <button type="submit" :disabled="editForm.processing" class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold">{{ t('save_changes', 'Save Changes') }}</button>
-                </div>
-            </form>
-        </Modal>
+        <FormModal
+            :is-open="isEditModalOpen"
+            :title="t('edit_team_member', 'Edit Team Member')"
+            :submit-text="t('save_changes', 'Save Changes')"
+            :loading="editForm.processing"
+            @close="isEditModalOpen = false"
+            @submit="submitEdit"
+        >
+            <FormField v-model="editForm.name" :label="t('full_name', 'Full Name')" size="sm" required :error="editForm.errors.name" />
+            <FormField v-model="editForm.email" :label="t('email', 'Email Address')" type="email" size="sm" required :error="editForm.errors.email" />
+            <div class="grid grid-cols-2 gap-3">
+                <FormField
+                    v-model="editForm.role"
+                    :label="t('role', 'Role')"
+                    type="select"
+                    size="sm"
+                    :options="roles.map((r) => ({ value: r, label: r }))"
+                    :error="editForm.errors.role"
+                />
+                <FormField
+                    v-model="editForm.status"
+                    :label="t('status', 'Status')"
+                    type="select"
+                    size="sm"
+                    :options="{ active: t('active', 'Active'), suspended: t('suspended', 'Suspended') }"
+                    :error="editForm.errors.status"
+                />
+            </div>
+            <FormField v-model="editForm.job_title" :label="t('job_title', 'Job Title')" size="sm" :error="editForm.errors.job_title" />
+        </FormModal>
 
         <!-- Delete Member Confirm -->
         <ConfirmDialog

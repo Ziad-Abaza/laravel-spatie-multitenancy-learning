@@ -2,6 +2,12 @@
 import { ref } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
+import PageHeader from '@core/Components/PageHeader.vue';
+import TabNav from '@core/Components/TabNav.vue';
+import Panel from '@core/Components/Panel.vue';
+import FormField from '@core/Components/FormField.vue';
+import PalettePicker from '@core/Components/PalettePicker.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import { Settings, Palette, Globe, Server, CreditCard, Save } from 'lucide-vue-next';
 import { THEME_PRESETS } from '@core/Stores/useThemeStore';
@@ -18,7 +24,16 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const activeTab = ref<'branding' | 'theme' | 'localization' | 'system' | 'billing'>('branding');
+type TabKey = 'branding' | 'theme' | 'localization' | 'system' | 'billing';
+const activeTab = ref<TabKey>('branding');
+
+const tabs = [
+    { key: 'branding' as TabKey, label: t('branding', 'Branding'), icon: Settings },
+    { key: 'theme' as TabKey, label: t('theme', 'Theming & Tokens'), icon: Palette },
+    { key: 'localization' as TabKey, label: t('localization', 'Localization'), icon: Globe },
+    { key: 'system' as TabKey, label: t('system', 'System & Tenancy'), icon: Server },
+    { key: 'billing' as TabKey, label: t('billing', 'Billing'), icon: CreditCard },
+];
 
 const brandingForm = useForm({
     domain: 'branding',
@@ -62,246 +77,134 @@ const billingForm = useForm({
     },
 });
 
-function saveBranding() {
-    brandingForm.post('/landlord/settings');
-}
-
-function saveTheme() {
-    themeForm.post('/landlord/settings');
-}
-
-function saveLocalization() {
-    localizationForm.post('/landlord/settings');
-}
-
-function saveSystem() {
-    systemForm.post('/landlord/settings');
-}
-
-function saveBilling() {
-    billingForm.post('/landlord/settings');
-}
-
 const page = usePage();
 const allowedPalettes = new Set<string>((page.props.theme as any)?.palettes ?? THEME_PRESETS.map((p) => p.id));
 const palettes = THEME_PRESETS.filter((p) => allowedPalettes.has(p.id));
+
+const planOptions = [
+    { value: '', label: t('first_active_plan', 'First active plan (by sort order)') },
+    ...props.plans.map((p) => ({ value: p.id, label: String(p.name) })),
+];
 </script>
 
 <template>
     <LandlordLayout>
         <div class="space-y-6 max-w-4xl mx-auto">
-            <div>
-                <h1 class="text-2xl font-bold text-text-main tracking-tight">{{ t('platform_settings', 'Platform Central Settings') }}</h1>
-                <p class="text-xs text-text-muted mt-1">{{ t('platform_settings_sub', 'Configure platform-wide branding, system themes, localization, and multi-tenant provisioning.') }}</p>
-            </div>
+            <PageHeader
+                :title="t('platform_settings', 'Platform Central Settings')"
+                :subtitle="t('platform_settings_sub', 'Configure platform-wide branding, system themes, localization, and multi-tenant provisioning.')"
+            />
 
-            <!-- Tab Navigation -->
-            <div class="flex items-center gap-2 border-b border-border-subtle pb-2 overflow-x-auto">
-                <button
-                    type="button"
-                    @click="activeTab = 'branding'"
-                    class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shrink-0"
-                    :class="activeTab === 'branding' ? 'bg-primary-600 text-on-primary shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
-                >
-                    <Settings class="w-4 h-4" />
-                    <span>{{ t('branding', 'Branding') }}</span>
-                </button>
-
-                <button
-                    type="button"
-                    @click="activeTab = 'theme'"
-                    class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shrink-0"
-                    :class="activeTab === 'theme' ? 'bg-primary-600 text-on-primary shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
-                >
-                    <Palette class="w-4 h-4" />
-                    <span>{{ t('theme', 'Theming & Tokens') }}</span>
-                </button>
-
-                <button
-                    type="button"
-                    @click="activeTab = 'localization'"
-                    class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shrink-0"
-                    :class="activeTab === 'localization' ? 'bg-primary-600 text-on-primary shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
-                >
-                    <Globe class="w-4 h-4" />
-                    <span>{{ t('localization', 'Localization') }}</span>
-                </button>
-
-                <button
-                    type="button"
-                    @click="activeTab = 'system'"
-                    class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shrink-0"
-                    :class="activeTab === 'system' ? 'bg-primary-600 text-on-primary shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
-                >
-                    <Server class="w-4 h-4" />
-                    <span>{{ t('system', 'System & Tenancy') }}</span>
-                </button>
-
-                <button
-                    type="button"
-                    @click="activeTab = 'billing'"
-                    class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shrink-0"
-                    :class="activeTab === 'billing' ? 'bg-primary-600 text-on-primary shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
-                >
-                    <CreditCard class="w-4 h-4" />
-                    <span>{{ t('billing', 'Billing') }}</span>
-                </button>
-            </div>
+            <TabNav v-model="activeTab" :items="tabs" />
 
             <!-- Branding Tab -->
-            <div v-if="activeTab === 'branding'" class="bg-surface-card border border-border-subtle rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-                <form @submit.prevent="saveBranding" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('platform_name', 'Platform Name') }}</label>
-                        <input v-model="brandingForm.settings.app_name" type="text" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500" />
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('platform_tagline', 'Platform Tagline') }}</label>
-                        <input v-model="brandingForm.settings.tagline" type="text" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500" />
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('support_email', 'Support Contact Email') }}</label>
-                        <input v-model="brandingForm.settings.support_email" type="email" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500" />
-                    </div>
+            <Panel v-if="activeTab === 'branding'">
+                <form class="space-y-4" @submit.prevent="brandingForm.post('/landlord/settings')">
+                    <FormField v-model="brandingForm.settings.app_name" :label="t('platform_name', 'Platform Name')" :error="brandingForm.errors['settings.app_name']" />
+                    <FormField v-model="brandingForm.settings.tagline" :label="t('platform_tagline', 'Platform Tagline')" :error="brandingForm.errors['settings.tagline']" />
+                    <FormField v-model="brandingForm.settings.support_email" :label="t('support_email', 'Support Contact Email')" type="email" :error="brandingForm.errors['settings.support_email']" />
 
                     <div class="pt-4 border-t border-border-subtle flex justify-end">
-                        <button type="submit" :disabled="brandingForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
-                            <Save class="w-4 h-4" />
-                            <span>{{ t('save_changes', 'Save Branding') }}</span>
-                        </button>
+                        <BaseButton type="submit" :icon="Save" :loading="brandingForm.processing">
+                            {{ t('save_changes', 'Save Branding') }}
+                        </BaseButton>
                     </div>
                 </form>
-            </div>
+            </Panel>
 
             <!-- Theme Tab -->
-            <div v-if="activeTab === 'theme'" class="bg-surface-card border border-border-subtle rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-                <form @submit.prevent="saveTheme" class="space-y-6">
+            <Panel v-if="activeTab === 'theme'">
+                <form class="space-y-6" @submit.prevent="themeForm.post('/landlord/settings')">
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-3">{{ t('default_color_palette', 'Default Color Palette') }}</label>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            <label
-                                v-for="p in palettes"
-                                :key="p.id"
-                                class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer capitalize text-xs transition-all"
-                                :class="themeForm.settings.palette === p.id ? 'bg-primary-500/10 border-primary-500 text-text-main font-semibold' : 'bg-surface-input border-border-subtle text-text-muted hover:text-text-main'"
-                            >
-                                <input type="radio" v-model="themeForm.settings.palette" :value="p.id" class="sr-only" />
-                                <span class="flex shrink-0">
-                                    <span
-                                        v-for="(c, i) in p.colors"
-                                        :key="c"
-                                        class="w-4 h-4 rounded-full shadow-xs border border-black/10"
-                                        :class="i > 0 ? '-ms-1.5' : ''"
-                                        :style="{ backgroundColor: c }"
-                                    />
-                                </span>
-                                <span>{{ p.id }}</span>
-                            </label>
-                        </div>
+                        <PalettePicker v-model="themeForm.settings.palette" :palettes="palettes" />
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-2">{{ t('default_theme_mode', 'Default Theme Mode') }}</label>
-                        <select v-model="themeForm.settings.mode" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                            <option value="dark">{{ t('dark_mode', 'Dark Mode') }}</option>
-                            <option value="light">{{ t('light_mode', 'Light Mode') }}</option>
-                            <option value="system">{{ t('system_preference', 'System Preference') }}</option>
-                        </select>
-                    </div>
+                    <FormField
+                        v-model="themeForm.settings.mode"
+                        :label="t('default_theme_mode', 'Default Theme Mode')"
+                        type="select"
+                        :options="{ dark: t('dark_mode', 'Dark Mode'), light: t('light_mode', 'Light Mode'), system: t('system_preference', 'System Preference') }"
+                        :error="themeForm.errors['settings.mode']"
+                    />
 
                     <div class="pt-4 border-t border-border-subtle flex justify-end">
-                        <button type="submit" :disabled="themeForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
-                            <Save class="w-4 h-4" />
-                            <span>{{ t('save_changes', 'Save Theme') }}</span>
-                        </button>
+                        <BaseButton type="submit" :icon="Save" :loading="themeForm.processing">
+                            {{ t('save_changes', 'Save Theme') }}
+                        </BaseButton>
                     </div>
                 </form>
-            </div>
+            </Panel>
 
             <!-- Localization Tab -->
-            <div v-if="activeTab === 'localization'" class="bg-surface-card border border-border-subtle rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-                <form @submit.prevent="saveLocalization" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('default_locale', 'Default Locale') }}</label>
-                        <select v-model="localizationForm.settings.default_locale" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                            <option value="en">English (LTR)</option>
-                            <option value="ar">العربية - Arabic (RTL)</option>
-                        </select>
-                    </div>
+            <Panel v-if="activeTab === 'localization'">
+                <form class="space-y-4" @submit.prevent="localizationForm.post('/landlord/settings')">
+                    <FormField
+                        v-model="localizationForm.settings.default_locale"
+                        :label="t('default_locale', 'Default Locale')"
+                        type="select"
+                        :options="{ en: 'English (LTR)', ar: 'العربية - Arabic (RTL)' }"
+                        :error="localizationForm.errors['settings.default_locale']"
+                    />
 
-                    <div class="pt-2">
-                        <label class="flex items-center gap-2 text-xs text-text-main cursor-pointer">
-                            <input type="checkbox" value="ar" v-model="localizationForm.settings.supported_locales" class="rounded bg-surface-input border-border-subtle text-primary-600 focus:ring-primary-500" />
-                            <span>{{ t('enable_arabic_desc', 'Enable Arabic (RTL) localization platform-wide') }}</span>
-                        </label>
-                    </div>
+                    <label class="flex items-center gap-2 text-xs text-text-main cursor-pointer">
+                        <input type="checkbox" value="ar" v-model="localizationForm.settings.supported_locales" class="rounded bg-surface-input border-border-subtle text-primary-600 focus:ring-primary-500" />
+                        <span>{{ t('enable_arabic_desc', 'Enable Arabic (RTL) localization platform-wide') }}</span>
+                    </label>
 
                     <div class="pt-4 border-t border-border-subtle flex justify-end">
-                        <button type="submit" :disabled="localizationForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
-                            <Save class="w-4 h-4" />
-                            <span>{{ t('save_changes', 'Save Localization') }}</span>
-                        </button>
+                        <BaseButton type="submit" :icon="Save" :loading="localizationForm.processing">
+                            {{ t('save_changes', 'Save Localization') }}
+                        </BaseButton>
                     </div>
                 </form>
-            </div>
+            </Panel>
 
             <!-- System Tab -->
-            <div v-if="activeTab === 'system'" class="bg-surface-card border border-border-subtle rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-                <form @submit.prevent="saveSystem" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('default_trial_days_label', 'Default Free Trial Duration (Days)') }}</label>
-                        <input v-model.number="systemForm.settings.default_trial_days" type="number" min="0" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500" />
-                    </div>
+            <Panel v-if="activeTab === 'system'">
+                <form class="space-y-4" @submit.prevent="systemForm.post('/landlord/settings')">
+                    <FormField v-model.number="systemForm.settings.default_trial_days" :label="t('default_trial_days_label', 'Default Free Trial Duration (Days)')" type="number" min="0" :error="systemForm.errors['settings.default_trial_days']" />
+                    <FormField v-model="systemForm.settings.tenant_db_prefix" :label="t('tenant_db_prefix_label', 'Tenant Database Name Prefix')" :error="systemForm.errors['settings.tenant_db_prefix']" class="font-mono" />
 
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('tenant_db_prefix_label', 'Tenant Database Name Prefix') }}</label>
-                        <input v-model="systemForm.settings.tenant_db_prefix" type="text" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 font-mono" />
-                    </div>
-
-                    <div class="pt-2">
-                        <label class="flex items-center gap-2 text-xs text-text-main cursor-pointer">
-                            <input type="checkbox" v-model="systemForm.settings.allow_registration" class="rounded bg-surface-input border-border-subtle text-primary-600 focus:ring-primary-500" />
-                            <span>{{ t('allow_registration_desc', 'Allow Public Self-Service Workspace Registration') }}</span>
-                        </label>
-                    </div>
+                    <FormField
+                        v-model="systemForm.settings.allow_registration"
+                        type="checkbox"
+                        :label="t('allow_registration_desc', 'Allow Public Self-Service Workspace Registration')"
+                    />
 
                     <div class="pt-4 border-t border-border-subtle flex justify-end">
-                        <button type="submit" :disabled="systemForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
-                            <Save class="w-4 h-4" />
-                            <span>{{ t('save_changes', 'Save System Settings') }}</span>
-                        </button>
+                        <BaseButton type="submit" :icon="Save" :loading="systemForm.processing">
+                            {{ t('save_changes', 'Save System Settings') }}
+                        </BaseButton>
                     </div>
                 </form>
-            </div>
+            </Panel>
+
             <!-- Billing Tab -->
-            <div v-if="activeTab === 'billing'" class="bg-surface-card border border-border-subtle rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-                <form @submit.prevent="saveBilling" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('default_currency_label', 'Default Currency') }}</label>
-                        <select v-model="billingForm.settings.default_currency" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                            <option v-for="(label, code) in currencies" :key="code" :value="code">{{ label }}</option>
-                        </select>
-                        <p v-if="billingForm.errors['settings.default_currency']" class="mt-1 text-xs text-danger-fg">{{ billingForm.errors['settings.default_currency'] }}</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('default_plan_label', 'Default Plan for New Registrations') }}</label>
-                        <select v-model="billingForm.settings.default_plan_id" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
-                            <option :value="''">{{ t('first_active_plan', 'First active plan (by sort order)') }}</option>
-                            <option v-for="plan in plans" :key="plan.id" :value="plan.id">{{ plan.name }}</option>
-                        </select>
-                    </div>
+            <Panel v-if="activeTab === 'billing'">
+                <form class="space-y-4" @submit.prevent="billingForm.post('/landlord/settings')">
+                    <FormField
+                        v-model="billingForm.settings.default_currency"
+                        :label="t('default_currency_label', 'Default Currency')"
+                        type="select"
+                        :options="currencies"
+                        :error="billingForm.errors['settings.default_currency']"
+                    />
+                    <FormField
+                        v-model="billingForm.settings.default_plan_id"
+                        :label="t('default_plan_label', 'Default Plan for New Registrations')"
+                        type="select"
+                        :options="planOptions"
+                        :error="billingForm.errors['settings.default_plan_id']"
+                    />
 
                     <div class="pt-4 border-t border-border-subtle flex justify-end">
-                        <button type="submit" :disabled="billingForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
-                            <Save class="w-4 h-4" />
-                            <span>{{ t('save_changes', 'Save Billing') }}</span>
-                        </button>
+                        <BaseButton type="submit" :icon="Save" :loading="billingForm.processing">
+                            {{ t('save_changes', 'Save Billing') }}
+                        </BaseButton>
                     </div>
                 </form>
-            </div>
+            </Panel>
         </div>
     </LandlordLayout>
 </template>

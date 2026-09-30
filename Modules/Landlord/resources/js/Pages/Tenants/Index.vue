@@ -5,6 +5,9 @@ import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
 import EnterpriseDataGrid, { ColumnDefinition } from '@core/Components/EnterpriseDataGrid.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
 import ConfirmDialog from '@core/Components/ConfirmDialog.vue';
+import FilterSelect from '@core/Components/FilterSelect.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
+import IconButton from '@core/Components/IconButton.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import { Plus, Eye, ExternalLink, Ban, Play, Trash2 } from 'lucide-vue-next';
 
@@ -43,7 +46,10 @@ const search = ref(props.filters.search || '');
 const status = ref(props.filters.status || '');
 const planId = ref(props.filters.plan_id || '');
 
-const statusOptions = ['active', 'trialing', 'suspended', 'archived'];
+const statusOptions = computed(() =>
+    ['active', 'trialing', 'suspended', 'archived'].map((s) => ({ value: s, label: t(s, s) }))
+);
+const planOptions = computed(() => props.plans.map((p) => ({ value: p.id, label: p.name })));
 
 function applyFilters(page?: number) {
     router.get(
@@ -145,29 +151,21 @@ function rowClick(row: TenantItem) {
             @row-click="rowClick"
         >
             <template #toolbar-actions>
-                <select
+                <FilterSelect
                     v-model="status"
-                    @change="applyFilters"
-                    class="px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500"
-                >
-                    <option value="">{{ t('all_statuses', 'All Statuses') }}</option>
-                    <option v-for="s in statusOptions" :key="s" :value="s" class="capitalize">{{ t(s, s) }}</option>
-                </select>
-                <select
+                    :options="statusOptions"
+                    :placeholder="t('all_statuses', 'All Statuses')"
+                    @change="() => applyFilters()"
+                />
+                <FilterSelect
                     v-model="planId"
-                    @change="applyFilters"
-                    class="px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500"
-                >
-                    <option value="">{{ t('all_plans', 'All Plans') }}</option>
-                    <option v-for="plan in plans" :key="plan.id" :value="plan.id">{{ plan.name }}</option>
-                </select>
-                <Link
-                    href="/landlord/tenants/create"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-md shadow-primary-600/20 transition-all cursor-pointer"
-                >
-                    <Plus class="w-4 h-4" />
-                    <span>{{ t('provision_tenant', 'Provision Tenant') }}</span>
-                </Link>
+                    :options="planOptions"
+                    :placeholder="t('all_plans', 'All Plans')"
+                    @change="() => applyFilters()"
+                />
+                <BaseButton href="/landlord/tenants/create" :icon="Plus">
+                    {{ t('provision_tenant', 'Provision Tenant') }}
+                </BaseButton>
             </template>
 
             <!-- Custom Domain Cell -->
@@ -196,47 +194,28 @@ function rowClick(row: TenantItem) {
             <!-- Custom Actions Cell -->
             <template #cell-actions="{ row }">
                 <div class="flex items-center justify-end gap-1" @click.stop>
-                    <Link
-                        :href="`/landlord/tenants/${row.id}`"
-                        class="p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors"
-                        :title="t('view_tenant', 'View Tenant')"
-                    >
-                        <Eye class="w-4 h-4" />
-                    </Link>
-                    <a
-                        :href="row.url"
-                        target="_blank"
-                        class="p-1.5 rounded-lg text-text-muted hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-hover transition-colors"
-                        :title="t('open_workspace', 'Open Workspace')"
-                    >
-                        <ExternalLink class="w-4 h-4" />
-                    </a>
-                    <button
+                    <IconButton :icon="Eye" :href="`/landlord/tenants/${row.id}`" :title="t('view_tenant', 'View Tenant')" />
+                    <IconButton :icon="ExternalLink" :href="row.url" external variant="primary" :title="t('open_workspace', 'Open Workspace')" />
+                    <IconButton
                         v-if="row.status === 'suspended'"
-                        type="button"
-                        class="p-1.5 rounded-lg text-success-fg hover:bg-success/10 transition-colors"
+                        :icon="Play"
+                        variant="success"
                         :title="t('activate_tenant', 'Activate Workspace')"
                         @click="pendingAction = { type: 'activate', row }"
-                    >
-                        <Play class="w-4 h-4" />
-                    </button>
-                    <button
+                    />
+                    <IconButton
                         v-else-if="row.status !== 'archived'"
-                        type="button"
-                        class="p-1.5 rounded-lg text-warning-fg hover:bg-warning/10 transition-colors"
+                        :icon="Ban"
+                        variant="warning"
                         :title="t('suspend_tenant', 'Suspend Workspace')"
                         @click="pendingAction = { type: 'suspend', row }"
-                    >
-                        <Ban class="w-4 h-4" />
-                    </button>
-                    <button
-                        type="button"
-                        class="p-1.5 rounded-lg text-danger-fg hover:bg-danger/10 transition-colors"
+                    />
+                    <IconButton
+                        :icon="Trash2"
+                        variant="danger"
                         :title="t('delete_tenant', 'Delete Workspace')"
                         @click="pendingAction = { type: 'delete', row }"
-                    >
-                        <Trash2 class="w-4 h-4" />
-                    </button>
+                    />
                 </div>
             </template>
         </EnterpriseDataGrid>

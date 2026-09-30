@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/vue3';
 import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
 import StatCard from '@core/Components/StatCard.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
+import DataTable from '@core/Components/DataTable.vue';
 import CurrencyCell from '@core/Components/CurrencyCell.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import { useCurrency } from '@core/Composables/useCurrency';
@@ -120,39 +121,35 @@ const { format: formatCurrency } = useCurrency();
                             </Link>
                         </div>
 
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-start text-xs">
-                                <thead>
-                                    <tr class="border-b border-border-subtle text-text-muted text-start uppercase tracking-wider font-semibold">
-                                        <th class="py-3 px-3 text-start">{{ t('organization', 'Organization') }}</th>
-                                        <th class="py-3 px-3 text-start">{{ t('domain', 'Domain') }}</th>
-                                        <th class="py-3 px-3 text-start">{{ t('database', 'Database') }}</th>
-                                        <th class="py-3 px-3 text-start">{{ t('status', 'Status') }}</th>
-                                        <th class="py-3 px-3 text-end">{{ t('actions', 'Actions') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-border-subtle">
-                                    <tr v-for="tenant in metrics.recent_tenants" :key="tenant.id" class="hover:bg-surface-hover transition-colors">
-                                        <td class="py-3 px-3 font-semibold text-text-main">{{ tenant.name }}</td>
-                                        <td class="py-3 px-3 font-mono text-primary-600 dark:text-primary-400">{{ tenant.domain }}</td>
-                                        <td class="py-3 px-3 font-mono text-text-muted">{{ tenant.database }}</td>
-                                        <td class="py-3 px-3">
-                                            <StatusBadge :status="tenant.status" />
-                                        </td>
-                                        <td class="py-3 px-3 text-end">
-                                            <Link :href="`/landlord/tenants/${tenant.id}`" class="text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 font-medium">
-                                                {{ t('manage', 'Manage') }}
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="metrics.recent_tenants.length === 0">
-                                        <td colspan="5" class="py-8 text-center text-text-subtle">
-                                            {{ t('no_tenants_found', 'No tenants provisioned yet.') }}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <DataTable
+                            :columns="[
+                                { key: 'name', label: t('organization', 'Organization') },
+                                { key: 'domain', label: t('domain', 'Domain') },
+                                { key: 'database', label: t('database', 'Database') },
+                                { key: 'status', label: t('status', 'Status') },
+                                { key: 'actions', label: t('actions', 'Actions'), align: 'end' },
+                            ]"
+                            :rows="metrics.recent_tenants"
+                            :empty-title="t('no_tenants_found', 'No tenants provisioned yet.')"
+                        >
+                            <template #cell-name="{ value }">
+                                <span class="font-semibold text-text-main">{{ value }}</span>
+                            </template>
+                            <template #cell-domain="{ value }">
+                                <span class="font-mono text-primary-600 dark:text-primary-400">{{ value }}</span>
+                            </template>
+                            <template #cell-database="{ value }">
+                                <span class="font-mono text-text-muted">{{ value }}</span>
+                            </template>
+                            <template #cell-status="{ value }">
+                                <StatusBadge :status="value" />
+                            </template>
+                            <template #cell-actions="{ row }">
+                                <Link :href="`/landlord/tenants/${row.id}`" class="text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 font-medium">
+                                    {{ t('manage', 'Manage') }}
+                                </Link>
+                            </template>
+                        </DataTable>
                     </div>
                 </div>
 

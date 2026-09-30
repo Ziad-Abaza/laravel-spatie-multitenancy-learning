@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useForm, Link } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
 import ConfirmDialog from '@core/Components/ConfirmDialog.vue';
 import CurrencyCell from '@core/Components/CurrencyCell.vue';
+import PageHeader from '@core/Components/PageHeader.vue';
+import Panel from '@core/Components/Panel.vue';
+import FormField from '@core/Components/FormField.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
+import IconButton from '@core/Components/IconButton.vue';
+import DataTable from '@core/Components/DataTable.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import {
     Database,
     Layers,
     Users,
-    ArrowLeft,
     ExternalLink,
     Trash2,
     Save,
@@ -99,6 +104,22 @@ const trialForm = useForm({
 const activeSubscription = () =>
     props.tenant.subscriptions.find((s) => ['active', 'trialing'].includes(s.status)) ?? null;
 
+const userColumns = [
+    { key: 'name', label: t('name', 'Name') },
+    { key: 'email', label: t('email', 'Email') },
+    { key: 'roles', label: t('roles', 'Roles') },
+    { key: 'created_at', label: t('joined', 'Joined') },
+];
+
+const subscriptionColumns = [
+    { key: 'plan_name', label: t('plan', 'Plan') },
+    { key: 'billing_interval', label: t('billing_cycle', 'Interval') },
+    { key: 'amount', label: t('amount', 'Amount') },
+    { key: 'status', label: t('status', 'Status') },
+    { key: 'starts_at', label: t('starts_at', 'Started') },
+    { key: 'ends_at', label: t('ends_at', 'Ends') },
+];
+
 function suspendTenant() {
     suspendForm.post(`/landlord/tenants/${props.tenant.id}/suspend`, {
         onSuccess: () => { showSuspendModal.value = false; }
@@ -145,119 +166,93 @@ function deleteTenant() {
 <template>
     <LandlordLayout>
         <div class="space-y-8 max-w-6xl mx-auto">
-            <!-- Back & Header -->
-            <div>
-                <Link
-                    href="/landlord/tenants"
-                    class="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-text-main mb-4 transition-colors"
-                >
-                    <ArrowLeft class="w-4 h-4 rtl:rotate-180" />
-                    <span>{{ t('back_to_tenants', 'Back to Tenants') }}</span>
-                </Link>
-
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-primary-500/10 border border-primary-500/20 text-primary-600 dark:text-primary-400 flex items-center justify-center font-bold text-xl">
-                            {{ tenant.name.charAt(0) }}
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-3">
-                                <h1 class="text-2xl font-bold text-text-main tracking-tight">{{ tenant.name }}</h1>
-                                <StatusBadge :status="tenant.status" />
-                            </div>
-                            <div class="flex items-center gap-4 mt-1 text-xs text-text-muted">
-                                <a :href="tenant.url" target="_blank" class="flex items-center gap-1 text-primary-600 dark:text-primary-400 hover:underline">
-                                    <span>{{ tenant.domain }}</span>
-                                    <ExternalLink class="w-3 h-3" />
-                                </a>
-                                <span>•</span>
-                                <span class="font-mono text-text-muted">{{ tenant.database }}</span>
-                            </div>
-                        </div>
+            <PageHeader
+                :title="tenant.name"
+                :subtitle="tenant.database"
+                back-href="/landlord/tenants"
+                :back-label="t('back_to_tenants', 'Back to Tenants')"
+            >
+                <template #leading>
+                    <div class="w-14 h-14 rounded-2xl bg-primary-500/10 border border-primary-500/20 text-primary-600 dark:text-primary-400 flex items-center justify-center font-bold text-xl shrink-0">
+                        {{ tenant.name.charAt(0) }}
                     </div>
+                </template>
+                <template #title>
+                    <span class="flex items-center gap-3">
+                        {{ tenant.name }}
+                        <StatusBadge :status="tenant.status" />
+                    </span>
+                </template>
+                <template #subtitle>
+                    <span class="inline-flex items-center gap-3">
+                        <a :href="tenant.url" target="_blank" class="inline-flex items-center gap-1 text-primary-600 dark:text-primary-400 hover:underline">
+                            <span>{{ tenant.domain }}</span>
+                            <ExternalLink class="w-3 h-3" />
+                        </a>
+                        <span>•</span>
+                        <span class="font-mono">{{ tenant.database }}</span>
+                    </span>
+                </template>
+                <template #actions>
+                    <BaseButton
+                        v-if="tenant.status !== 'suspended'"
+                        variant="warning"
+                        size="sm"
+                        @click="showSuspendModal = true"
+                    >
+                        {{ t('suspend_tenant', 'Suspend Workspace') }}
+                    </BaseButton>
+                    <BaseButton
+                        v-else
+                        variant="success"
+                        size="sm"
+                        @click="showActivateModal = true"
+                    >
+                        {{ t('activate_tenant', 'Activate Workspace') }}
+                    </BaseButton>
+                    <BaseButton
+                        v-if="tenant.status !== 'archived'"
+                        variant="secondary"
+                        size="sm"
+                        @click="showArchiveModal = true"
+                    >
+                        {{ t('archive_tenant', 'Archive') }}
+                    </BaseButton>
+                    <IconButton
+                        :icon="Trash2"
+                        variant="danger"
+                        :title="t('delete_tenant', 'Delete Workspace')"
+                        @click="showDeleteModal = true"
+                    />
+                </template>
+            </PageHeader>
 
-                    <!-- Action buttons -->
-                    <div class="flex items-center gap-2">
-                        <button
-                            v-if="tenant.status !== 'suspended'"
-                            type="button"
-                            @click="showSuspendModal = true"
-                            class="px-3.5 py-2 rounded-xl bg-warning/10 text-warning-fg border border-warning/25 hover:bg-warning/20 text-xs font-semibold transition-all cursor-pointer"
-                        >
-                            {{ t('suspend_tenant', 'Suspend Workspace') }}
-                        </button>
-
-                        <button
-                            v-else
-                            type="button"
-                            @click="showActivateModal = true"
-                            class="px-3.5 py-2 rounded-xl bg-success/10 text-success-fg border border-success/25 hover:bg-success/20 text-xs font-semibold transition-all cursor-pointer"
-                        >
-                            {{ t('activate_tenant', 'Activate Workspace') }}
-                        </button>
-
-                        <button
-                            v-if="tenant.status !== 'archived'"
-                            type="button"
-                            @click="showArchiveModal = true"
-                            class="px-3.5 py-2 rounded-xl bg-surface-input text-text-muted border border-border-subtle hover:bg-surface-hover text-xs font-semibold transition-all cursor-pointer"
-                        >
-                            {{ t('archive_tenant', 'Archive') }}
-                        </button>
-
-                        <button
-                            type="button"
-                            @click="showDeleteModal = true"
-                            class="p-2 rounded-xl bg-danger/10 text-danger-fg border border-danger/25 hover:bg-danger/20 text-xs transition-all cursor-pointer"
-                            :title="t('delete_tenant', 'Delete Workspace')"
-                        >
-                            <Trash2 class="w-4 h-4" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Grid of Info Cards -->
+            <!-- Info Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Database Isolation Card -->
-                <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-3 shadow-sm">
-                    <div class="flex items-center gap-2.5 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
-                        <Database class="w-4 h-4" />
-                        <span>{{ t('database_isolation', 'Dedicated Database') }}</span>
-                    </div>
+                <Panel padding="md" :title="t('database_isolation', 'Dedicated Database')" :icon="Database">
                     <div class="text-lg font-bold font-mono text-text-main">{{ tenant.database }}</div>
-                    <p class="text-xs text-text-muted">
+                    <p class="mt-2 text-xs text-text-muted">
                         {{ t('database_isolation_note', 'Isolated schema with independent migrations, permissions, and tenant users.') }}
                     </p>
-                </div>
+                </Panel>
 
-                <!-- Plan & Quota Card -->
-                <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-3 shadow-sm">
-                    <div class="flex items-center gap-2.5 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
-                        <Layers class="w-4 h-4" />
-                        <span>{{ t('subscription_plan', 'Subscription Tier') }}</span>
-                    </div>
+                <Panel padding="md" :title="t('subscription_plan', 'Subscription Tier')" :icon="Layers">
                     <div class="text-lg font-bold text-text-main flex items-center justify-between">
                         <span>{{ tenant.plan?.name ?? t('free_tier', 'Free Tier') }}</span>
-                        <span v-if="tenant.plan" class="text-sm font-normal text-text-muted">${{ tenant.plan.price }}/mo</span>
+                        <CurrencyCell v-if="tenant.plan" :amount="tenant.plan.price" class="text-sm font-normal text-text-muted" />
                     </div>
-                    <div class="text-xs text-text-muted space-y-1">
+                    <div class="mt-2 text-xs text-text-muted space-y-1">
                         <div>{{ t('max_users', 'Max Users') }}: {{ tenant.plan?.limits?.max_users ?? 'Unlimited' }}</div>
                         <div>{{ t('storage', 'Storage Quota') }}: {{ tenant.plan?.limits?.max_storage_mb ?? 1000 }} MB</div>
                     </div>
-                </div>
+                </Panel>
 
-                <!-- Team & Usage Card -->
-                <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-3 shadow-sm">
-                    <div class="flex items-center gap-2.5 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
-                        <Users class="w-4 h-4" />
-                        <span>{{ t('workspace_users', 'Current Users') }}</span>
-                    </div>
+                <Panel padding="md" :title="t('workspace_users', 'Current Users')" :icon="Users">
                     <div class="text-lg font-bold text-text-main">{{ tenant.user_count }} {{ t('active_users', 'members') }}</div>
-                    <p class="text-xs text-text-muted">
+                    <p class="mt-2 text-xs text-text-muted">
                         {{ t('isolated_user_records', 'User accounts live in this tenant database only.') }}
                     </p>
-                </div>
+                </Panel>
             </div>
 
             <!-- Suspension Reason Banner -->
@@ -271,159 +266,105 @@ function deleteTenant() {
 
             <!-- Workspace Controls -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Identity -->
-                <form @submit.prevent="saveIdentity" class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-4 shadow-sm">
-                    <div class="flex items-center gap-2.5 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
-                        <Pencil class="w-4 h-4" />
-                        <span>{{ t('tenant_identity', 'Identity') }}</span>
-                    </div>
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-medium text-text-main mb-1">{{ t('name', 'Name') }}</label>
-                            <input v-model="identityForm.name" type="text" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-text-main mb-1">{{ t('slug', 'Slug') }}</label>
-                            <input v-model="identityForm.slug" type="text" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs font-mono outline-none focus:border-primary-500" />
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-text-main mb-1">{{ t('domain', 'Domain') }}</label>
-                            <input v-model="identityForm.domain" type="text" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs font-mono outline-none focus:border-primary-500" />
-                        </div>
-                    </div>
-                    <button type="submit" :disabled="identityForm.processing" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold transition-colors disabled:opacity-50">
-                        <Save class="w-4 h-4" />
-                        <span>{{ t('save_changes', 'Save') }}</span>
-                    </button>
-                </form>
+                <Panel padding="md" :title="t('tenant_identity', 'Identity')" :icon="Pencil">
+                    <form class="space-y-4" @submit.prevent="saveIdentity">
+                        <FormField v-model="identityForm.name" :label="t('name', 'Name')" size="sm" :error="identityForm.errors.name" />
+                        <FormField v-model="identityForm.slug" :label="t('slug', 'Slug')" size="sm" class="font-mono" :error="identityForm.errors.slug" />
+                        <FormField v-model="identityForm.domain" :label="t('domain', 'Domain')" size="sm" :error="identityForm.errors.domain" />
+                        <BaseButton type="submit" :icon="Save" :loading="identityForm.processing">
+                            {{ t('save_changes', 'Save') }}
+                        </BaseButton>
+                    </form>
+                </Panel>
 
-                <!-- Plan & Billing -->
-                <form @submit.prevent="applyPlan" class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-4 shadow-sm">
-                    <div class="flex items-center gap-2.5 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
-                        <CreditCard class="w-4 h-4" />
-                        <span>{{ t('plan_billing', 'Plan & Billing') }}</span>
-                    </div>
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-medium text-text-main mb-1">{{ t('plan', 'Plan') }}</label>
-                            <select v-model="planForm.plan_id" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
-                                <option v-for="plan in plans" :key="plan.id" :value="plan.id">{{ plan.name }} — <CurrencyCell :amount="plan.price" /></option>
-                            </select>
+                <Panel padding="md" :title="t('plan_billing', 'Plan & Billing')" :icon="CreditCard">
+                    <form class="space-y-4" @submit.prevent="applyPlan">
+                        <FormField v-model="planForm.plan_id" :label="t('plan', 'Plan')" type="select" size="sm" :error="planForm.errors.plan_id">
+                            <template #options>
+                                <option v-for="plan in plans" :key="plan.id" :value="plan.id">{{ plan.name }} — ${{ plan.price }}/mo</option>
+                            </template>
+                        </FormField>
+                        <FormField
+                            v-model="planForm.billing_interval"
+                            :label="t('billing_cycle', 'Interval')"
+                            type="select"
+                            size="sm"
+                            :options="{ monthly: t('monthly', 'Monthly'), yearly: t('yearly', 'Yearly') }"
+                            :error="planForm.errors.billing_interval"
+                        />
+                        <div class="flex items-center gap-2">
+                            <BaseButton type="submit" :icon="Layers" :loading="planForm.processing">
+                                {{ t('apply_plan', 'Apply Plan') }}
+                            </BaseButton>
+                            <BaseButton
+                                v-if="activeSubscription()"
+                                variant="ghost"
+                                :icon="XCircle"
+                                class="!text-danger-fg hover:!bg-danger/10"
+                                @click="showCancelSubModal = true"
+                            >
+                                {{ t('cancel_subscription', 'Cancel') }}
+                            </BaseButton>
                         </div>
-                        <div>
-                            <label class="block text-xs font-medium text-text-main mb-1">{{ t('billing_cycle', 'Interval') }}</label>
-                            <select v-model="planForm.billing_interval" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500">
-                                <option value="monthly">{{ t('monthly', 'Monthly') }}</option>
-                                <option value="yearly">{{ t('yearly', 'Yearly') }}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button type="submit" :disabled="planForm.processing" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold transition-colors disabled:opacity-50">
-                            <Layers class="w-4 h-4" />
-                            <span>{{ t('apply_plan', 'Apply Plan') }}</span>
-                        </button>
-                        <button
-                            v-if="activeSubscription()"
-                            type="button"
-                            @click="showCancelSubModal = true"
-                            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-danger-fg hover:bg-danger/10 text-xs font-semibold transition-colors"
-                        >
-                            <XCircle class="w-4 h-4" />
-                            <span>{{ t('cancel_subscription', 'Cancel') }}</span>
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </Panel>
 
-                <!-- Trial & Lifecycle -->
-                <form @submit.prevent="extendTrial" class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-4 shadow-sm">
-                    <div class="flex items-center gap-2.5 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider">
-                        <CalendarClock class="w-4 h-4" />
-                        <span>{{ t('trial_lifecycle', 'Trial & Lifecycle') }}</span>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('trial_ends_at', 'Trial Ends At') }}</label>
-                        <input v-model="trialForm.trial_ends_at" type="date" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-                        <p v-if="tenant.trial_ends_at" class="mt-1.5 text-[11px] text-text-muted">{{ t('current_trial', 'Current trial end') }}: {{ tenant.trial_ends_at }}</p>
-                    </div>
-                    <button type="submit" :disabled="trialForm.processing" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold transition-colors disabled:opacity-50">
-                        <CalendarClock class="w-4 h-4" />
-                        <span>{{ t('extend_trial', 'Extend Trial') }}</span>
-                    </button>
-                </form>
+                <Panel padding="md" :title="t('trial_lifecycle', 'Trial & Lifecycle')" :icon="CalendarClock">
+                    <form class="space-y-4" @submit.prevent="extendTrial">
+                        <FormField
+                            v-model="trialForm.trial_ends_at"
+                            :label="t('trial_ends_at', 'Trial Ends At')"
+                            type="date"
+                            size="sm"
+                            :hint="tenant.trial_ends_at ? `${t('current_trial', 'Current trial end')}: ${tenant.trial_ends_at}` : ''"
+                            :error="trialForm.errors.trial_ends_at"
+                        />
+                        <BaseButton type="submit" :icon="CalendarClock" :loading="trialForm.processing">
+                            {{ t('extend_trial', 'Extend Trial') }}
+                        </BaseButton>
+                    </form>
+                </Panel>
             </div>
 
             <!-- Workspace Users -->
-            <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-4 shadow-sm">
-                <h2 class="text-base font-bold text-text-main flex items-center gap-2">
-                    <Users class="w-4 h-4 text-primary-600 dark:text-primary-400" />
-                    {{ t('workspace_users_list', 'Workspace Users') }}
-                    <span class="text-xs font-normal text-text-muted">({{ tenant.user_count }})</span>
-                </h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-start text-xs">
-                        <thead>
-                            <tr class="border-b border-border-subtle text-text-muted uppercase tracking-wider">
-                                <th class="py-2.5 px-3 text-start">{{ t('name', 'Name') }}</th>
-                                <th class="py-2.5 px-3 text-start">{{ t('email', 'Email') }}</th>
-                                <th class="py-2.5 px-3 text-start">{{ t('roles', 'Roles') }}</th>
-                                <th class="py-2.5 px-3 text-start">{{ t('joined', 'Joined') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-border-subtle">
-                            <tr v-for="user in tenant.users" :key="user.id" class="hover:bg-surface-hover">
-                                <td class="py-3 px-3 font-semibold text-text-main">{{ user.name }}</td>
-                                <td class="py-3 px-3 text-text-muted">{{ user.email }}</td>
-                                <td class="py-3 px-3">
-                                    <span v-for="role in user.roles" :key="role" class="inline-block me-1 px-2 py-0.5 rounded-md bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[10px] font-semibold">{{ role }}</span>
-                                </td>
-                                <td class="py-3 px-3 text-text-muted">{{ user.created_at }}</td>
-                            </tr>
-                            <tr v-if="!tenant.users || tenant.users.length === 0">
-                                <td colspan="4" class="py-6 text-center text-text-subtle">{{ t('no_users_found', 'No users in this workspace.') }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <Panel padding="md" :icon="Users" :title="`${t('workspace_users_list', 'Workspace Users')} (${tenant.user_count})`">
+                <DataTable
+                    :columns="userColumns"
+                    :rows="tenant.users"
+                    :empty-title="t('no_users_found', 'No users in this workspace.')"
+                    class="-mx-3"
+                >
+                    <template #cell-name="{ value }">
+                        <span class="font-semibold text-text-main">{{ value }}</span>
+                    </template>
+                    <template #cell-roles="{ value }">
+                        <span v-for="role in value" :key="role" class="inline-block me-1 px-2 py-0.5 rounded-md bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[10px] font-semibold">{{ role }}</span>
+                    </template>
+                </DataTable>
+            </Panel>
 
-            <!-- Subscriptions History -->
-            <div class="p-6 rounded-3xl bg-surface-card border border-border-subtle space-y-4 shadow-sm">
-                <h2 class="text-base font-bold text-text-main">{{ t('subscription_history', 'Subscription History') }}</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-start text-xs">
-                        <thead>
-                            <tr class="border-b border-border-subtle text-text-muted uppercase tracking-wider">
-                                <th class="py-2.5 px-3 text-start">{{ t('plan', 'Plan') }}</th>
-                                <th class="py-2.5 px-3 text-start">{{ t('billing_cycle', 'Interval') }}</th>
-                                <th class="py-2.5 px-3 text-start">{{ t('amount', 'Amount') }}</th>
-                                <th class="py-2.5 px-3 text-start">{{ t('status', 'Status') }}</th>
-                                <th class="py-2.5 px-3 text-start">{{ t('starts_at', 'Started') }}</th>
-                                <th class="py-2.5 px-3 text-start">{{ t('ends_at', 'Ends') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-border-subtle">
-                            <tr v-for="sub in tenant.subscriptions" :key="sub.id" class="hover:bg-surface-hover">
-                                <td class="py-3 px-3 font-semibold text-text-main">{{ sub.plan_name }}</td>
-                                <td class="py-3 px-3 capitalize text-text-muted">{{ sub.billing_interval }}</td>
-                                <td class="py-3 px-3 font-semibold text-text-main">
-                                    <CurrencyCell :amount="sub.amount" :currency="sub.currency" />
-                                </td>
-                                <td class="py-3 px-3">
-                                    <StatusBadge :status="sub.status" />
-                                </td>
-                                <td class="py-3 px-3 text-text-muted">{{ sub.starts_at }}</td>
-                                <td class="py-3 px-3 text-text-muted">{{ sub.ends_at }}</td>
-                            </tr>
-                            <tr v-if="tenant.subscriptions.length === 0">
-                                <td colspan="6" class="py-6 text-center text-text-subtle">
-                                    {{ t('no_subscriptions_found', 'No subscription records found.') }}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- Subscription History -->
+            <Panel padding="md" :title="t('subscription_history', 'Subscription History')">
+                <DataTable
+                    :columns="subscriptionColumns"
+                    :rows="tenant.subscriptions"
+                    :empty-title="t('no_subscriptions_found', 'No subscription records found.')"
+                    class="-mx-3"
+                >
+                    <template #cell-plan_name="{ value }">
+                        <span class="font-semibold text-text-main">{{ value }}</span>
+                    </template>
+                    <template #cell-billing_interval="{ value }">
+                        <span class="capitalize">{{ value }}</span>
+                    </template>
+                    <template #cell-amount="{ row }">
+                        <CurrencyCell :amount="row.amount" :currency="row.currency" class="font-semibold text-text-main" />
+                    </template>
+                    <template #cell-status="{ value }">
+                        <StatusBadge :status="value" />
+                    </template>
+                </DataTable>
+            </Panel>
         </div>
 
         <!-- Suspend Modal -->
@@ -436,10 +377,13 @@ function deleteTenant() {
             @close="showSuspendModal = false"
             @confirm="suspendTenant"
         >
-            <div class="mt-3">
-                <label class="block text-xs font-medium text-text-main mb-1">{{ t('suspension_reason', 'Suspension Reason (optional)') }}</label>
-                <input v-model="suspendForm.reason" type="text" :placeholder="t('suspension_reason_placeholder', 'e.g. Payment overdue, policy violation')" class="w-full px-3 py-2 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500" />
-            </div>
+            <FormField
+                v-model="suspendForm.reason"
+                :label="t('suspension_reason', 'Suspension Reason (optional)')"
+                :placeholder="t('suspension_reason_placeholder', 'e.g. Payment overdue, policy violation')"
+                size="sm"
+                class="mt-3"
+            />
         </ConfirmDialog>
 
         <!-- Archive Modal -->
@@ -485,10 +429,13 @@ function deleteTenant() {
             @close="showDeleteModal = false"
             @confirm="deleteTenant"
         >
-            <label class="mt-3 flex items-center gap-2 text-xs text-text-main cursor-pointer">
-                <input v-model="deleteForm.drop_database" type="checkbox" class="w-4 h-4 rounded border-border-subtle accent-danger" />
-                <span>{{ t('drop_database', 'Also drop the tenant database (irreversible)') }}</span>
-            </label>
+            <FormField
+                v-model="deleteForm.drop_database"
+                type="checkbox"
+                :label="t('drop_database', 'Also drop the tenant database (irreversible)')"
+                size="sm"
+                class="mt-3"
+            />
         </ConfirmDialog>
     </LandlordLayout>
 </template>
