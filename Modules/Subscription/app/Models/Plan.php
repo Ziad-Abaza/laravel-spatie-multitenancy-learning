@@ -2,11 +2,11 @@
 
 namespace Modules\Subscription\Models;
 
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Core\Contracts\PlanContract;
-use Modules\Landlord\Models\Tenant;
 use Spatie\Multitenancy\Models\Concerns\UsesLandlordConnection;
 use Spatie\Translatable\HasTranslations;
 

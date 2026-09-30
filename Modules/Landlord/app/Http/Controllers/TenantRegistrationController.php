@@ -3,12 +3,12 @@
 namespace Modules\Landlord\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Landlord\Models\Tenant;
 use Modules\Landlord\Services\TenantProvisioner;
 use Modules\Settings\Services\SettingService;
 use Modules\Subscription\Models\Plan;

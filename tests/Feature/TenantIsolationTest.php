@@ -36,10 +36,8 @@ class TenantIsolationTest extends TestCase
 
     public function test_tenant_hint_parameters_cannot_switch_tenant_context(): void
     {
-        $tenant1 = Tenant::where('domain', 'tenant1.localhost')->first();
-        $tenant2 = Tenant::where('domain', 'tenant2.localhost')->first();
-        $this->assertNotNull($tenant1);
-        $this->assertNotNull($tenant2);
+        $tenant1 = $this->provisionTenant(['slug' => 'tenant1']);
+        $tenant2 = $this->provisionTenant(['slug' => 'tenant2']);
 
         // A client-controlled hint on a tenant domain must not switch context.
         $response = $this->get('http://tenant1.localhost/login?tenant='.$tenant2->slug);
@@ -50,17 +48,14 @@ class TenantIsolationTest extends TestCase
 
     public function test_cross_tenant_data_is_strictly_isolated(): void
     {
-        $tenant1 = Tenant::where('domain', 'tenant1.localhost')->first();
-        $tenant2 = Tenant::where('domain', 'tenant2.localhost')->first();
-
-        $this->assertNotNull($tenant1);
-        $this->assertNotNull($tenant2);
+        $tenant1 = $this->provisionTenant(['slug' => 'tenant1']);
+        $tenant2 = $this->provisionTenant(['slug' => 'tenant2']);
 
         // Switch to Tenant 1
         $tenant1->makeCurrent();
-        $this->assertEquals('vendor_1', config('database.connections.tenant.database'));
+        $this->assertEquals($tenant1->database, config('database.connections.tenant.database'));
 
-        $tenant1User = User::firstOrCreate(
+        User::firstOrCreate(
             ['email' => 'unique_user_tenant_1@example.com'],
             ['name' => 'Tenant 1 Unique User', 'password' => bcrypt('password')]
         );
@@ -72,7 +67,7 @@ class TenantIsolationTest extends TestCase
 
         // Switch to Tenant 2
         $tenant2->makeCurrent();
-        $this->assertEquals('vendor_2', config('database.connections.tenant.database'));
+        $this->assertEquals($tenant2->database, config('database.connections.tenant.database'));
 
         // Verify Tenant 2 DOES NOT have Tenant 1 user
         $this->assertDatabaseMissing('users', [

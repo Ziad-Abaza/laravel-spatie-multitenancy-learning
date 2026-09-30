@@ -2,12 +2,12 @@
 
 namespace Modules\Subscription\Services;
 
+use App\Models\Tenant;
 use Carbon\Carbon;
 use Modules\Core\Enums\SubscriptionStatus;
 use Modules\Core\Events\PlanChanged;
 use Modules\Core\Events\SubscriptionCreated;
 use Modules\Core\Events\SubscriptionUpdated;
-use Modules\Landlord\Models\Tenant;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Models\Subscription;
 

@@ -2,13 +2,13 @@
 
 namespace Modules\Access\Services;
 
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Modules\Access\Support\TenantPermissions;
 use Modules\Core\Contracts\QuotaManagerContract;
-use Modules\Landlord\Models\Tenant;
 
 class TenantUserService
 {

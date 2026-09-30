@@ -17,10 +17,11 @@ class TenantAccessControlTest extends TestCase
 {
     protected function tenant(): Tenant
     {
-        $tenant = Tenant::where('domain', 'tenant1.localhost')->first();
-        $this->assertNotNull($tenant, 'tenant1.localhost fixture is required');
-
-        return $tenant;
+        return $this->provisionTenant([
+            'slug' => 'tenant1',
+            'name' => 'Tenant 1',
+            'admin_email' => 'admin@tenant1.localhost',
+        ]);
     }
 
     public function test_access_baseline_seeds_full_permission_catalog_and_roles(): void

@@ -34,10 +34,20 @@ class TenantSeeder extends Seeder
 
         $hasSlug = Schema::connection('landlord')->hasColumn('tenants', 'slug');
         $hasStatus = Schema::connection('landlord')->hasColumn('tenants', 'status');
+        $isSqlite = config('database.connections.landlord.driver') === 'sqlite';
 
         foreach ($tenants as $data) {
-            // Ensure the tenant database exists before creating or updating the record
-            DB::connection('landlord')->statement("CREATE DATABASE IF NOT EXISTS `{$data['database']}`");
+            // Ensure the tenant database exists before creating or updating the
+            // record. Under sqlite the tenant record stores the database file
+            // path (matching TenantProvisioner); under MySQL the schema name.
+            if ($isSqlite) {
+                $data['database'] = database_path("{$data['database']}.sqlite");
+                if (! file_exists($data['database'])) {
+                    touch($data['database']);
+                }
+            } else {
+                DB::connection('landlord')->statement("CREATE DATABASE IF NOT EXISTS `{$data['database']}`");
+            }
 
             $attributes = [
                 'name' => $data['name'],

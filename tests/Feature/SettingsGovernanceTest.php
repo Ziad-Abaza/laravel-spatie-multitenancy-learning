@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use InvalidArgumentException;
 use Modules\Access\Models\Role;
+use Modules\Access\Support\LandlordPermissions;
 use Modules\Landlord\Models\LandlordUser;
 use Modules\Settings\Models\Setting;
 use Modules\Settings\Models\TenantSetting;
@@ -20,10 +21,24 @@ class SettingsGovernanceTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = LandlordUser::firstOrCreate(
-            ['email' => 'admin@landlord.test'],
-            ['name' => 'Platform Admin', 'password' => bcrypt('password')]
+        $this->admin = LandlordUser::create(
+            ['email' => 'admin@landlord.test',
+                'name' => 'Platform Admin', 'password' => bcrypt('password'), 'status' => 'active']
         );
+        $this->admin->assignRole(LandlordPermissions::ROLE_SUPER_ADMIN);
+    }
+
+    /**
+     * A fully provisioned tenant reachable at tenant1.localhost, including a
+     * migrated tenant database, baseline roles, and its owner account.
+     */
+    protected function tenant(): Tenant
+    {
+        return $this->provisionTenant([
+            'slug' => 'tenant1',
+            'name' => 'Tenant 1',
+            'admin_email' => 'admin@tenant1.localhost',
+        ]);
     }
 
     public function test_landlord_admin_can_write_a_registered_setting(): void
@@ -66,8 +81,7 @@ class SettingsGovernanceTest extends TestCase
 
     public function test_landlord_owned_keys_cannot_be_written_in_tenant_context(): void
     {
-        $tenant = Tenant::where('domain', 'tenant1.localhost')->first();
-        $this->assertNotNull($tenant);
+        $tenant = $this->tenant();
         $tenant->makeCurrent();
 
         try {
@@ -87,8 +101,7 @@ class SettingsGovernanceTest extends TestCase
 
     public function test_member_role_cannot_update_workspace_settings(): void
     {
-        $tenant = Tenant::where('domain', 'tenant1.localhost')->first();
-        $this->assertNotNull($tenant);
+        $tenant = $this->tenant();
         $tenant->makeCurrent();
 
         $member = User::create([
@@ -112,8 +125,7 @@ class SettingsGovernanceTest extends TestCase
 
     public function test_owner_can_update_workspace_settings_and_tenant_name_syncs(): void
     {
-        $tenant = Tenant::where('domain', 'tenant1.localhost')->first();
-        $this->assertNotNull($tenant);
+        $tenant = $this->tenant();
         $tenant->makeCurrent();
 
         $owner = User::create([
@@ -149,8 +161,7 @@ class SettingsGovernanceTest extends TestCase
         // Landlord scope: set the platform default.
         $service->set('tagline', 'Landlord tagline', 'branding');
 
-        $tenant = Tenant::where('domain', 'tenant1.localhost')->first();
-        $this->assertNotNull($tenant);
+        $tenant = $this->tenant();
         $tenant->makeCurrent();
 
         try {

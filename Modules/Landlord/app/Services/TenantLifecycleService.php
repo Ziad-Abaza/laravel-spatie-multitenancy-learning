@@ -2,10 +2,10 @@
 
 namespace Modules\Landlord\Services;
 
+use App\Models\Tenant;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Core\Events\TenantStatusChanged;
-use Modules\Landlord\Models\Tenant;
 
 class TenantLifecycleService
 {
@@ -80,9 +80,9 @@ class TenantLifecycleService
 
             try {
                 if ($driver === 'sqlite') {
-                    $path = database_path("{$tenant->database}.sqlite");
-                    if (file_exists($path)) {
-                        @unlink($path);
+                    // Under sqlite the tenant record stores the database file path.
+                    if (is_file($tenant->database)) {
+                        @unlink($tenant->database);
                     }
                 } else {
                     DB::connection($landlordConnection)->statement("DROP DATABASE IF EXISTS `{$tenant->database}`");

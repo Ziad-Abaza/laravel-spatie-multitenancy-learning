@@ -3,13 +3,13 @@
 namespace Modules\Landlord\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Core\Enums\TenantStatus;
-use Modules\Landlord\Models\Tenant;
 use Modules\Landlord\Services\TenantLifecycleService;
 use Modules\Landlord\Services\TenantProvisioner;
 use Modules\Subscription\Models\Plan;

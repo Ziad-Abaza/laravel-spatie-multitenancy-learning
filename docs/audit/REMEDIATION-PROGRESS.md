@@ -14,15 +14,15 @@ tags: []
 
 ## CURRENT STATE
 
-- **Current Phase:** Phase 3
-- **Current Cluster:** C3 — Test infrastructure
-- **Current Finding:** FND-067
+- **Current Phase:** Phase 4
+- **Current Cluster:** C4 — Dead/missing API surface
+- **Current Finding:** FND-065
 
 ### Queue
 
 - **Pending:** C4 → C11 (see phase plan below)
-- **In Progress:** C3
-- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057)
+- **In Progress:** C4
+- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052) — plus dependency fixes FND-027 and the provisioner tenant-migration defect
 - **Blocked:** —
 
 ### Phase plan (order = cluster order per mandate; tiers per §11.2)
@@ -99,9 +99,14 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 
 | ID | Severity | Root Cause | Files | Status | Started | Completed | Verification | Notes |
 |---|---|---|---|---|---|---|---|---|
-| FND-067 | HIGH | No RefreshDatabase; phpunit points at real `multivendor` MySQL DB; tests depend on seeded fixtures | phpunit.xml; tests/* | PENDING | — | — | — | sqlite test conns + RefreshDatabase + factories |
-| FND-006 | MEDIUM | Same root cause: test suite targets dev DB name | phpunit.xml | PENDING | — | — | — | Folded into FND-067 fix |
-| FND-052 | RESOLVED-CONTEXT→LOW | Module `tests/` dirs empty; coverage exists only at root feature level | Modules/*/tests | PENDING | — | — | — | Keep empty dirs (module tests optional) or document |
+| FND-067 | HIGH | No RefreshDatabase; phpunit points at real `multivendor` MySQL DB; tests depend on seeded fixtures | phpunit.xml; tests/TestCase.php; tests/Feature/*; TenantProvisioner.php; TenantLifecycleService.php; TenantSeeder.php | COMPLETED | 2026-10-01 | 2026-10-01 | `php artisan test` — 96 passed / 919 assertions on isolated sqlite | In-memory sqlite landlord (RefreshDatabase: migrate:fresh once, txn-rollback per test); per-tenant sqlite files provisioned via the real TenantProvisioner and deleted in tearDown; deterministic env pinned in phpunit.xml (no MySQL); fixtures self-provisioned per test — suite runs on a fresh clone |
+| FND-006 | MEDIUM | Same root cause: test suite targets dev DB name | phpunit.xml | COMPLETED | 2026-10-01 | 2026-10-01 | same run | `DB_LANDLORD_DRIVER=sqlite` + `DB_LANDLORD_DATABASE=:memory:`; no mysql host/db/user envs remain |
+| FND-052 | RESOLVED-CONTEXT→LOW | Module `tests/` dirs empty; coverage exists only at root feature level | phpunit.xml | COMPLETED | 2026-10-01 | 2026-10-01 | full suite green incl. new suite registration | Added `Modules/*/tests` glob as a `Modules` testsuite so module tests can no longer be silently skipped; coverage remains at root feature level per audit downgrade |
+
+**C3 dependency fixes (root causes that blocked an isolated suite):**
+- `TenantProvisioner::runTenantMigrations` used spatie `MigrateTenantAction`, which runs a bare `migrate` inside `execute()` — that targets `database.default` (landlord), so provisioned tenant DBs were **never actually migrated**. Replaced with explicit `Artisan::call('migrate', ['--database'=>'tenant','--path'=>'database/migrations/tenant'])` inside `execute()` + `checkCurrent()` guard — the same pattern `RebuildDatabasesCommand` already uses.
+- FND-027 (scheduled C9) fixed early as a C3 blocker: `Modules\Landlord\Models\Tenant` (parent of canonical `App\Models\Tenant`) was instantiated directly in 11 files → `Tenant::current()` `?static` TypeError on any provisioned tenant. All code now references the canonical `App\Models\Tenant` / `App\Models\User`; module parents remain as base classes only.
+- sqlite handling normalized: under a sqlite landlord driver `tenants.database` now stores the DB file path (what the `tenant` connection actually consumes) in provisioner, lifecycle delete, and TenantSeeder.
 
 ### Phase 4 — Cluster C4: Dead/missing API surface (MEDIUM)
 
@@ -226,6 +231,13 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - .env.example (FND-029 — SEED_TENANT_OWNER_PASSWORD + SEED_LANDLORD_ADMIN_PASSWORD documented)
 - README.md (FND-030 — stale fillable example)
 - docs/audit/REMEDIATION-PROGRESS.md (this file)
+- phpunit.xml (FND-067/006: sqlite topology + pinned env; FND-052: Modules testsuite)
+- tests/TestCase.php (FND-067: RefreshDatabase + landlord baseline + provisionTenant/createTenantRecord helpers + sqlite cleanup)
+- tests/Feature/TenantIsolationTest.php, TenantAccessControlTest.php, SettingsGovernanceTest.php, QuotaEnforcementTest.php, LandlordTenantProvisioningTest.php, TenancySecurityTest.php (FND-067: self-provisioned fixtures replace dev-DB fixtures)
+- Modules/Landlord/app/Services/TenantProvisioner.php (C3 deps: sqlite DB path; tenant migrations actually run on tenant connection)
+- Modules/Landlord/app/Services/TenantLifecycleService.php (sqlite delete uses stored path)
+- database/seeders/TenantSeeder.php (sqlite-aware fixture DBs)
+- FND-027 canonical-model swaps (App\Models\Tenant / App\Models\User): TenantController, TenantRegistrationController, LandlordMetricsService, LandlordDatabaseSeeder, TenantUserService, SyncTenantAccessCommand, SubscriptionService, QuotaService, Plan, Subscription
 
 ### Migrations Added
 (none yet)
@@ -234,7 +246,6 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 (none yet)
 
 ### Risks
-- Test suite currently runs against the real `multivendor` MySQL dev DB (FND-067). Every test run before Phase 3 mutates dev data — avoid running the suite against dev DB where possible until C3 lands.
 - `docs/audit/` contains this file + MASTER-AUDIT.md only; do not regenerate findings.
 
 ### Verification

@@ -21,11 +21,10 @@ class TenancySecurityTest extends TestCase
     {
         $unique = uniqid('acme');
 
-        return Tenant::create(array_merge([
+        return $this->createTenantRecord(array_merge([
             'name' => $unique,
             'slug' => $unique,
             'domain' => $unique.'.localhost',
-            'database' => $unique.'_db',
             'status' => TenantStatus::Active,
         ], $overrides));
     }

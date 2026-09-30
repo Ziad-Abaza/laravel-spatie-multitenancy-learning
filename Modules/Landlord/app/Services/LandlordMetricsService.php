@@ -2,9 +2,9 @@
 
 namespace Modules\Landlord\Services;
 
+use App\Models\Tenant;
 use Modules\Core\Enums\SubscriptionStatus;
 use Modules\Core\Enums\TenantStatus;
-use Modules\Landlord\Models\Tenant;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Models\Subscription;
 

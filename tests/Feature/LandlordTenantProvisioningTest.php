@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Tenant;
+use Modules\Access\Support\LandlordPermissions;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Landlord\Models\LandlordUser;
 use Modules\Subscription\Models\Plan;
@@ -16,13 +17,15 @@ class LandlordTenantProvisioningTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = LandlordUser::firstOrCreate(
-            ['email' => 'admin@landlord.test'],
+        $this->admin = LandlordUser::create(
             [
+                'email' => 'admin@landlord.test',
                 'name' => 'Platform Administrator',
                 'password' => bcrypt('password'),
+                'status' => 'active',
             ]
         );
+        $this->admin->assignRole(LandlordPermissions::ROLE_SUPER_ADMIN);
     }
 
     public function test_public_landing_page_loads_with_active_plans(): void
@@ -77,20 +80,17 @@ class LandlordTenantProvisioningTest extends TestCase
     }
 
     /**
-     * Disposable tenant row — lifecycle endpoints never touch shared
-     * fixtures (tenant1.localhost/tenant2.localhost) to keep the persistent
-     * test database deterministic across runs.
+     * Disposable landlord-side tenant row — lifecycle endpoints only touch
+     * the landlord record, so no tenant database file is needed.
      */
     protected function makeDisposableTenant(): Tenant
     {
         $uid = uniqid();
 
-        return Tenant::create([
+        return $this->createTenantRecord([
             'name' => "Disposable {$uid}",
             'slug' => "disp-{$uid}",
             'domain' => "disp-{$uid}.localhost",
-            'database' => "disp_{$uid}_db",
-            'status' => TenantStatus::Active,
         ]);
     }
 
@@ -139,8 +139,7 @@ class LandlordTenantProvisioningTest extends TestCase
     public function test_tenant_update_rejects_duplicate_domain(): void
     {
         $tenant = $this->makeDisposableTenant();
-        $other = Tenant::where('domain', 'tenant1.localhost')->first();
-        $this->assertNotNull($other);
+        $other = $this->createTenantRecord();
 
         try {
             $response = $this->actingAs($this->admin, 'landlord')

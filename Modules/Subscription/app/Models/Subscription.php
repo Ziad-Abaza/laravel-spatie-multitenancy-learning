@@ -2,12 +2,12 @@
 
 namespace Modules\Subscription\Models;
 
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Core\Contracts\SubscriptionContract;
 use Modules\Core\Enums\SubscriptionStatus;
-use Modules\Landlord\Models\Tenant;
 use Spatie\Multitenancy\Models\Concerns\UsesLandlordConnection;
 
 class Subscription extends Model implements SubscriptionContract

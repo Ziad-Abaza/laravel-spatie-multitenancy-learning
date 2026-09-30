@@ -2,9 +2,9 @@
 
 namespace Modules\Access\Console;
 
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Database\QueryException;
-use Modules\Access\Models\User;
 use Modules\Access\Services\AccessBaselineProvisioner;
 use Modules\Access\Services\AccessInvariants;
 use Modules\Access\Support\TenantPermissions;

@@ -2,7 +2,9 @@
 
 namespace Modules\Landlord\Services;
 
+use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -12,10 +14,8 @@ use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Core\Events\TenantCreated;
 use Modules\Core\Events\TenantProvisioned;
-use Modules\Landlord\Models\Tenant;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Services\SubscriptionService;
-use Spatie\Multitenancy\Actions\MigrateTenantAction;
 
 class TenantProvisioner
 {
@@ -50,12 +50,17 @@ class TenantProvisioner
         // Domain construction — single source of truth: tenantDomain()
         $domain = $data['domain'] ?? $this->tenantDomain($slug);
 
-        // Ensure database name is safe with configurable prefix
+        // Ensure database name is safe with configurable prefix. On sqlite the
+        // tenant record stores the database file path (that is what the
+        // tenant connection consumes); on MySQL it stores the schema name.
         $prefix = (string) $this->settingService->get('tenant_db_prefix', 'tenant_', 'system');
         $databaseName = $prefix.str_replace('-', '_', $slug);
+        $database = $this->isSqliteDriver()
+            ? database_path("{$databaseName}.sqlite")
+            : $databaseName;
 
         // 1. Create tenant database if MySQL (or prepare sqlite in test)
-        $this->createDatabaseIfNotExists($databaseName);
+        $this->createDatabaseIfNotExists($database);
 
         // Retrieve system defaults for trial duration and theme
         $defaultTrialDays = (int) $this->settingService->get('default_trial_days', 14, 'system');
@@ -67,7 +72,7 @@ class TenantProvisioner
             'name' => $name,
             'slug' => $slug,
             'domain' => $domain,
-            'database' => $databaseName,
+            'database' => $database,
             'status' => TenantStatus::Trialing,
             'trial_ends_at' => now()->addDays($defaultTrialDays),
         ]);
@@ -134,29 +139,48 @@ class TenantProvisioner
     }
 
     /**
-     * Create the database if it doesn't already exist.
+     * Create the database if it doesn't already exist. For sqlite, $database
+     * is the database file path; for MySQL it is the schema name.
      */
-    protected function createDatabaseIfNotExists(string $databaseName): void
+    protected function createDatabaseIfNotExists(string $database): void
+    {
+        if ($this->isSqliteDriver()) {
+            if (! file_exists($database)) {
+                touch($database);
+            }
+
+            return;
+        }
+
+        $landlordConnection = config('multitenancy.landlord_database_connection_name', 'landlord');
+
+        DB::connection($landlordConnection)->statement("CREATE DATABASE IF NOT EXISTS `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    }
+
+    protected function isSqliteDriver(): bool
     {
         $landlordConnection = config('multitenancy.landlord_database_connection_name', 'landlord');
-        $driver = config("database.connections.{$landlordConnection}.driver", 'mysql');
 
-        if ($driver === 'sqlite') {
-            $path = database_path("{$databaseName}.sqlite");
-            if (! file_exists($path)) {
-                touch($path);
-            }
-        } else {
-            DB::connection($landlordConnection)->statement("CREATE DATABASE IF NOT EXISTS `{$databaseName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-        }
+        return config("database.connections.{$landlordConnection}.driver", 'mysql') === 'sqlite';
     }
 
     /**
-     * Run tenant migrations inside tenant database.
+     * Run tenant migrations inside the tenant database. The explicit
+     * --database=tenant is mandatory: SwitchTenantDatabaseTask only repoints
+     * the `tenant` connection and never changes database.default, so a bare
+     * `migrate` here would run against the landlord connection.
      */
     protected function runTenantMigrations(Tenant $tenant): void
     {
-        app(MigrateTenantAction::class)->execute($tenant);
+        $tenant->execute(function () {
+            throw_unless(Tenant::checkCurrent(), \RuntimeException::class, 'Tenant context switch failed');
+
+            Artisan::call('migrate', [
+                '--database' => config('multitenancy.tenant_database_connection_name', 'tenant'),
+                '--path' => 'database/migrations/tenant',
+                '--force' => true,
+            ]);
+        });
     }
 
     /**

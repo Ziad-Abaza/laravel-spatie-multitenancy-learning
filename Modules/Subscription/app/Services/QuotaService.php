@@ -2,9 +2,9 @@
 
 namespace Modules\Subscription\Services;
 
+use App\Models\Tenant;
 use App\Models\User;
 use Modules\Core\Contracts\QuotaManagerContract;
-use Modules\Landlord\Models\Tenant;
 
 class QuotaService implements QuotaManagerContract
 {

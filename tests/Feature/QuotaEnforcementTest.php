@@ -16,8 +16,7 @@ class QuotaEnforcementTest extends TestCase
     {
         $quotaManager = app(QuotaManagerContract::class);
 
-        $tenant1 = Tenant::where('domain', 'tenant1.localhost')->first();
-        $this->assertNotNull($tenant1);
+        $tenant1 = $this->provisionTenant(['slug' => 'tenant1']);
 
         $limit1 = $quotaManager->getUserLimit($tenant1);
         $this->assertIsInt($limit1);
@@ -26,8 +25,7 @@ class QuotaEnforcementTest extends TestCase
 
     public function test_tenant_user_service_blocks_creation_when_quota_is_reached(): void
     {
-        $tenant = Tenant::where('domain', 'tenant1.localhost')->first();
-        $this->assertNotNull($tenant);
+        $tenant = $this->provisionTenant(['slug' => 'tenant1']);
 
         $tenant->makeCurrent();
 
