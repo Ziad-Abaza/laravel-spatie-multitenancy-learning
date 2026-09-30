@@ -11,7 +11,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Access\Services\TenantUserService;
 use Modules\Core\Contracts\QuotaManagerContract;
-use Spatie\Permission\Models\Role;
+use Modules\Access\Models\Role;
 
 class UserController extends Controller
 {

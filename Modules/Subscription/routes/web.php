@@ -4,8 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Modules\Subscription\Http\Controllers\PlanController;
 use Modules\Subscription\Http\Controllers\SubscriptionController;
 
-// Landlord Subscription & Plan Management
-Route::prefix('landlord')->middleware('auth:landlord')->group(function () {
+// Landlord Subscription & Plan Management — landlord hosts only
+Route::prefix('landlord')->middleware(['landlord', 'auth:landlord'])->group(function () {
     Route::get('/plans', [PlanController::class, 'index'])->name('landlord.plans.index');
     Route::post('/plans', [PlanController::class, 'store'])->name('landlord.plans.store');
     Route::put('/plans/{plan}', [PlanController::class, 'update'])->name('landlord.plans.update');

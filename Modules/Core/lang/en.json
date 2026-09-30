@@ -45,5 +45,6 @@
     "language": "Language",
     "light_mode": "Light Mode",
     "system_preference": "System Preference",
-    "theme": "Theme"
+    "theme": "Theme",
+    "toggle_navigation": "Toggle navigation menu"
 }

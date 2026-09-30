@@ -34,6 +34,7 @@ interface Plan {
 
 const props = defineProps<{
     plans: Plan[];
+    defaultCurrency?: string;
 }>();
 
 const { t, locale } = useI18n();
@@ -50,7 +51,7 @@ const createForm = useForm({
     description_en: '',
     description_ar: '',
     price: 0,
-    currency: 'USD',
+    currency: props.defaultCurrency || 'USD',
     billing_interval: 'monthly',
     trial_days: 14,
     max_users: 5,
@@ -63,7 +64,7 @@ const editForm = useForm({
     description_en: '',
     description_ar: '',
     price: 0,
-    currency: 'USD',
+    currency: props.defaultCurrency || 'USD',
     billing_interval: 'monthly',
     trial_days: 14,
     max_users: 5,

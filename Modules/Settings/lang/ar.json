@@ -25,5 +25,9 @@
     "workspace_settings_sub": "تخصيص الهوية والمظهر اللوني لمساحة عملك.",
     "workspace_settings_updated": "تم تحديث إعدادات مساحة العمل بنجاح.",
     "workspace_tagline": "الشعار اللفظي لمساحة العمل",
-    "workspace_tagline_example": "مثال: نبتكر معاً"
+    "workspace_tagline_example": "مثال: نبتكر معاً",
+    "billing": "الفوترة",
+    "default_currency_label": "العملة الافتراضية",
+    "default_plan_label": "الخطة الافتراضية للتسجيلات الجديدة",
+    "first_active_plan": "أول خطة فعالة (حسب الترتيب)"
 }

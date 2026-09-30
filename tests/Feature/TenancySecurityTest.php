@@ -18,14 +18,13 @@ class TenancySecurityTest extends TestCase
      */
     protected function makeTenant(array $overrides = []): Tenant
     {
-        static $sequence = 0;
-        $sequence++;
+        $unique = uniqid('acme');
 
         return Tenant::create(array_merge([
-            'name' => 'Acme '.$sequence,
-            'slug' => 'acme'.$sequence,
-            'domain' => 'acme'.$sequence.'.localhost',
-            'database' => 'acme_db_'.$sequence,
+            'name' => $unique,
+            'slug' => $unique,
+            'domain' => $unique.'.localhost',
+            'database' => $unique.'_db',
             'status' => TenantStatus::Active,
         ], $overrides));
     }
@@ -34,27 +33,30 @@ class TenancySecurityTest extends TestCase
 
     public function test_finder_resolves_tenant_by_exact_domain_match(): void
     {
-        $tenant = $this->makeTenant(['domain' => 'custom-acme.example.com']);
+        $domain = uniqid('acme').'.example.com';
+        $tenant = $this->makeTenant(['domain' => $domain]);
 
-        $found = app(SaaSTenantFinder::class)->findForRequest(Request::create('http://custom-acme.example.com/'));
+        $found = app(SaaSTenantFinder::class)->findForRequest(Request::create('http://'.$domain.'/'));
 
         $this->assertSame($tenant->getKey(), $found?->getKey());
     }
 
     public function test_finder_resolves_slug_under_configured_suffix(): void
     {
-        $tenant = $this->makeTenant(['slug' => 'acme-suffix', 'domain' => 'acme-custom.example.com']);
+        $slug = uniqid('acme-suffix');
+        $tenant = $this->makeTenant(['slug' => $slug, 'domain' => $slug.'.example.com']);
 
-        $found = app(SaaSTenantFinder::class)->findForRequest(Request::create('http://acme-suffix.localhost/'));
+        $found = app(SaaSTenantFinder::class)->findForRequest(Request::create('http://'.$slug.'.localhost/'));
 
         $this->assertSame($tenant->getKey(), $found?->getKey());
     }
 
     public function test_finder_ignores_slug_on_foreign_parent_domain(): void
     {
-        $this->makeTenant(['slug' => 'acme-foreign']);
+        $slug = uniqid('acme-foreign');
+        $this->makeTenant(['slug' => $slug]);
 
-        $found = app(SaaSTenantFinder::class)->findForRequest(Request::create('http://acme-foreign.evil.com/'));
+        $found = app(SaaSTenantFinder::class)->findForRequest(Request::create('http://'.$slug.'.evil.com/'));
 
         $this->assertNull($found);
     }

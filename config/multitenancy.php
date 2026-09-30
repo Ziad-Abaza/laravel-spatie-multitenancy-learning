@@ -66,6 +66,7 @@ return [
     'switch_tenant_tasks' => [
         // \Spatie\Multitenancy\Tasks\PrefixCacheTask::class,
         SwitchTenantDatabaseTask::class,
+        \Modules\Core\Tasks\ScopePermissionCacheTask::class,
         // \Spatie\Multitenancy\Tasks\SwitchRouteCacheTask::class,
     ],
 

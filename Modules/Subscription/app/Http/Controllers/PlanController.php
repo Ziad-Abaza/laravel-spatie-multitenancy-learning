@@ -7,10 +7,15 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Subscription\Models\Plan;
 
 class PlanController extends Controller
 {
+    public function __construct(
+        protected SettingManagerContract $settings
+    ) {}
+
     /**
      * Display listing of all subscription plans for Landlord admin.
      */
@@ -37,6 +42,7 @@ class PlanController extends Controller
 
         return Inertia::render('Subscription/Plans', [
             'plans' => $plans,
+            'defaultCurrency' => $this->settings->get('default_currency', 'USD', 'billing'),
         ]);
     }
 
@@ -114,6 +120,13 @@ class PlanController extends Controller
             'is_active' => $request->boolean('is_active', true),
             'limits' => $limits,
         ]);
+
+        // A deactivated default plan must not stay referenced — unsetting
+        // restores the provisioning fallback to the first active plan.
+        if (! $plan->is_active
+            && (int) $this->settings->get('default_plan_id', 0, 'billing') === (int) $plan->getKey()) {
+            $this->settings->unset('default_plan_id', 'billing');
+        }
 
         return back()->with('success', __('plan_updated'));
     }

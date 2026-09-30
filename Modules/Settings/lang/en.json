@@ -25,5 +25,9 @@
     "workspace_settings_sub": "Customize branding and theme tokens for your workspace.",
     "workspace_settings_updated": "Workspace settings updated successfully.",
     "workspace_tagline": "Workspace Tagline / Slogan",
-    "workspace_tagline_example": "e.g. Innovating together"
+    "workspace_tagline_example": "e.g. Innovating together",
+    "billing": "Billing",
+    "default_currency_label": "Default Currency",
+    "default_plan_label": "Default Plan for New Registrations",
+    "first_active_plan": "First active plan (by sort order)"
 }

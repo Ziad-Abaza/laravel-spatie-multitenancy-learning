@@ -3,12 +3,15 @@
 namespace Modules\Settings\Services;
 
 use App\Models\Tenant;
+use Illuminate\Support\Facades\Cache;
+use InvalidArgumentException;
 use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\Locale;
 use Modules\Core\Enums\ThemeMode;
 use Modules\Core\Enums\ThemePalette;
 use Modules\Settings\Models\Setting;
 use Modules\Settings\Models\TenantSetting;
+use Throwable;
 
 class SettingService implements SettingManagerContract
 {
@@ -17,41 +20,17 @@ class SettingService implements SettingManagerContract
      */
     public function get(string $key, mixed $default = null, string $domain = 'system'): mixed
     {
-        if (Tenant::checkCurrent()) {
-            try {
-                $setting = TenantSetting::where('domain', $domain)
-                    ->where('key', $key)
-                    ->first();
-
-                if ($setting !== null) {
-                    return $setting->getParsedValue();
-                }
-            } catch (\Throwable) {
-                // proceed to landlord fallback
-            }
-        }
-
-        // Landlord database lookup
-        try {
-            $setting = Setting::where('domain', $domain)
-                ->where('key', $key)
-                ->first();
-
-            if ($setting !== null) {
-                return $setting->getParsedValue();
-            }
-        } catch (\Throwable) {
-            // return default
-        }
-
-        return $default;
+        return $this->domainMap($domain)[$key] ?? $default;
     }
 
     /**
-     * Set a setting value.
+     * Set a setting value. Only keys declared in the settings registry may be
+     * written, and only by their owning surface (landlord/tenant/shared).
      */
     public function set(string $key, mixed $value, string $domain = 'system', bool $isPublic = false): void
     {
+        $this->assertWritable($domain, $key);
+
         $model = $this->resolveModel();
         $serialized = $model::serializeValue($value);
 
@@ -64,10 +43,24 @@ class SettingService implements SettingManagerContract
             ]
         );
 
-        // The tenant record's name is the canonical workspace identity.
-        if (Tenant::checkCurrent() && $key === 'workspace_name' && is_string($value) && ! empty($value)) {
-            Tenant::current()?->update(['name' => $value]);
-        }
+        $this->forgetDomainMap($domain);
+    }
+
+    /**
+     * Unset a setting in the current scope. Deleting the row restores
+     * inheritance: tenant reads fall back to the landlord value again.
+     * null is equivalent to unset — there are no stored null values.
+     */
+    public function unset(string $key, string $domain = 'system'): void
+    {
+        $this->assertWritable($domain, $key);
+
+        $this->resolveModel()::query()
+            ->where('domain', $domain)
+            ->where('key', $key)
+            ->delete();
+
+        $this->forgetDomainMap($domain);
     }
 
     /**
@@ -75,29 +68,50 @@ class SettingService implements SettingManagerContract
      */
     public function allByDomain(string $domain): array
     {
-        $landlordSettings = [];
-        try {
-            $landlordSettings = Setting::where('domain', $domain)
-                ->get()
-                ->mapWithKeys(fn ($item) => [$item->key => $item->getParsedValue()])
-                ->toArray();
-        } catch (\Throwable) {
-            $landlordSettings = [];
+        return $this->domainMap($domain);
+    }
+
+    /**
+     * Definition of a writable setting from the registry, or null when the
+     * key is not part of the declared settings surface.
+     *
+     * @return array{owner: string, type: string, rules: string}|null
+     */
+    public function definition(string $domain, string $key): ?array
+    {
+        return config("settings.definitions.{$domain}.{$key}");
+    }
+
+    /**
+     * Whether the current context may write the given setting key.
+     */
+    public function canWrite(string $domain, string $key): bool
+    {
+        $definition = $this->definition($domain, $key);
+
+        if ($definition === null) {
+            return false;
         }
 
-        if (! Tenant::checkCurrent()) {
-            return $landlordSettings;
+        return match ($definition['owner']) {
+            'landlord' => ! Tenant::checkCurrent(),
+            'tenant' => Tenant::checkCurrent(),
+            default => true,
+        };
+    }
+
+    /**
+     * @throws InvalidArgumentException when the key is unregistered or owned
+     * by a different surface.
+     */
+    protected function assertWritable(string $domain, string $key): void
+    {
+        if ($this->definition($domain, $key) === null) {
+            throw new InvalidArgumentException("Unknown setting key [{$domain}.{$key}].");
         }
 
-        try {
-            $tenantSettings = TenantSetting::where('domain', $domain)
-                ->get()
-                ->mapWithKeys(fn ($item) => [$item->key => $item->getParsedValue()])
-                ->toArray();
-
-            return array_merge($landlordSettings, $tenantSettings);
-        } catch (\Throwable) {
-            return $landlordSettings;
+        if (! $this->canWrite($domain, $key)) {
+            throw new InvalidArgumentException("Setting [{$domain}.{$key}] is not writable in this context.");
         }
     }
 
@@ -106,11 +120,11 @@ class SettingService implements SettingManagerContract
      *
      * Precedence: session override > tenant settings > landlord settings > defaults.
      *
-     * @return array{theme: string, palette: string, mode: string, radius: string}
+     * @return array{theme: string, palette: string, mode: string}
      */
     public function getTheme(): array
     {
-        $persisted = $this->allByDomain('theme');
+        $persisted = $this->domainMap('theme');
 
         $palette = ThemePalette::tryFrom((string) session('theme', ''))
             ?? ThemePalette::tryFrom((string) ($persisted['palette'] ?? ''))
@@ -124,57 +138,42 @@ class SettingService implements SettingManagerContract
             'theme' => $palette->value,
             'palette' => $palette->value,
             'mode' => $mode->value,
-            'radius' => is_string($persisted['radius'] ?? null) ? $persisted['radius'] : 'rounded-xl',
         ];
     }
 
     /**
      * Resolve branding for the current context (landlord or tenant).
+     *
+     * @return array<string, mixed>
      */
     public function getBranding(): array
     {
         $currentTenant = Tenant::current();
-        $landlordBranding = [];
-        try {
-            $landlordBranding = Setting::where('domain', 'branding')
-                ->get()
-                ->mapWithKeys(fn ($item) => [$item->key => $item->getParsedValue()])
-                ->toArray();
-        } catch (\Throwable) {
-            $landlordBranding = [];
-        }
+        $landlordBranding = $this->scopeMap(Setting::class, 'landlord', 'branding');
 
         if ($currentTenant) {
-            $tenantBranding = [];
-            try {
-                $tenantBranding = TenantSetting::where('domain', 'branding')
-                    ->get()
-                    ->mapWithKeys(fn ($item) => [$item->key => $item->getParsedValue()])
-                    ->toArray();
-            } catch (\Throwable) {
-                $tenantBranding = [];
-            }
+            $tenantBranding = $this->scopeMap(TenantSetting::class, 'tenant.'.$currentTenant->getKey(), 'branding');
 
-            $name = $tenantBranding['workspace_name'] ?? $currentTenant->name;
-
+            // tenants.name is the single source of workspace identity; a
+            // media-derived logo supersedes the old logo_url setting.
             return [
-                'app_name' => $name,
-                'workspace_name' => $name,
+                'app_name' => $currentTenant->name,
+                'workspace_name' => $currentTenant->name,
                 'tagline' => $tenantBranding['tagline']
                     ?? $landlordBranding['tagline']
-                    ?? 'Next-Generation Multi-Tenant Modular Platform',
-                'logo_url' => $tenantBranding['logo_url'] ?? null,
+                    ?? config('app.name'),
+                'logo_url' => $currentTenant->getFirstMediaUrl('logo') ?: null,
             ];
         }
 
-        $appName = $landlordBranding['app_name'] ?? 'SaaS Cloud';
+        $appName = $landlordBranding['app_name'] ?? config('app.name');
 
         return [
             'app_name' => $appName,
             'workspace_name' => $appName,
-            'tagline' => $landlordBranding['tagline'] ?? 'Multi-Tenant Enterprise Architecture',
-            'support_email' => $landlordBranding['support_email'] ?? 'support@saas.test',
-            'logo_url' => $landlordBranding['logo_url'] ?? null,
+            'tagline' => $landlordBranding['tagline'] ?? '',
+            'support_email' => $landlordBranding['support_email'] ?? null,
+            'logo_url' => null,
         ];
     }
 
@@ -209,7 +208,64 @@ class SettingService implements SettingManagerContract
     }
 
     /**
-     * Resolve the active model class depending on whether a tenant is active.
+     * Merged domain map for the current context: tenant values override
+     * landlord values. Cached per scope and invalidated on writes only.
+     *
+     * @return array<string, mixed>
+     */
+    protected function domainMap(string $domain): array
+    {
+        $tenantMap = Tenant::checkCurrent()
+            ? $this->scopeMap(TenantSetting::class, 'tenant.'.Tenant::current()->getKey(), $domain)
+            : [];
+
+        return array_merge($this->scopeMap(Setting::class, 'landlord', $domain), $tenantMap);
+    }
+
+    /**
+     * Cached settings map for one scope (landlord or a specific tenant).
+     *
+     * @param  class-string<Setting|TenantSetting>  $model
+     * @return array<string, mixed>
+     */
+    protected function scopeMap(string $model, string $scope, string $domain): array
+    {
+        try {
+            return Cache::rememberForever("settings.map.{$scope}.{$domain}", fn () => $model::query()
+                ->where('domain', $domain)
+                ->get()
+                ->mapWithKeys(fn ($item) => [$item->key => $item->getParsedValue()])
+                ->toArray());
+        } catch (Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Structural invalidation: called by model saved/deleted events so every
+     * write path — services, seeders, provisioners, tinker — clears the cache,
+     * not only writes that happened to go through set().
+     *
+     * @param  class-string<Setting|TenantSetting>  $model
+     */
+    public static function forgetMapForModel(string $model, string $domain): void
+    {
+        $scope = $model === TenantSetting::class
+            ? 'tenant.'.(Tenant::current()?->getKey() ?? 'unknown')
+            : 'landlord';
+
+        Cache::forget("settings.map.{$scope}.{$domain}");
+    }
+
+    protected function forgetDomainMap(string $domain): void
+    {
+        $scope = Tenant::checkCurrent() ? 'tenant.'.Tenant::current()->getKey() : 'landlord';
+
+        Cache::forget("settings.map.{$scope}.{$domain}");
+    }
+
+    /**
+     * Tenant-scoped map only resolves when a tenant is current.
      */
     protected function resolveModel(): string
     {

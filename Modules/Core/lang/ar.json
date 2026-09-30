@@ -44,6 +44,7 @@
     "expand_sidebar": "توسيع القائمة الجانبية",
     "language": "اللغة",
     "light_mode": "الوضع الفاتح",
-    "system_preference": "تفضيل النظام / المتصفح",
-    "theme": "المظهر"
+    "system_preference": "تفضيل النظام \/ المتصفح",
+    "theme": "المظهر",
+    "toggle_navigation": "تبديل قائمة التنقل"
 }

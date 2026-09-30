@@ -9,19 +9,18 @@ use Illuminate\Support\Str;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Core\Events\TenantCreated;
 use Modules\Core\Events\TenantProvisioned;
+use Modules\Access\Models\Role;
+use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Landlord\Models\Tenant;
-use Modules\Settings\Models\TenantSetting;
-use Modules\Settings\Services\SettingService;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Services\SubscriptionService;
 use Spatie\Multitenancy\Actions\MigrateTenantAction;
-use Spatie\Permission\Models\Role;
 
 class TenantProvisioner
 {
     public function __construct(
         protected SubscriptionService $subscriptionService,
-        protected SettingService $settingService
+        protected SettingManagerContract $settingService
     ) {}
 
     /**
@@ -61,11 +60,10 @@ class TenantProvisioner
         // 1. Create tenant database if MySQL (or prepare sqlite in test)
         $this->createDatabaseIfNotExists($databaseName);
 
-        // Retrieve system defaults for trial duration, theme and locale
+        // Retrieve system defaults for trial duration and theme
         $defaultTrialDays = (int) $this->settingService->get('default_trial_days', 14, 'system');
         $defaultPalette = (string) $this->settingService->get('palette', 'indigo', 'theme');
         $defaultMode = (string) $this->settingService->get('mode', 'dark', 'theme');
-        $defaultLocale = (string) $this->settingService->get('default_locale', 'en', 'localization');
 
         // 2. Create Tenant record on landlord connection
         $tenant = Tenant::create([
@@ -75,17 +73,17 @@ class TenantProvisioner
             'database' => $databaseName,
             'status' => TenantStatus::Trialing,
             'trial_ends_at' => now()->addDays($defaultTrialDays),
-            'settings' => [
-                'palette' => $defaultPalette,
-                'mode' => $defaultMode,
-                'language' => $defaultLocale,
-            ],
         ]);
 
-        // 3. Assign Plan and Subscription
+        // 3. Assign Plan and Subscription — explicit choice, then the
+        // configured default plan, then the lowest active plan as last resort.
         $plan = null;
         if (! empty($data['plan_id'])) {
             $plan = Plan::find($data['plan_id']);
+        }
+        if (! $plan) {
+            $defaultPlanId = (int) $this->settingService->get('default_plan_id', 0, 'billing');
+            $plan = $defaultPlanId ? Plan::where('is_active', true)->find($defaultPlanId) : null;
         }
         if (! $plan) {
             $plan = Plan::where('is_active', true)->orderBy('sort_order')->first();
@@ -108,7 +106,7 @@ class TenantProvisioner
             'name' => $data['admin_name'],
             'email' => $data['admin_email'],
             'password' => $data['admin_password'],
-        ]);
+        ], $defaultPalette, $defaultMode);
 
         event(new TenantCreated($tenant, [
             'name' => $data['admin_name'],
@@ -149,9 +147,9 @@ class TenantProvisioner
     /**
      * Seed initial tenant data: Owner user, Spatie roles (Owner, Admin, Member), default settings.
      */
-    protected function seedTenantInitialData(Tenant $tenant, array $adminData): void
+    protected function seedTenantInitialData(Tenant $tenant, array $adminData, string $defaultPalette = 'indigo', string $defaultMode = 'dark'): void
     {
-        $tenant->execute(function () use ($adminData, $tenant) {
+        $tenant->execute(function () use ($adminData, $tenant, $defaultPalette, $defaultMode) {
             // Setup default roles on tenant connection
             $roles = ['Owner', 'Admin', 'Member'];
             foreach ($roles as $roleName) {
@@ -172,19 +170,11 @@ class TenantProvisioner
                 $user->assignRole('Owner');
             }
 
-            // Default tenant settings
-            TenantSetting::updateOrCreate(
-                ['domain' => 'branding', 'key' => 'workspace_name'],
-                ['value' => $tenant->name, 'type' => 'string', 'is_public' => true]
-            );
-            TenantSetting::updateOrCreate(
-                ['domain' => 'theme', 'key' => 'palette'],
-                ['value' => $tenant->settings['palette'] ?? 'indigo', 'type' => 'string', 'is_public' => true]
-            );
-            TenantSetting::updateOrCreate(
-                ['domain' => 'theme', 'key' => 'mode'],
-                ['value' => $tenant->settings['mode'] ?? 'dark', 'type' => 'string', 'is_public' => true]
-            );
+            // Default tenant settings — always through the governed service
+            // (registry validation + cache invalidation).
+            $settings = app(SettingManagerContract::class);
+            $settings->set('palette', $defaultPalette, 'theme', true);
+            $settings->set('mode', $defaultMode, 'theme', true);
         });
     }
 }

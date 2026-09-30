@@ -4,15 +4,16 @@ namespace Modules\Settings\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Settings\Services\SettingService;
+use Modules\Core\Contracts\SettingManagerContract;
+use Modules\Settings\Http\Requests\UpdateSettingsRequest;
+use Modules\Subscription\Models\Plan;
 
 class LandlordSettingsController extends Controller
 {
     public function __construct(
-        protected SettingService $settingService
+        protected SettingManagerContract $settings
     ) {}
 
     /**
@@ -21,32 +22,25 @@ class LandlordSettingsController extends Controller
     public function index(): Response
     {
         return Inertia::render('Settings/LandlordSettings', [
-            'branding' => $this->settingService->allByDomain('branding'),
-            'themeSettings' => $this->settingService->allByDomain('theme'),
-            'localization' => $this->settingService->allByDomain('localization'),
-            'system' => $this->settingService->allByDomain('system'),
+            'branding' => $this->settings->allByDomain('branding'),
+            'themeSettings' => $this->settings->allByDomain('theme'),
+            'localization' => $this->settings->allByDomain('localization'),
+            'system' => $this->settings->allByDomain('system'),
+            'billing' => $this->settings->allByDomain('billing'),
+            'plans' => Plan::where('is_active', true)->orderBy('sort_order')->get()
+                ->map(fn (Plan $plan) => ['id' => $plan->id, 'name' => $plan->getName(), 'slug' => $plan->slug]),
         ]);
     }
 
     /**
      * Update settings by domain.
      */
-    public function update(Request $request): RedirectResponse
+    public function update(UpdateSettingsRequest $request): RedirectResponse
     {
         $domain = $request->input('domain', 'system');
-        $settings = $request->input('settings', []);
 
-        foreach ($settings as $key => $value) {
-            $this->settingService->set($key, $value, $domain, true);
-        }
-
-        if ($domain === 'theme') {
-            if (isset($settings['palette'])) {
-                session(['theme' => $settings['palette']]);
-            }
-            if (isset($settings['mode'])) {
-                session(['theme_mode' => $settings['mode']]);
-            }
+        foreach ($request->input('settings', []) as $key => $value) {
+            $this->settings->set($key, $value, $domain, true);
         }
 
         return back()->with('success', __('settings_updated'));

@@ -9,6 +9,12 @@ interface SettingManagerContract
     public function set(string $key, mixed $value, string $domain = 'system', bool $isPublic = false): void;
 
     /**
+     * Remove a setting row in the current scope, restoring landlord
+     * inheritance for tenant-owned keys.
+     */
+    public function unset(string $key, string $domain = 'system'): void;
+
+    /**
      * @return array<string, mixed>
      */
     public function allByDomain(string $domain): array;
@@ -18,7 +24,7 @@ interface SettingManagerContract
      *
      * Precedence: session override > tenant settings > landlord settings > defaults.
      *
-     * @return array{theme: string, palette: string, mode: string, radius: string}
+     * @return array{theme: string, palette: string, mode: string}
      */
     public function getTheme(): array;
 

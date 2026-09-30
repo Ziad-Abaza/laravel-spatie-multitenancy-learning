@@ -43,6 +43,7 @@ class SettingsServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         parent::register();
+        $this->mergeConfigFrom(module_path($this->name, 'config/settings.php'), 'settings');
         $this->app->singleton(SettingManagerContract::class, SettingService::class);
     }
 }

@@ -34,14 +34,18 @@ class TenantIsolationTest extends TestCase
         $response->assertRedirect('/register-tenant');
     }
 
-    public function test_tenant_request_succeeds_with_tenant_query_or_domain(): void
+    public function test_tenant_hint_parameters_cannot_switch_tenant_context(): void
     {
-        $tenant = Tenant::first();
-        $this->assertNotNull($tenant);
+        $tenant1 = Tenant::where('domain', 'tenant1.localhost')->first();
+        $tenant2 = Tenant::where('domain', 'tenant2.localhost')->first();
+        $this->assertNotNull($tenant1);
+        $this->assertNotNull($tenant2);
 
-        $response = $this->get('/login?tenant='.$tenant->slug);
+        // A client-controlled hint on a tenant domain must not switch context.
+        $response = $this->get('http://tenant1.localhost/login?tenant='.$tenant2->slug);
 
         $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page->where('tenant.slug', 'tenant1'));
     }
 
     public function test_cross_tenant_data_is_strictly_isolated(): void

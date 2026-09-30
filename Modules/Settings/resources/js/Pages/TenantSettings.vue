@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import TenantLayout from '@core/Layouts/TenantLayout.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import { Building2, Palette, Save } from 'lucide-vue-next';
@@ -15,8 +15,8 @@ const { t } = useI18n();
 
 const brandingForm = useForm({
     domain: 'branding',
+    workspace_name: props.branding?.workspace_name || '',
     settings: {
-        workspace_name: props.branding?.workspace_name || '',
         tagline: props.branding?.tagline || '',
     },
 });
@@ -37,7 +37,9 @@ function saveTheme() {
     themeForm.post('/settings');
 }
 
-const palettes = THEME_PRESETS;
+const page = usePage();
+const allowedPalettes = new Set<string>((page.props.theme as any)?.palettes ?? THEME_PRESETS.map((p) => p.id));
+const palettes = THEME_PRESETS.filter((p) => allowedPalettes.has(p.id));
 </script>
 
 <template>
@@ -59,7 +61,7 @@ const palettes = THEME_PRESETS;
                     <div>
                         <label class="block text-xs font-medium text-text-main mb-1">{{ t('custom_display_name', 'Custom Display Name') }}</label>
                         <input
-                            v-model="brandingForm.settings.workspace_name"
+                            v-model="brandingForm.workspace_name"
                             type="text"
                             :placeholder="t('workspace_name_example', 'e.g. My Team Workspace')"
                             class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"

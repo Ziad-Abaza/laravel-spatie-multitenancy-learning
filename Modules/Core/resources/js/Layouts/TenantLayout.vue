@@ -103,7 +103,7 @@ function logout() {
                 <button
                     type="button"
                     class="p-2 text-text-muted hover:text-text-main rounded-lg hover:bg-surface-hover transition-colors"
-                    aria-label="Toggle navigation menu"
+                    :aria-label="t('toggle_navigation', 'Toggle navigation menu')"
                     @click="isSidebarOpen = !isSidebarOpen"
                 >
                     <Menu v-if="!isSidebarOpen" class="w-5 h-5" />

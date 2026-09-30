@@ -9,9 +9,9 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Modules\Access\Models\Role;
+use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Landlord\Database\Seeders\LandlordDatabaseSeeder;
-use Modules\Settings\Models\TenantSetting;
-use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -84,20 +84,12 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // 3. Seed default tenant settings
+        // 3. Seed default tenant settings through the governed service.
+        // Workspace name is tenants.name — no settings row.
         if (Schema::hasTable('tenant_settings')) {
-            TenantSetting::updateOrCreate(
-                ['domain' => 'branding', 'key' => 'workspace_name'],
-                ['value' => $tenant->name, 'type' => 'string', 'is_public' => true]
-            );
-            TenantSetting::updateOrCreate(
-                ['domain' => 'theme', 'key' => 'palette'],
-                ['value' => 'indigo', 'type' => 'string', 'is_public' => true]
-            );
-            TenantSetting::updateOrCreate(
-                ['domain' => 'theme', 'key' => 'mode'],
-                ['value' => 'dark', 'type' => 'string', 'is_public' => true]
-            );
+            $settings = app(SettingManagerContract::class);
+            $settings->set('palette', 'indigo', 'theme', true);
+            $settings->set('mode', 'dark', 'theme', true);
         }
     }
 }

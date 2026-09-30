@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
 import { useI18n } from '@core/Composables/useI18n';
-import { Settings, Palette, Globe, Server, Save } from 'lucide-vue-next';
+import { Settings, Palette, Globe, Server, CreditCard, Save } from 'lucide-vue-next';
 import { THEME_PRESETS } from '@core/Stores/useThemeStore';
 
 const props = defineProps<{
@@ -11,11 +11,13 @@ const props = defineProps<{
     themeSettings: Record<string, any>;
     localization: Record<string, any>;
     system: Record<string, any>;
+    billing: Record<string, any>;
+    plans: { id: number; name: any; slug: string }[];
 }>();
 
 const { t } = useI18n();
 
-const activeTab = ref<'branding' | 'theme' | 'localization' | 'system'>('branding');
+const activeTab = ref<'branding' | 'theme' | 'localization' | 'system' | 'billing'>('branding');
 
 const brandingForm = useForm({
     domain: 'branding',
@@ -51,6 +53,14 @@ const systemForm = useForm({
     },
 });
 
+const billingForm = useForm({
+    domain: 'billing',
+    settings: {
+        default_currency: props.billing?.default_currency || 'USD',
+        default_plan_id: props.billing?.default_plan_id || '',
+    },
+});
+
 function saveBranding() {
     brandingForm.post('/landlord/settings');
 }
@@ -67,7 +77,13 @@ function saveSystem() {
     systemForm.post('/landlord/settings');
 }
 
-const palettes = THEME_PRESETS;
+function saveBilling() {
+    billingForm.post('/landlord/settings');
+}
+
+const page = usePage();
+const allowedPalettes = new Set<string>((page.props.theme as any)?.palettes ?? THEME_PRESETS.map((p) => p.id));
+const palettes = THEME_PRESETS.filter((p) => allowedPalettes.has(p.id));
 </script>
 
 <template>
@@ -118,6 +134,16 @@ const palettes = THEME_PRESETS;
                 >
                     <Server class="w-4 h-4" />
                     <span>{{ t('system', 'System & Tenancy') }}</span>
+                </button>
+
+                <button
+                    type="button"
+                    @click="activeTab = 'billing'"
+                    class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shrink-0"
+                    :class="activeTab === 'billing' ? 'bg-primary-600 text-on-primary shadow-xs' : 'text-text-muted hover:text-text-main hover:bg-surface-hover'"
+                >
+                    <CreditCard class="w-4 h-4" />
+                    <span>{{ t('billing', 'Billing') }}</span>
                 </button>
             </div>
 
@@ -244,6 +270,31 @@ const palettes = THEME_PRESETS;
                         <button type="submit" :disabled="systemForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
                             <Save class="w-4 h-4" />
                             <span>{{ t('save_changes', 'Save System Settings') }}</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!-- Billing Tab -->
+            <div v-if="activeTab === 'billing'" class="bg-surface-card border border-border-subtle rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+                <form @submit.prevent="saveBilling" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('default_currency_label', 'Default Currency') }}</label>
+                        <input v-model="billingForm.settings.default_currency" type="text" maxlength="3" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 font-mono uppercase" />
+                        <p v-if="billingForm.errors['settings.default_currency']" class="mt-1 text-xs text-danger-fg">{{ billingForm.errors['settings.default_currency'] }}</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-text-main mb-1">{{ t('default_plan_label', 'Default Plan for New Registrations') }}</label>
+                        <select v-model="billingForm.settings.default_plan_id" class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-xs outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+                            <option :value="''">{{ t('first_active_plan', 'First active plan (by sort order)') }}</option>
+                            <option v-for="plan in plans" :key="plan.id" :value="plan.id">{{ plan.name }}</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-4 border-t border-border-subtle flex justify-end">
+                        <button type="submit" :disabled="billingForm.processing" class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors">
+                            <Save class="w-4 h-4" />
+                            <span>{{ t('save_changes', 'Save Billing') }}</span>
                         </button>
                     </div>
                 </form>

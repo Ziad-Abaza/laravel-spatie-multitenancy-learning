@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\Locale;
+use Modules\Core\Enums\ThemePalette;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -82,13 +83,9 @@ class HandleInertiaRequests extends Middleware
                     'slug' => $currentTenant->plan->slug,
                     'limits' => $currentTenant->plan->limits ?? [],
                 ] : null,
-                'settings' => $currentTenant->settings ?? [],
                 'branding' => $branding,
             ];
         }
-
-        $appName = $branding['app_name'] ?? config('app.name', 'SaaS Platform');
-        config(['app.name' => $appName]);
 
         // The SetLocale middleware has already resolved and applied the locale.
         $locale = app()->getLocale();
@@ -122,6 +119,7 @@ class HandleInertiaRequests extends Middleware
                 'theme' => $theme['theme'],
                 'palette' => $theme['palette'],
                 'mode' => $theme['mode'],
+                'palettes' => ThemePalette::values(),
                 'font' => $isRtl ? 'cairo' : 'inter',
             ],
             'flash' => [

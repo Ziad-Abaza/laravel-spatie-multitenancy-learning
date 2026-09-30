@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\Hash;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Landlord\Models\LandlordUser;
 use Modules\Landlord\Models\Tenant;
-use Modules\Settings\Models\Setting;
+use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Subscription\Database\Seeders\PlanSeeder;
 use Modules\Subscription\Models\Plan;
 use Modules\Subscription\Services\SubscriptionService;
-use Spatie\Permission\Models\Role;
+use Modules\Access\Models\Role;
 
 class LandlordDatabaseSeeder extends Seeder
 {
@@ -47,21 +47,18 @@ class LandlordDatabaseSeeder extends Seeder
 
         // 3. Seed Default System Settings on Landlord connection
         $defaultSettings = [
-            ['domain' => 'branding', 'key' => 'app_name', 'value' => 'SaaS Enterprise', 'type' => 'string', 'is_public' => true],
-            ['domain' => 'branding', 'key' => 'tagline', 'value' => 'Multi-Tenant Modular Enterprise Architecture', 'type' => 'string', 'is_public' => true],
-            ['domain' => 'theme', 'key' => 'palette', 'value' => 'indigo', 'type' => 'string', 'is_public' => true],
-            ['domain' => 'theme', 'key' => 'mode', 'value' => 'dark', 'type' => 'string', 'is_public' => true],
-            ['domain' => 'localization', 'key' => 'default_locale', 'value' => 'en', 'type' => 'string', 'is_public' => true],
-            ['domain' => 'localization', 'key' => 'supported_locales', 'value' => json_encode(['en', 'ar']), 'type' => 'json', 'is_public' => true],
-            ['domain' => 'system', 'key' => 'allow_registration', 'value' => '1', 'type' => 'boolean', 'is_public' => true],
-            ['domain' => 'system', 'key' => 'maintenance_mode', 'value' => '0', 'type' => 'boolean', 'is_public' => false],
+            ['branding', 'app_name', 'SaaS Enterprise'],
+            ['branding', 'tagline', 'Multi-Tenant Modular Enterprise Architecture'],
+            ['theme', 'palette', 'indigo'],
+            ['theme', 'mode', 'dark'],
+            ['localization', 'default_locale', 'en'],
+            ['localization', 'supported_locales', ['en', 'ar']],
+            ['system', 'allow_registration', true],
         ];
 
-        foreach ($defaultSettings as $setting) {
-            Setting::updateOrCreate(
-                ['key' => $setting['key']],
-                $setting
-            );
+        $settings = app(SettingManagerContract::class);
+        foreach ($defaultSettings as [$domain, $key, $value]) {
+            $settings->set($key, $value, $domain, true);
         }
 
         // 4. Update existing tenants with plans and subscriptions if needed
