@@ -87,8 +87,8 @@ class DatabaseSeeder extends Seeder
         // Workspace name is tenants.name — no settings row.
         if (Schema::connection($tenantConnection)->hasTable('tenant_settings')) {
             $settings = app(SettingManagerContract::class);
-            $settings->set('palette', 'indigo', 'theme', true);
-            $settings->set('mode', 'dark', 'theme', true);
+            $settings->set('palette', 'indigo', 'theme');
+            $settings->set('mode', 'dark', 'theme');
         }
     }
 }

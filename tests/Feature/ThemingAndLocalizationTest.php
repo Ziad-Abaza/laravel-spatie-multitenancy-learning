@@ -138,13 +138,13 @@ class ThemingAndLocalizationTest extends TestCase
     public function test_post_locale_respects_supported_locales_setting(): void
     {
         $settingService = app(SettingService::class);
-        $settingService->set('supported_locales', ['en'], 'localization', true);
+        $settingService->set('supported_locales', ['en'], 'localization');
 
         $response = $this->post('/locale', ['locale' => 'ar']);
         $response->assertSessionHasErrors(['locale']);
 
         // Restore
-        $settingService->set('supported_locales', ['en', 'ar'], 'localization', true);
+        $settingService->set('supported_locales', ['en', 'ar'], 'localization');
     }
 
     public function test_post_theme_updates_palette_and_mode_in_session(): void
@@ -171,34 +171,34 @@ class ThemingAndLocalizationTest extends TestCase
     {
         $settingManager = app(SettingManagerContract::class);
 
-        $settingManager->set('palette', 'violet', 'theme', true);
+        $settingManager->set('palette', 'violet', 'theme');
 
         $this->assertEquals('violet', $settingManager->get('palette', 'indigo', 'theme'));
 
         // Reset
-        $settingManager->set('palette', 'indigo', 'theme', true);
+        $settingManager->set('palette', 'indigo', 'theme');
     }
 
     public function test_settings_service_persists_canonical_keys(): void
     {
         $settingService = app(SettingService::class);
 
-        $settingService->set('palette', 'rose', 'theme', true);
+        $settingService->set('palette', 'rose', 'theme');
         $this->assertEquals('rose', $settingService->get('palette', null, 'theme'));
         $this->assertEquals('rose', $settingService->getTheme()['palette']);
 
-        $settingService->set('allow_registration', false, 'system', true);
+        $settingService->set('allow_registration', false, 'system');
         $this->assertFalse($settingService->get('allow_registration', null, 'system'));
 
         // Reset
-        $settingService->set('palette', 'indigo', 'theme', true);
-        $settingService->set('allow_registration', true, 'system', true);
+        $settingService->set('palette', 'indigo', 'theme');
+        $settingService->set('allow_registration', true, 'system');
     }
 
     public function test_registration_blocked_when_allow_registration_is_false(): void
     {
         $settingService = app(SettingService::class);
-        $settingService->set('allow_registration', false, 'system', true);
+        $settingService->set('allow_registration', false, 'system');
 
         $responseGet = $this->get('/register-tenant');
         $responseGet->assertStatus(403);
@@ -214,7 +214,7 @@ class ThemingAndLocalizationTest extends TestCase
         $responsePost->assertStatus(403);
 
         // Reset
-        $settingService->set('allow_registration', true, 'system', true);
+        $settingService->set('allow_registration', true, 'system');
     }
 
     public function test_inertia_shares_theme_locale_and_system_props(): void
@@ -238,10 +238,22 @@ class ThemingAndLocalizationTest extends TestCase
         );
     }
 
+    public function test_translations_prop_is_scoped_to_the_route_module(): void
+    {
+        // The landing page is served by the Landlord module: its dictionary
+        // and shared Core/global keys ship, but unrelated module dictionaries
+        // (Tenant) must not be serialized into the response.
+        $this->get('/')->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('locale.translations.tenants_directory')
+            ->has('locale.translations.save')
+            ->missing('locale.translations.tenant_portal')
+        );
+    }
+
     public function test_root_view_renders_the_same_resolved_theme_as_shared_props(): void
     {
         $settingManager = app(SettingManagerContract::class);
-        $settingManager->set('palette', 'violet', 'theme', true);
+        $settingManager->set('palette', 'violet', 'theme');
 
         // Persisted configuration is rendered into the HTML when no session override exists
         $response = $this->get('/');
@@ -271,6 +283,6 @@ class ThemingAndLocalizationTest extends TestCase
         $response->assertSee('data-theme="violet"', false);
         $response->assertInertia(fn (AssertableInertia $page) => $page->where('theme.theme', 'violet'));
 
-        $settingManager->set('palette', 'indigo', 'theme', true);
+        $settingManager->set('palette', 'indigo', 'theme');
     }
 }

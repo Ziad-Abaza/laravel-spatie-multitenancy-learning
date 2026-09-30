@@ -153,8 +153,10 @@ class ModularTranslationArchitectureTest extends TestCase
             ->where('locale.current', 'en')
             ->where('locale.is_rtl', false)
             ->has('locale.translations')
-            ->where('locale.translations.platform_settings', 'Platform Settings')
-            ->where('locale.translations.subscription_plans', 'Subscription Plans')
+            ->where('locale.translations.tenants_directory', 'Tenant Organizations')
+            ->where('locale.translations.save', 'Save')
+            ->missing('locale.translations.subscription_plans')
+            ->missing('locale.translations.platform_settings')
         );
 
         $responseAr = $this->withSession(['locale' => 'ar'])->get('/');
@@ -163,8 +165,9 @@ class ModularTranslationArchitectureTest extends TestCase
             ->where('locale.current', 'ar')
             ->where('locale.is_rtl', true)
             ->has('locale.translations')
-            ->where('locale.translations.platform_settings', 'إعدادات المنصة المركزية')
-            ->where('locale.translations.subscription_plans', 'خطط الاشتراكات')
+            ->where('locale.translations.tenants_directory', 'منظمات المستأجرين')
+            ->where('locale.translations.save', 'حفظ')
+            ->missing('locale.translations.subscription_plans')
         );
     }
 }

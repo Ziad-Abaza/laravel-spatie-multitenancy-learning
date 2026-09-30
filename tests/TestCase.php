@@ -70,7 +70,7 @@ abstract class TestCase extends BaseTestCase
             ['localization', 'supported_locales', ['en', 'ar']],
             ['system', 'allow_registration', true],
         ] as [$domain, $key, $value]) {
-            $settings->set($key, $value, $domain, true);
+            $settings->set($key, $value, $domain);
         }
     }
 

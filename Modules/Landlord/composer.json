@@ -1,12 +1,6 @@
 {
-    "name": "nwidart/landlord",
+    "name": "spatie-multitenant/landlord",
     "description": "",
-    "authors": [
-        {
-            "name": "Nicolas Widart",
-            "email": "n.widart@gmail.com"
-        }
-    ],
     "extra": {
         "laravel": {
             "providers": [],

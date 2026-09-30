@@ -53,7 +53,7 @@ class UnifiedErrorPageTest extends TestCase
     public function test_forbidden_renders_error_page_with_403(): void
     {
         $settingService = app(SettingService::class);
-        $settingService->set('allow_registration', false, 'system', true);
+        $settingService->set('allow_registration', false, 'system');
 
         try {
             $response = $this->get('/register-tenant');
@@ -64,7 +64,7 @@ class UnifiedErrorPageTest extends TestCase
                 ->where('status', 403)
             );
         } finally {
-            $settingService->set('allow_registration', true, 'system', true);
+            $settingService->set('allow_registration', true, 'system');
         }
     }
 
@@ -140,12 +140,12 @@ class UnifiedErrorPageTest extends TestCase
     {
         $settingService = app(SettingService::class);
         $previous = array_keys($settingService->supportedLocales());
-        $settingService->set('supported_locales', $locales, 'localization', true);
+        $settingService->set('supported_locales', $locales, 'localization');
 
         try {
             $callback();
         } finally {
-            $settingService->set('supported_locales', $previous, 'localization', true);
+            $settingService->set('supported_locales', $previous, 'localization');
         }
     }
 }

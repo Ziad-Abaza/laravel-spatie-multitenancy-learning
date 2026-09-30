@@ -25,7 +25,6 @@ return new class extends Migration
                 $table->string('key')->index();
                 $table->text('value')->nullable();
                 $table->string('type')->default('string');
-                $table->boolean('is_public')->default(false);
                 $table->timestamps();
 
                 $table->unique(['domain', 'key']);
@@ -34,9 +33,6 @@ return new class extends Migration
             Schema::connection($connection)->table('settings', function (Blueprint $table) use ($connection) {
                 if (! Schema::connection($connection)->hasColumn('settings', 'domain')) {
                     $table->string('domain')->default('system')->index()->after('id');
-                }
-                if (! Schema::connection($connection)->hasColumn('settings', 'is_public')) {
-                    $table->boolean('is_public')->default(false)->after('type');
                 }
             });
         }

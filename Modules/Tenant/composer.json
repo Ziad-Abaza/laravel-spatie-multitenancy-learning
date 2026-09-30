@@ -1,12 +1,6 @@
 {
-    "name": "nwidart/tenant",
+    "name": "spatie-multitenant/tenant",
     "description": "",
-    "authors": [
-        {
-            "name": "Nicolas Widart",
-            "email": "n.widart@gmail.com"
-        }
-    ],
     "extra": {
         "laravel": {
             "providers": [],

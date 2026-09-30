@@ -51,7 +51,7 @@ class TenantAccessControlTest extends TestCase
     {
         $tenant = $this->tenant();
         $settings = app(SettingService::class);
-        $settings->set('allow_registration', false, 'system', true);
+        $settings->set('allow_registration', false, 'system');
 
         try {
             $this->get("http://{$tenant->domain}/register")->assertForbidden();
@@ -65,7 +65,7 @@ class TenantAccessControlTest extends TestCase
             // Tenant-domain requests leave the tenant bound as current in the
             // test app — landlord-owned settings need landlord context.
             Tenant::forgetCurrent();
-            $settings->set('allow_registration', true, 'system', true);
+            $settings->set('allow_registration', true, 'system');
         }
     }
 

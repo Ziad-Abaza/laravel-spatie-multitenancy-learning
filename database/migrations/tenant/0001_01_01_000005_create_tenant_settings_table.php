@@ -20,7 +20,6 @@ return new class extends Migration
                 $table->string('key')->index();
                 $table->text('value')->nullable();
                 $table->string('type')->default('string');
-                $table->boolean('is_public')->default(false);
                 $table->timestamps();
 
                 $table->unique(['domain', 'key']);

@@ -11,6 +11,7 @@ interface SystemModule {
     lower_name: string;
     description: string;
     is_enabled: boolean;
+    is_locked: boolean;
     priority: number;
     path: string;
 }
@@ -20,8 +21,6 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-
-const coreModules = ['core', 'landlord', 'access', 'subscription', 'settings', 'tenant'];
 
 function toggleModule(name: string) {
     router.post(`/landlord/modules/${name}/toggle`);
@@ -72,7 +71,7 @@ function toggleModule(name: string) {
                     </div>
 
                     <div class="mt-6 pt-4 border-t border-border-subtle flex items-center justify-between">
-                        <span v-if="coreModules.includes(mod.lower_name)" class="text-[11px] font-semibold text-primary-600 dark:text-primary-400">
+                        <span v-if="mod.is_locked" class="text-[11px] font-semibold text-primary-600 dark:text-primary-400">
                             {{ t('platform_core', 'Core Foundation') }}
                         </span>
                         <button

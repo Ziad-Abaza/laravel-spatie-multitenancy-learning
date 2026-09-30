@@ -13,6 +13,14 @@ class ModuleManagementController extends Controller
     /**
      * Display a listing of all registered modular-monolith modules.
      */
+    /**
+     * Modules that are platform infrastructure and can never be toggled off.
+     * The SSoT consumed by both index() and toggle().
+     *
+     * @var array<int, string>
+     */
+    private const LOCKED_MODULES = ['core', 'landlord', 'access', 'subscription', 'settings', 'tenant'];
+
     public function index(): Response
     {
         $modules = collect(Module::all())->map(function ($mod) {
@@ -21,6 +29,7 @@ class ModuleManagementController extends Controller
                 'lower_name' => $mod->getLowerName(),
                 'description' => $mod->getDescription() ?: 'Self-contained modular domain',
                 'is_enabled' => $mod->isEnabled(),
+                'is_locked' => in_array($mod->getLowerName(), self::LOCKED_MODULES, true),
                 'priority' => $mod->getPriority(),
                 'path' => $mod->getPath(),
             ];
@@ -42,7 +51,7 @@ class ModuleManagementController extends Controller
             return back()->with('error', __('module_not_found', ['name' => $name]));
         }
 
-        if (in_array(strtolower($name), ['core', 'landlord', 'access', 'subscription', 'settings', 'tenant'])) {
+        if (in_array(strtolower($name), self::LOCKED_MODULES, true)) {
             return back()->with('warning', __('core_module_locked', ['name' => $name]));
         }
 

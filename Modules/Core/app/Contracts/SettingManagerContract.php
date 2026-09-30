@@ -6,7 +6,7 @@ interface SettingManagerContract
 {
     public function get(string $key, mixed $default = null, string $domain = 'system'): mixed;
 
-    public function set(string $key, mixed $value, string $domain = 'system', bool $isPublic = false): void;
+    public function set(string $key, mixed $value, string $domain = 'system'): void;
 
     /**
      * Remove a setting row in the current scope, restoring landlord

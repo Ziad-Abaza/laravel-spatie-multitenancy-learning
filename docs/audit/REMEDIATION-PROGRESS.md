@@ -14,15 +14,15 @@ tags: []
 
 ## CURRENT STATE
 
-- **Current Phase:** Phase 9
-- **Current Cluster:** C9 — SSoT / config drift
-- **Current Finding:** FND-001
+- **Current Phase:** Phase 10
+- **Current Cluster:** C10 — Scaffold debt (stubs protected per ADR-STUBS-001)
+- **Current Finding:** FND-004
 
 ### Queue
 
-- **Pending:** C9 → C11 (see phase plan below)
-- **In Progress:** C9
-- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037), C7 (FND-063, FND-061, FND-056, FND-064, FND-066), C8 (FND-055, FND-054)
+- **Pending:** C10 → C11 (see phase plan below)
+- **In Progress:** C10
+- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037), C7 (FND-063, FND-061, FND-056, FND-064, FND-066), C8 (FND-055, FND-054), C9 (FND-001, FND-002, FND-003, FND-007, FND-008, FND-009, FND-011, FND-012, FND-016, FND-019, FND-020, FND-023, FND-024, FND-025, FND-027, FND-034, FND-040, FND-048, FND-050, FND-059, FND-062)
 - **Blocked:** —
 
 ### Phase plan (order = cluster order per mandate; tiers per §11.2)
@@ -157,27 +157,27 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 
 | ID | Severity | Root Cause | Files | Status | Started | Completed | Verification | Notes |
 |---|---|---|---|---|---|---|---|---|
-| FND-001 | MEDIUM | composer floor `^8.3` but `Pdo\Mysql` (8.4-only) used; AGENTS says PHP 8.4 | composer.json | PENDING | — | — | — | Raise floor to ^8.4 |
-| FND-002 | MEDIUM | No JS lockfile; unpinned supply chain | package.json | PENDING | — | — | — | Generate + commit package-lock.json |
-| FND-003 | LOW | .styleci.yml conflicts with Pint laravel preset (disables no_unused_imports); no CI evidence | .styleci.yml | PENDING | — | — | — | Remove dead config or align |
-| FND-007 | LOW | .env.example `DB_CONNECTION=sqlite` vs README/phpunit `landlord` | .env.example | PENDING | — | — | — | Align env contract |
-| FND-008 | LOW | `pestphp/pest-plugin` in allow-plugins; Pest not installed | composer.json | PENDING | — | — | — | Remove stale entry |
-| FND-009 | LOW | Redundant dual PSR-4 `Modules\` autoload | composer.json | PENDING | — | — | — | Keep per-module maps; verify broad map need |
-| FND-011 | LOW | Weakly typed Inertia shared props (`unknown`, `any`, `status: string` vs enum) | env.d.ts / *.d.ts | PENDING | — | — | — | Tighten types |
-| FND-012 | LOW | README documents DomainTenantFinder; code ships SaaSTenantFinder | README.md | PENDING | — | — | — | Doc sync |
-| FND-016 | LOW | Config consumes env vars absent from .env.example (DB_LANDLORD_*, DB_TENANT_*, SESSION_CONNECTION, DB_CACHE_CONNECTION, DB_QUEUE_CONNECTION, MEDIA_*) | .env.example | PENDING | — | — | — | Complete env contract |
-| FND-019 | LOW | `tenant_artisan_search_fields=['id']` vs README id/slug/domain | config/multitenancy.php; README | PENDING | — | — | — | Align docs or fields |
-| FND-020 | LOW | Module composer.json vendor/author = uncustomized nwidart defaults; stubs dead-weight claim | Modules/*/composer.json | PENDING | — | — | — | Fix composer identity only — stub-tree part REJECTED per ADR-STUBS-001 |
-| FND-023 | LOW | queue.batching/failed database falls back to `env('DB_CONNECTION','sqlite')` | config/queue.php | PENDING | — | — | — | Point at landlord connection |
-| FND-024 | LOW | HandleInertiaRequests fabricates `roles:['Super Admin']`/`['Member']` + empty permissions | HandleInertiaRequests.php | PENDING | — | — | — | Remove hardcoded fabrication |
-| FND-025 | MEDIUM | `load($locale,'*','*')` serializes entire translation catalog into every Inertia response | HandleInertiaRequests.php | PENDING | — | — | — | Route-scoped/lazy translations |
-| FND-027 | LOW | Dual-model-per-table: App\Models\Tenant/User alias subclasses; parents remain instantiable | app/Models/{Tenant,User}.php | PENDING | — | — | — | Single canonical model; check references |
-| FND-034 | LOW | Missing `down()` on landlord tenants+media migrations → irreversible | landlord migrations | PENDING | — | — | — | Add down() |
-| FND-040 | LOW | Hardcoded status literals `in:active,inactive,suspended`, `'Member'`/`'active'` fallbacks | Modules/Access/.../UserController.php | PENDING | — | — | — | Route via enums/manifests |
-| FND-048 | LOW | LanguageSwitcher hardcodes EN/AR + `=== 'ar'` RTL vs server `locale.supported`/`is_rtl` map | LanguageSwitcher.vue | PENDING | — | — | — | Drive from shared prop |
-| FND-050 | MEDIUM | Duplicate of FND-025 (same whole-catalog translations root cause) | HandleInertiaRequests.php | PENDING | — | — | — | Closes with FND-025 |
-| FND-059 | LOW | Modules/Index.vue duplicates locked-module list vs ModuleManagementController | Modules/Index.vue | PENDING | — | — | — | Single source via shared prop |
-| FND-062 | LOW | `is_public` write-only — stored/cast, no reader | SettingService.php; settings migrations | PENDING | — | — | — | Implement reader or remove flag |
+| FND-001 | MEDIUM | composer floor `^8.3` but `Pdo\Mysql` (8.4-only) used; AGENTS says PHP 8.4 | composer.json | COMPLETED | 2026-10-01 | 2026-10-01 | autoload+tests | Floor ^8.4; Pdo\Mysql is 8.4-only as audited |
+| FND-002 | MEDIUM | No JS lockfile; unpinned supply chain | package-lock.json | COMPLETED | 2026-10-01 | 2026-10-01 | npm install --package-lock-only; 0 vulnerabilities | Lockfile generated+committed |
+| FND-003 | LOW | .styleci.yml conflicts with Pint laravel preset (disables no_unused_imports); no CI evidence | .styleci.yml | COMPLETED | 2026-10-01 | 2026-10-01 | deleted | Pint is the formatter; no StyleCI CI exists |
+| FND-007 | LOW | .env.example `DB_CONNECTION=sqlite` vs README/phpunit `landlord` | .env.example | COMPLETED | 2026-10-01 | 2026-10-01 | docs match config | DB_CONNECTION=landlord documented; DB_*_DRIVER sqlite|mysql switch documented |
+| FND-008 | LOW | `pestphp/pest-plugin` in allow-plugins; Pest not installed | composer.json | COMPLETED | 2026-10-01 | 2026-10-01 | composer dump-autoload ok | pest-plugin allow-plugins entry removed |
+| FND-009 | LOW | Redundant dual PSR-4 `Modules\` autoload | composer.json | COMPLETED | 2026-10-01 | 2026-10-01 | class_exists(seeder+controller) verified | Broad Modules\ map removed — merge-plugin registers per-module PSR-4 incl. Database\Seeders |
+| FND-011 | LOW | Weakly typed Inertia shared props (`unknown`, `any`, `status: string` vs enum) | env.d.ts | COMPLETED | 2026-10-01 | 2026-10-01 | compile-time contract | Shared props now fully typed (required keys match share()); missing tenancy prop added |
+| FND-012 | LOW | README documents DomainTenantFinder; code ships SaaSTenantFinder | README.md | COMPLETED | 2026-10-01 | 2026-10-01 | diff vs config/multitenancy.php | SaaSTenantFinder + current switch task list documented |
+| FND-016 | LOW | Config consumes env vars absent from .env.example (DB_LANDLORD_*, DB_TENANT_*, SESSION_CONNECTION, DB_CACHE_CONNECTION, DB_QUEUE_CONNECTION, MEDIA_*) | .env.example | COMPLETED | 2026-10-01 | 2026-10-01 | audit sweep vs config env() calls | DB_LANDLORD_*, DB_TENANT_*, SESSION_CONNECTION, DB_CACHE_CONNECTION, DB_QUEUE_CONNECTION, MEDIA_* documented |
+| FND-019 | LOW | `tenant_artisan_search_fields=['id']` vs README id/slug/domain | config/multitenancy.php; README.md | COMPLETED | 2026-10-01 | 2026-10-01 | docs now match config | search_fields=[id,slug,domain]; README aligned |
+| FND-020 | LOW | Module composer.json vendor/author = uncustomized nwidart defaults; stubs dead-weight claim | Modules/*/composer.json | COMPLETED | 2026-10-01 | 2026-10-01 | JSON valid; autoload ok | Vendor name=spatie-multitenant/*; nwidart authors removed |
+| FND-023 | LOW | queue.batching/failed database falls back to `env('DB_CONNECTION','sqlite')` | config/queue.php | COMPLETED | 2026-10-01 | 2026-10-01 | tests green | batching+failed use DB_QUEUE_CONNECTION default landlord |
+| FND-024 | LOW | HandleInertiaRequests fabricates `roles:['Super Admin']`/`['Member']` + empty permissions | app/Http/Middleware/HandleInertiaRequests.php | COMPLETED | 2026-10-01 | 2026-10-01 | suite green | Fake 'Super Admin'/'Member' fallbacks removed; real roles/permissions only |
+| FND-025 | MEDIUM | `load($locale,'*','*')` serializes entire translation catalog into every Inertia response | app/Http/Middleware/HandleInertiaRequests.php | COMPLETED | 2026-10-01 | 2026-10-01 | test_translations_prop_is_scoped_to_the_route_module + updated bilingual test | Scoped dict: global+Core+route module; moved cross-module keys to global (max_users,storage) and landlord dict (landing copy) |
+| FND-027 | LOW | Dual-model-per-table: App\Models\Tenant/User alias subclasses; parents remain instantiable | app/Models/{Tenant,User}.php | COMPLETED | 2026-10-01 | C3 | recorded in C3 | Parents now base-classes-only; all instantiations via canonical models |
+| FND-034 | LOW | Missing `down()` on landlord tenants+media migrations → irreversible | landlord tenants+media migrations | COMPLETED | 2026-10-01 | 2026-10-01 | migrations parse; tests green | down() added to both |
+| FND-040 | LOW | Hardcoded status literals `in:active,inactive,suspended`, `'Member'`/`'active'` fallbacks | UserController; TenantDashboardController; new Core\Enums\UserStatus | COMPLETED | 2026-10-01 | 2026-10-01 | suite green | UserStatus enum created; Rule::enum replaces in: literal; Member/active fallbacks via TenantPermissions/UserStatus/TenantStatus |
+| FND-048 | LOW | LanguageSwitcher hardcodes EN/AR + `=== 'ar'` RTL vs server `locale.supported`/`is_rtl` map | LanguageSwitcher.vue | COMPLETED | 2026-10-01 | 2026-10-01 | prop-driven render | Buttons iterate locale.supported; dir/lang via setupInertiaStateBridge (is_rtl from server) |
+| FND-050 | MEDIUM | Duplicate of FND-025 (same whole-catalog translations root cause) | HandleInertiaRequests.php | COMPLETED | 2026-10-01 | 2026-10-01 | same as FND-025 | Closed with FND-025 |
+| FND-059 | LOW | Modules/Index.vue duplicates locked-module list vs ModuleManagementController | Modules/Index.vue; ModuleManagementController.php | COMPLETED | 2026-10-01 | 2026-10-01 | suite green | LOCKED_MODULES const on controller; page uses mod.is_locked prop |
+| FND-062 | LOW | `is_public` write-only — stored/cast, no reader | SettingService; contracts; models; migrations | COMPLETED | 2026-10-01 | 2026-10-01 | suite green | Flag removed entirely: set() signature, fillable/cast, columns dropped via new landlord+tenant migrations (idempotent hasColumn guards) |
 
 ### Phase 10 — Cluster C10: Scaffold debt (LOW)
 
@@ -265,7 +265,25 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - Modules/Landlord/app/Services/TenantLifecycleService.php (FND-054/055 — transition guards, extendTrial, atomic delete, dropTenantDatabase)
 - Modules/Landlord/app/Services/TenantProvisioner.php (FND-055 — landlord txn + compensation)
 - Modules/Landlord/app/Http/Controllers/TenantController.php (FND-054 — delegates to service)
-- Modules/Landlord/lang/{en,ar}.json (FND-054 — tenant_invalid_transition)
+- Modules/Landlord/lang/{en,ar}.json (FND-054 — tenant_invalid_transition; FND-025 — absorbed landing-page keys)
+- composer.json (FND-001 ^8.4, FND-008 pest-plugin, FND-009 broad Modules\ map removed)
+- Modules/*/composer.json (FND-020 — vendor identity)
+- package-lock.json (FND-002 — generated)
+- deleted: .styleci.yml (FND-003)
+- .env.example (FND-007, FND-016 — complete env contract)
+- config/queue.php (FND-023 — DB_QUEUE_CONNECTION→landlord)
+- config/multitenancy.php (FND-019 — id/slug/domain search fields)
+- README.md (FND-012 — SaaSTenantFinder docs; FND-019)
+- app/Http/Middleware/HandleInertiaRequests.php (FND-024, FND-025/050)
+- env.d.ts (FND-011 — strict shared props + tenancy)
+- landlord tenants+media migrations (FND-034 — down())
+- Modules/Core/app/Enums/UserStatus.php (FND-040 — new SSoT enum)
+- Modules/Access/app/Http/Controllers/UserController.php + Modules/Tenant/app/Http/Controllers/TenantDashboardController.php (FND-040)
+- Modules/Core/resources/js/Components/LanguageSwitcher.vue (FND-048)
+- Modules/Landlord/app/Http/Controllers/ModuleManagementController.php + Modules/Landlord/resources/js/Pages/Modules/Index.vue (FND-059)
+- SettingManagerContract + SettingService + Setting/TenantSetting models + settings migrations (FND-062 — is_public removed)
+- new migrations: Modules/Settings/.../drop_is_public_from_settings, database/migrations/tenant/.../drop_is_public_from_tenant_settings (FND-062)
+- resources/lang/{en,ar}.json (FND-025 — max_users/storage → global), Modules/Subscription/lang/{en,ar}.json (moved keys out)
 
 ### Migrations Added
 - database/migrations/tenant/2026_10_02_000001_add_is_system_to_roles_table.php (FND-032)
@@ -280,6 +298,7 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - test_tenant_member_registration_respects_platform_allow_registration, test_password_reset_tokens_are_stored_in_the_tenant_database (TenantAccessControlTest)
 - test_subscription_amount_and_interval_come_from_the_plan, test_change_plan_refreshes_interval_currency_and_ends_at, test_metrics_emit_real_mrr_key_with_sql_aggregation, test_storage_usage_reflects_real_tenant_media_bytes (QuotaEnforcementTest)
 - test_extend_trial_rejects_non_trialing_tenants, test_archived_tenant_is_terminal (LandlordTenantProvisioningTest)
+- test_translations_prop_is_scoped_to_the_route_module (ThemingAndLocalizationTest); updated test_inertia_receives_resolved_translations_in_both_locales to assert scoped payload
 
 ### Risks
 - `docs/audit/` contains this file + MASTER-AUDIT.md only; do not regenerate findings.

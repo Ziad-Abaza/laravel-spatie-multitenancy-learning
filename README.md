@@ -30,7 +30,7 @@ In this architecture, the central system (**Landlord**) lives in its own dedicat
 
 ```mermaid
 flowchart TD
-    Client["Client Request (e.g. tenant1.localhost:8000)"] --> Finder["DomainTenantFinder"]
+    Client["Client Request (e.g. tenant1.localhost:8000)"] --> Finder["SaaSTenantFinder"]
     Finder --> LandlordDB[("Landlord DB (multivendor)<br/>• tenants table")]
     Finder -- "Finds Tenant #2" --> Task["SwitchTenantDatabaseTask"]
     Task -- "Dynamically sets DB" --> TenantConn["'tenant' Connection (vendor_1)"]
@@ -49,10 +49,10 @@ flowchart TD
 ## 🔄 How the Bootstrapping Lifecycle Works
 
 1. **Incoming Request:** A request hits `http://tenant1.localhost:8000/`.
-2. **Tenant Discovery:** During service provider booting (`MultitenancyServiceProvider`), [`DomainTenantFinder`](file:///vendor/spatie/laravel-multitenancy/src/TenantFinder/DomainTenantFinder.php) inspects `$request->getHost()` (`tenant1.localhost`).
-3. **Database Query:** It queries `App\Models\Tenant::whereDomain($host)->first()` in the `landlord` database.
+2. **Tenant Discovery:** During service provider booting (`MultitenancyServiceProvider`), [`SaaSTenantFinder`](file:///app/TenantFinder/SaaSTenantFinder.php) inspects `$request->getHost()` (`tenant1.localhost`).
+3. **Database Query:** It queries `App\Models\Tenant::whereDomain($host)->first()` in the `landlord` database, falling back to slug matching for `{slug}.{TENANT_DOMAIN_SUFFIX}` hosts.
 4. **Context Switching:**
-   * If found, `$tenant->makeCurrent()` executes [`SwitchTenantDatabaseTask`](file:///vendor/spatie/laravel-multitenancy/src/Tasks/SwitchTenantDatabaseTask.php).
+   * If found, `$tenant->makeCurrent()` executes the configured switch tasks: [`SwitchTenantDatabaseTask`](file:///vendor/spatie/laravel-multitenancy/src/Tasks/SwitchTenantDatabaseTask.php), `PrefixCacheTask`, and [`ScopePermissionCacheTask`](file:///app/Core/Tasks/ScopePermissionCacheTask.php).
    * It dynamically configures `database.connections.tenant.database = 'vendor_1'` and purges/reconnects the `tenant` connection.
 5. **Route Middleware:**
    * Routes protected with the `tenant` middleware group execute [`NeedsTenant`](file:///vendor/spatie/laravel-multitenancy/src/Http/Middleware/NeedsTenant.php) and [`EnsureValidTenantSession`](file:///vendor/spatie/laravel-multitenancy/src/Http/Middleware/EnsureValidTenantSession.php).
@@ -114,13 +114,17 @@ Both `landlord` and `tenant` connections must be explicitly configured:
 'tenant_model' => \App\Models\Tenant::class,
 
 // Tenant Finder
-'tenant_finder' => Spatie\Multitenancy\TenantFinder\DomainTenantFinder::class,
+'tenant_finder' => App\TenantFinder\SaaSTenantFinder::class,
 
 // Tasks executed when switching tenants (CRITICAL)
 'switch_tenant_tasks' => [
     \Spatie\Multitenancy\Tasks\SwitchTenantDatabaseTask::class,
-    // \Spatie\Multitenancy\Tasks\PrefixCacheTask::class,
+    \Spatie\Multitenancy\Tasks\PrefixCacheTask::class,
+    \Modules\Core\Tasks\ScopePermissionCacheTask::class,
 ],
+
+// `tenants:artisan --tenant=` resolves tenants by these columns
+'tenant_artisan_search_fields' => ['id', 'slug', 'domain'],
 
 // Connection names
 'tenant_database_connection_name' => 'tenant',

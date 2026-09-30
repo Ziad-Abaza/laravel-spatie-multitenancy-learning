@@ -7,12 +7,7 @@ import BaseButton from '@core/Components/BaseButton.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import { User, Mail, Lock, ArrowRight, LogIn } from 'lucide-vue-next';
 
-const page = usePage<{
-    tenant?: {
-        name?: string;
-        domain?: string;
-    } | null;
-}>();
+const page = usePage();
 const { t } = useI18n();
 
 const tenant = computed(() => page.props.tenant);

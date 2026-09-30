@@ -19,7 +19,6 @@ class TenantSetting extends Model
         'key',
         'value',
         'type',
-        'is_public',
     ];
 
     protected static function booted(): void
@@ -33,7 +32,6 @@ class TenantSetting extends Model
     protected function casts(): array
     {
         return [
-            'is_public' => 'boolean',
         ];
     }
 }

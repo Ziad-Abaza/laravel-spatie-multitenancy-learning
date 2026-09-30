@@ -24,4 +24,16 @@ return new class extends Migration
             $table->timestamps();
         });
     }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        if (Tenant::checkCurrent()) {
+            return;
+        }
+
+        Schema::dropIfExists('tenants');
+    }
 };

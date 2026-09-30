@@ -7,7 +7,9 @@ use App\Models\Tenant;
 use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Access\Support\TenantPermissions;
 use Modules\Core\Contracts\QuotaManagerContract;
+use Modules\Core\Enums\TenantStatus;
 
 class TenantDashboardController extends Controller
 {
@@ -35,16 +37,16 @@ class TenantDashboardController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->roles->first()?->name ?? 'Member',
+                'role' => $user->roles->first()?->name ?? TenantPermissions::ROLE_MEMBER,
                 'created_at' => $user->created_at?->format('Y-m-d') ?? '-',
             ]);
 
         return Inertia::render('Tenant/Dashboard', [
             'tenant' => [
-                'name' => $tenant?->name ?? 'Workspace',
-                'domain' => $tenant?->domain ?? 'localhost',
-                'status' => $tenant?->getStatus() ?? 'active',
-                'plan_name' => $tenant?->plan?->getName() ?? 'Starter',
+                'name' => $tenant?->name ?? '-',
+                'domain' => $tenant?->domain ?? '-',
+                'status' => $tenant?->getStatus() ?? TenantStatus::Active->value,
+                'plan_name' => $tenant?->plan?->getName() ?? '-',
                 'trial_ends_at' => $tenant?->trial_ends_at?->format('Y-m-d'),
                 'is_trialing' => $tenant?->isTrialing() ?? false,
             ],

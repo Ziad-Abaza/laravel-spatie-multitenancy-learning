@@ -58,6 +58,8 @@ return [
      */
     'tenant_artisan_search_fields' => [
         'id',
+        'slug',
+        'domain',
     ],
 
     /*

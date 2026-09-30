@@ -17,7 +17,9 @@ use Modules\Access\Models\Role;
 use Modules\Access\Services\AccessInvariants;
 use Modules\Access\Services\ManagementPolicy;
 use Modules\Access\Services\TenantUserService;
+use Modules\Access\Support\TenantPermissions;
 use Modules\Core\Contracts\QuotaManagerContract;
+use Modules\Core\Enums\UserStatus;
 
 class UserController extends Controller
 {
@@ -42,8 +44,8 @@ class UserController extends Controller
             'email' => $user->email,
             'job_title' => $user->job_title ?? '-',
             'phone' => $user->phone ?? '-',
-            'status' => $user->status ?? 'active',
-            'role' => $user->roles->first()?->name ?? 'Member',
+            'status' => $user->status ?? UserStatus::Active->value,
+            'role' => $user->roles->first()?->name ?? TenantPermissions::ROLE_MEMBER,
             'avatar_url' => $user->getAvatarUrl(),
             'created_at' => $user->created_at?->format('Y-m-d') ?? '-',
             'can_edit' => $this->policy->canManage($actor, $user, 'web'),
@@ -106,7 +108,7 @@ class UserController extends Controller
             'role' => ['nullable', 'string', Rule::exists(Role::class, 'name')->where('guard_name', 'web')],
             'job_title' => ['nullable', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:30'],
-            'status' => ['nullable', 'string', 'in:active,inactive,suspended'],
+            'status' => ['nullable', 'string', Rule::enum(UserStatus::class)],
         ]);
 
         $actor = $request->user();

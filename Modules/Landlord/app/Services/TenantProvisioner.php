@@ -228,8 +228,8 @@ class TenantProvisioner
             // Default tenant settings — always through the governed service
             // (registry validation + cache invalidation).
             $settings = app(SettingManagerContract::class);
-            $settings->set('palette', $defaultPalette, 'theme', true);
-            $settings->set('mode', $defaultMode, 'theme', true);
+            $settings->set('palette', $defaultPalette, 'theme');
+            $settings->set('mode', $defaultMode, 'theme');
         });
     }
 }

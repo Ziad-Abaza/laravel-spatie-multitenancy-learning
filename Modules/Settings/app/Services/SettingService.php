@@ -27,7 +27,7 @@ class SettingService implements SettingManagerContract
      * Set a setting value. Only keys declared in the settings registry may be
      * written, and only by their owning surface (landlord/tenant/shared).
      */
-    public function set(string $key, mixed $value, string $domain = 'system', bool $isPublic = false): void
+    public function set(string $key, mixed $value, string $domain = 'system'): void
     {
         $this->assertWritable($domain, $key);
 
@@ -39,7 +39,6 @@ class SettingService implements SettingManagerContract
             [
                 'value' => $serialized['value'],
                 'type' => $serialized['type'],
-                'is_public' => $isPublic,
             ]
         );
 

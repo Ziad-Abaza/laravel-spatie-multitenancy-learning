@@ -1,12 +1,6 @@
 {
-    "name": "nwidart/subscription",
+    "name": "spatie-multitenant/subscription",
     "description": "",
-    "authors": [
-        {
-            "name": "Nicolas Widart",
-            "email": "n.widart@gmail.com"
-        }
-    ],
     "extra": {
         "laravel": {
             "providers": [],

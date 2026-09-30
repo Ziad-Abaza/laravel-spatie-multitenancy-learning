@@ -51,8 +51,8 @@ class HandleInertiaRequests extends Middleware
                 'name' => $landlordUser->name,
                 'email' => $landlordUser->email,
                 'is_landlord' => true,
-                'roles' => method_exists($landlordUser, 'getRoleNames') ? $landlordUser->getRoleNames() : ['Super Admin'],
-                'permissions' => method_exists($landlordUser, 'getAllPermissions') ? $landlordUser->getAllPermissions()->pluck('name') : [],
+                'roles' => $landlordUser->getRoleNames(),
+                'permissions' => $landlordUser->getAllPermissions()->pluck('name'),
             ];
         } elseif (auth('web')->check()) {
             $tenantUser = auth('web')->user();
@@ -62,8 +62,8 @@ class HandleInertiaRequests extends Middleware
                 'email' => $tenantUser->email,
                 'is_landlord' => false,
                 'status' => $tenantUser->status ?? 'active',
-                'roles' => method_exists($tenantUser, 'getRoleNames') ? $tenantUser->getRoleNames() : ['Member'],
-                'permissions' => method_exists($tenantUser, 'getAllPermissions') ? $tenantUser->getAllPermissions()->pluck('name') : [],
+                'roles' => $tenantUser->getRoleNames(),
+                'permissions' => $tenantUser->getAllPermissions()->pluck('name'),
             ];
         }
 
@@ -120,7 +120,7 @@ class HandleInertiaRequests extends Middleware
                 'current' => $locale,
                 'is_rtl' => $isRtl,
                 'supported' => $supportedLocales,
-                'translations' => app('translator')->getLoader()->load($locale, '*', '*'),
+                'translations' => $this->translationsFor($request, $locale),
             ],
             'theme' => [
                 'theme' => $theme['theme'],
@@ -136,5 +136,38 @@ class HandleInertiaRequests extends Middleware
                 'info' => fn () => $request->session()->get('info'),
             ],
         ]);
+    }
+
+    /**
+     * Scope the JSON catalog sent to the frontend: the global catalog plus
+     * shared Core chrome and the dictionary of the module handling this
+     * route. The full merged catalog is never serialized per response.
+     *
+     * @return array<string, string>
+     */
+    private function translationsFor(Request $request, string $locale): array
+    {
+        $paths = [
+            lang_path("{$locale}.json"),
+            module_path('Core', "lang/{$locale}.json"),
+        ];
+
+        $controller = (string) ($request->route()?->getAction('controller') ?? '');
+        if (preg_match('/Modules\\\\([A-Za-z]+)\\\\/', $controller, $matches) && $matches[1] !== 'Core') {
+            $paths[] = module_path($matches[1], "lang/{$locale}.json");
+        }
+
+        $translations = [];
+        foreach ($paths as $path) {
+            if (! is_file($path)) {
+                continue;
+            }
+            $decoded = json_decode((string) file_get_contents($path), true);
+            if (is_array($decoded)) {
+                $translations = array_merge($translations, $decoded);
+            }
+        }
+
+        return $translations;
     }
 }

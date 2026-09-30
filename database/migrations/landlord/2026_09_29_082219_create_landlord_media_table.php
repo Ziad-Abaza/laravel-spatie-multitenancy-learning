@@ -34,4 +34,13 @@ return new class extends Migration
             $table->nullableTimestamps();
         });
     }
+
+    public function down(): void
+    {
+        if (Tenant::checkCurrent()) {
+            return;
+        }
+
+        Schema::dropIfExists('media');
+    }
 };
