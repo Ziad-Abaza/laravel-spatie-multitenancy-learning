@@ -1,44 +1,46 @@
 /// <reference types="vite/client" />
 
 export interface SharedTenantData {
-    id: number;
-    name: string;
-    slug: string;
-    domain: string;
-    status: string;
-    plan: {
-        id: number;
-        name: string;
-        slug: string;
+    id?: number;
+    name?: string;
+    slug?: string;
+    domain?: string;
+    status?: string;
+    plan?: {
+        id?: number;
+        name?: string;
+        slug?: string;
         limits?: Record<string, unknown>;
     } | null;
     branding?: Record<string, unknown>;
+    [key: string]: unknown;
 }
 
 export interface SharedSystemData {
-    allow_registration: boolean;
+    allow_registration?: boolean;
+    [key: string]: unknown;
 }
 
 export interface SharedAuthUser {
-    id: number;
-    name: string;
-    email: string;
+    id?: number;
+    name?: string;
+    email?: string;
     is_landlord?: boolean;
     status?: string;
-    roles: string[];
-    permissions: string[];
+    roles?: string[];
+    permissions?: string[];
 }
 
 export interface SharedAuthData {
-    user: SharedAuthUser | null;
-    isLandlord: boolean;
+    user?: SharedAuthUser | null;
+    isLandlord?: boolean;
 }
 
 export interface SharedLocaleData {
-    current: string;
-    is_rtl: boolean;
-    supported: Record<string, string>;
-    translations: Record<string, string>;
+    current?: string;
+    is_rtl?: boolean;
+    supported?: Record<string, string>;
+    translations?: Record<string, string>;
 }
 
 export interface SharedThemeData {
@@ -82,14 +84,14 @@ export interface AppSharedPageProps {
 
 declare module '@inertiajs/core' {
     interface PageProps {
-        auth: SharedAuthData;
-        tenant: SharedTenantData | null;
-        branding: SharedBrandingData;
-        system: SharedSystemData;
-        billing: SharedBillingData;
-        locale: SharedLocaleData;
-        theme: SharedThemeData;
-        flash: SharedFlashData;
+        auth?: SharedAuthData;
+        tenant?: SharedTenantData | null;
+        branding?: SharedBrandingData;
+        system?: SharedSystemData;
+        billing?: SharedBillingData;
+        locale?: SharedLocaleData;
+        theme?: SharedThemeData;
+        flash?: SharedFlashData;
         [key: string]: unknown;
     }
 
