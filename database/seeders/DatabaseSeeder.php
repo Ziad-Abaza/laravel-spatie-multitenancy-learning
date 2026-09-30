@@ -62,29 +62,24 @@ class DatabaseSeeder extends Seeder
             app(AccessBaselineProvisioner::class)->ensureBaseline();
         }
 
-        // 2. Create tenant owner / admin user
-        if (Schema::connection($tenantConnection)->hasTable('users')) {
-            $emails = [
-                'admin@'.$tenant->domain,
-                'admin@'.$tenant->domain.'.com',
-            ];
+        // 2. Create tenant owner / admin user — never with a predictable
+        //    password outside local development. Set SEED_TENANT_OWNER_PASSWORD
+        //    to control the seeded credential explicitly.
+        $ownerPassword = env('SEED_TENANT_OWNER_PASSWORD')
+            ?? (app()->environment('local') ? 'password' : null);
 
-            foreach ($emails as $email) {
-                $user = User::updateOrCreate(
-                    ['email' => $email],
-                    [
-                        'name' => $tenant->name.' Admin',
-                        'password' => Hash::make('password'),
-                        'status' => 'active',
-                    ]
-                );
+        if ($ownerPassword !== null && Schema::connection($tenantConnection)->hasTable('users')) {
+            $user = User::updateOrCreate(
+                ['email' => 'admin@'.$tenant->domain],
+                [
+                    'name' => $tenant->name.' Admin',
+                    'password' => Hash::make($ownerPassword),
+                    'status' => 'active',
+                ]
+            );
 
-                if (method_exists($user, 'assignRole')) {
-                    try {
-                        $user->assignRole(TenantPermissions::ROLE_OWNER);
-                    } catch (\Throwable) {
-                    }
-                }
+            if (method_exists($user, 'assignRole')) {
+                $user->assignRole(TenantPermissions::ROLE_OWNER);
             }
         }
 

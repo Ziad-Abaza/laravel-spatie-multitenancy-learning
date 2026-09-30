@@ -14,12 +14,6 @@ class TenantSeeder extends Seeder
      */
     public function run(): void
     {
-        $hasCustomCredentials = Schema::connection('landlord')->hasColumn('tenants', 'db_username');
-
-        $defaultUsername = env('DB_USERNAME', 'root');
-        $defaultPassword = env('DB_PASSWORD', '');
-        $landlordDatabase = env('DB_DATABASE', 'multivendor');
-
         // Tenants with subdomains on localhost
         $tenants = [
             [
@@ -54,12 +48,6 @@ class TenantSeeder extends Seeder
 
             if ($hasStatus) {
                 $attributes['status'] = 'active';
-            }
-
-            // If the tenants table has extra credentials columns (db_username, db_password)
-            if ($hasCustomCredentials) {
-                $attributes['db_username'] = $defaultUsername;
-                $attributes['db_password'] = $defaultPassword;
             }
 
             Tenant::unguarded(function () use ($data, $attributes) {

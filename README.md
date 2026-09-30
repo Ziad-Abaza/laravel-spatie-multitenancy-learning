@@ -164,8 +164,6 @@ class Tenant extends BaseTenant
         'name',
         'domain',
         'database',
-        'db_username',
-        'db_password',
     ];
 
     public function url(string $path = '/'): string

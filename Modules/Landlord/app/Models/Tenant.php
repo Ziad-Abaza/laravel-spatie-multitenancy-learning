@@ -23,8 +23,6 @@ class Tenant extends BaseTenant implements HasMedia, TenantContract
         'slug',
         'domain',
         'database',
-        'db_username',
-        'db_password',
         'status',
         'plan_id',
         'settings',
