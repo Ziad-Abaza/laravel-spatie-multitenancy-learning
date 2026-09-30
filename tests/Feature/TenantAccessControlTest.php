@@ -24,6 +24,27 @@ class TenantAccessControlTest extends TestCase
         ]);
     }
 
+    public function test_role_and_permission_models_follow_tenancy_context(): void
+    {
+        $landlord = config('multitenancy.landlord_database_connection_name');
+        $tenantConn = config('multitenancy.tenant_database_connection_name');
+
+        $this->assertSame($landlord, (new Role)->getConnectionName());
+        $this->assertSame($landlord, (new Permission)->getConnectionName());
+
+        $tenant = $this->tenant();
+        $tenant->makeCurrent();
+
+        try {
+            $this->assertSame($tenantConn, (new Role)->getConnectionName());
+            $this->assertSame($tenantConn, (new Permission)->getConnectionName());
+        } finally {
+            Tenant::forgetCurrent();
+        }
+
+        $this->assertSame($landlord, (new Role)->getConnectionName());
+    }
+
     public function test_access_baseline_seeds_full_permission_catalog_and_roles(): void
     {
         $this->tenant()->execute(function () {

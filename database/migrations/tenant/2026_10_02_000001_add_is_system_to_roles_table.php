@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Align tenant roles with the landlord schema — the shared Role model
+     * casts is_system, so the column must exist in both contexts.
+     */
+    public function up(): void
+    {
+        Schema::table('roles', function (Blueprint $table) {
+            $table->boolean('is_system')->default(false)->index();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('roles', function (Blueprint $table) {
+            $table->dropIndex(['is_system']);
+            $table->dropColumn('is_system');
+        });
+    }
+};

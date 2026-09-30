@@ -14,15 +14,15 @@ tags: []
 
 ## CURRENT STATE
 
-- **Current Phase:** Phase 5
-- **Current Cluster:** C5 — Tenant isolation soft spots
-- **Current Finding:** FND-015
+- **Current Phase:** Phase 6
+- **Current Cluster:** C6 — Auth completeness
+- **Current Finding:** FND-041
 
 ### Queue
 
-- **Pending:** C5 → C11 (see phase plan below)
-- **In Progress:** C5
-- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065)
+- **Pending:** C6 → C11 (see phase plan below)
+- **In Progress:** C6
+- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022)
 - **Blocked:** —
 
 ### Phase plan (order = cluster order per mandate; tiers per §11.2)
@@ -120,12 +120,12 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 
 | ID | Severity | Root Cause | Files | Status | Started | Completed | Verification | Notes |
 |---|---|---|---|---|---|---|---|---|
-| FND-015 | MEDIUM | No PrefixCacheTask: tenant `cache()` calls share landlord cache table keyspace | config/cache.php; config/multitenancy.php | PENDING | — | — | — | PrefixCacheTask or dedicated tenant store (database store → needs tenant-side prefix) |
-| FND-018 | MEDIUM | Media/storage not tenant-scoped: `disk_name=public`, `prefix=''`, enumerable IDs at /storage/* | config/media-library.php; config/filesystems.php | PENDING | — | — | — | Tenant disk path/prefix |
-| FND-032 | MEDIUM | Landlord `roles.is_system` exists; tenant `roles` lacks it → shared Role model can't rely on column | landlord vs tenant permission migrations | PENDING | — | — | — | Align schemas |
-| FND-042 | LOW | AuditWriter writes AdminAuditLog (landlord conn) — escapes tenant txn atomicity if called in tenant context | Modules/Access/app/Services/AuditWriter.php | PENDING | — | — | — | Verify call sites; constrain or document |
-| FND-021 | MEDIUM | Single Role/Permission model pair configured for both landlord+tenant contexts | config/permission.php | PENDING | — | — | — | Verify connection traits — may resolve to documentation/enforcement |
-| FND-022 | LOW | Tenant migrations create cache/jobs tables never used (queue+cache always resolve to landlord conn) | tenant migrations | PENDING | — | — | — | Remove dead tenant-side schema or repurpose |
+| FND-015 | MEDIUM | No PrefixCacheTask: tenant `cache()` calls share landlord cache table keyspace | config/multitenancy.php | COMPLETED | 2026-10-01 | 2026-10-01 | `test_tenant_context_scopes_cache_keyspace` | Enabled `PrefixCacheTask` (prefix `tenant_id_{id}` while a tenant is current, restored on forget) — keyspace isolation on the shared store, composes with the already key-scoped permission cache |
+| FND-018 | MEDIUM | Media/storage not tenant-scoped: `disk_name=public`, `prefix=''`, enumerable IDs at /storage/* | app/Support/TenantAwarePathGenerator.php; config/media-library.php | COMPLETED | 2026-10-01 | 2026-10-01 | `test_media_paths_are_scoped_to_the_owning_tenant`; full suite green | Media files now stored under `tenants/{id}/` — scoped by the OWNER record for Tenant-owned media (stable in every context) and by ambient tenant for tenant-side models. Landlord media keeps default path. Row storage unchanged (media table follows the owning model's connection) |
+| FND-032 | MEDIUM | Landlord `roles.is_system` exists; tenant `roles` lacks it → shared Role model can't rely on column | database/migrations/tenant/2026_10_02_000001_add_is_system_to_roles_table.php | COMPLETED | 2026-10-01 | 2026-10-01 | `test_tenant_schema_is_isolated…` asserts column; suite green | New tenant migration aligns roles schema |
+| FND-042 | LOW | AuditWriter writes AdminAuditLog (landlord conn) — escapes tenant txn atomicity if called in tenant context | Modules/Access/app/Services/AuditWriter.php | COMPLETED | 2026-10-01 | 2026-10-01 | grep: call sites are landlord-only (SyncLandlordAccessCommand, LandlordAdminController, LandlordRoleController); suite green | Constrained at source: `record()` now throws LogicException if invoked with a current tenant — the audit trail is landlord-centralized by design and can no longer silently escape a tenant transaction |
+| FND-021 | MEDIUM | Single Role/Permission model pair configured for both landlord+tenant contexts | Modules/Access/app/Models/{Role,Permission}.php | COMPLETED | 2026-10-01 | 2026-10-01 | `test_role_and_permission_models_follow_tenancy_context` + existing landlord/tenant behavior suite | Verified mechanism: `getConnectionName()` resolves tenant/landlord by `Tenant::checkCurrent()` and ScopePermissionCacheTask scopes the registrar key per context — the design is sound; verified with an explicit context test |
+| FND-022 | LOW | Tenant migrations create cache/jobs tables never used (queue+cache always resolve to landlord conn) | tenant migrations | COMPLETED | 2026-10-01 | 2026-10-01 | `test_tenant_schema_is_isolated…` asserts tables absent; suite green | Removed dead `cache`, `jobs`, `sessions` creation (kept `password_reset_tokens` — wired by FND-031; kept `media` — InteractsWithMedia inherits the model connection so tenant uploads ARE tenant-local). Added drop migration for previously migrated tenant DBs |
 
 ### Phase 6 — Cluster C6: Auth completeness (MEDIUM)
 
@@ -244,12 +244,22 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - tests/Feature/TenancySecurityTest.php (C4 regression test + retargeted suspended/ghost-api URLs)
 - tests/Feature/LandlordTenantProvisioningTest.php (FND-065 destroy coverage)
 
+- config/multitenancy.php (FND-015 — PrefixCacheTask enabled)
+- config/media-library.php (FND-018 — TenantAwarePathGenerator)
+- app/Support/TenantAwarePathGenerator.php (FND-018)
+- Modules/Access/app/Services/AuditWriter.php (FND-042 — landlord-context guard)
+- database/migrations/tenant/0001_01_01_000000_create_users_table.php (FND-022 — sessions block removed)
+- deleted: database/migrations/tenant/0001_01_01_000001_create_cache_table.php, 0001_01_01_000002_create_jobs_table.php (FND-022)
+
 ### Migrations Added
-(none yet)
+- database/migrations/tenant/2026_10_02_000001_add_is_system_to_roles_table.php (FND-032)
+- database/migrations/tenant/2026_10_02_000002_drop_shared_infrastructure_tables.php (FND-022)
 
 ### Tests Added
 - test_sanctum_scaffold_api_routes_are_not_registered (TenancySecurityTest)
 - test_plan_with_attached_tenant_cannot_be_deleted, test_plan_with_subscriptions_cannot_be_deleted, test_orphan_plan_can_be_deleted (LandlordTenantProvisioningTest)
+- test_tenant_context_scopes_cache_keyspace, test_tenant_schema_is_isolated_without_shared_infrastructure_tables, test_media_paths_are_scoped_to_the_owning_tenant (TenantIsolationTest)
+- test_role_and_permission_models_follow_tenancy_context (TenantAccessControlTest)
 
 ### Risks
 - `docs/audit/` contains this file + MASTER-AUDIT.md only; do not regenerate findings.

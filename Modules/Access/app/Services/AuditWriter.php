@@ -5,6 +5,7 @@ namespace Modules\Access\Services;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Landlord\Models\AdminAuditLog;
+use Spatie\Multitenancy\Models\Tenant;
 
 /**
  * Writes append-only audit records for access-control mutations. Called from
@@ -27,6 +28,12 @@ class AuditWriter
         ?array $before = null,
         ?array $after = null,
     ): void {
+        // AdminAuditLog lives on the landlord connection; inside a tenant
+        // context transaction the write would escape that transaction's
+        // atomicity. The audit surface is landlord-only by design — fail
+        // loudly rather than silently split a mutation from its record.
+        throw_if(Tenant::checkCurrent(), \LogicException::class, 'AuditWriter is landlord-context only.');
+
         AdminAuditLog::create([
             'actor_guard' => $guard,
             'actor_id' => $actor?->getAuthIdentifier(),
