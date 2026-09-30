@@ -193,20 +193,22 @@ The `tenant` group ensures requests without a valid tenant are stopped:
 })
 ```
 
-### 2. Custom 404 Exception Handling in [`bootstrap/app.php`](file:///bootstrap/app.php)
-When accessing an unregistered domain, `NoCurrentTenant` is caught and rendered gracefully:
+### 2. Unified Error Page via [`bootstrap/app.php`](file:///bootstrap/app.php) + `app/Support/ErrorPageRenderer.php`
+When accessing an unregistered domain, `NoCurrentTenant` is caught and rendered gracefully. Every HTML error response (4xx/5xx) renders a single Inertia page — `Core/ErrorPage` — with per-status titles, messages, icons, and actions; JSON/API requests keep JSON responses:
 
 ```php
 ->withExceptions(function (Exceptions $exceptions): void {
     $exceptions->render(function (NoCurrentTenant $e, Request $request) {
         if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json(['message' => 'No tenant found for this request.'], 404);
+            return response()->json(['message' => __('error_tenant_not_found')], 404);
         }
-
-        return response()->view('errors.404', [
-            'message' => 'No tenant found for this request.',
-        ], 404);
+        // Web requests fall through to the unified error page in respond().
     });
+
+    $exceptions->respond(
+        fn (Response $response, Throwable $e, Request $request) =>
+            app(ErrorPageRenderer::class)->respond($response, $e, $request)
+    );
 })
 ```
 
