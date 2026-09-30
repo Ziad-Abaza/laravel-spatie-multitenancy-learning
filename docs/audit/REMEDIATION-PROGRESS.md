@@ -14,15 +14,15 @@ tags: []
 
 ## CURRENT STATE
 
-- **Current Phase:** Phase 2
-- **Current Cluster:** C2 — Domain resolution hardcoding
-- **Current Finding:** FND-053
+- **Current Phase:** Phase 3
+- **Current Cluster:** C3 — Test infrastructure
+- **Current Finding:** FND-067
 
 ### Queue
 
-- **Pending:** C3 → C11 (see phase plan below)
-- **In Progress:** C2
-- **Completed:** C1 (FND-029, FND-030, FND-033)
+- **Pending:** C4 → C11 (see phase plan below)
+- **In Progress:** C3
+- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057)
 - **Blocked:** —
 
 ### Phase plan (order = cluster order per mandate; tiers per §11.2)
@@ -92,8 +92,8 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 
 | ID | Severity | Root Cause | Files | Status | Started | Completed | Verification | Notes |
 |---|---|---|---|---|---|---|---|---|
-| FND-053 | HIGH | `domain = subdomain.'.localhost'` hardcoded; ignores TENANT_DOMAIN_SUFFIX; unique-rule compares raw subdomain vs full domain | Modules/Landlord/.../TenantRegistrationController.php | PENDING | — | — | — | Single `tenantDomainSuffix()` config source (P0) |
-| FND-057 | LOW-MEDIUM | Public routes `/`, `/pricing`, `/register-tenant` not host-restricted → reachable on tenant hosts | routes/web.php (Landlord) | PENDING | — | — | — | Restrict to landlord host |
+| FND-053 | HIGH | `domain = subdomain.'.localhost'` hardcoded; ignores TENANT_DOMAIN_SUFFIX; unique-rule compares raw subdomain vs full domain | TenantProvisioner.php; TenantRegistrationController.php; HandleInertiaRequests.php; RegisterTenant.vue; Tenants/Create.vue; TenantSeeder.php; LandlordDatabaseSeeder.php | COMPLETED | 2026-10-01 | 2026-10-01 | php -l pass | Single construction point `TenantProvisioner::tenantDomain()` → `{slug}.{multitenancy.tenant_domain_suffix}`, request-host fallback; controller no longer passes domain; unique rule now checks composed domain; suffix shared to UI via `tenancy.domain_suffix` prop; seeders derive fixture domains from suffix. Landlord seeder admin password also env-gated (FND-029 family) + catch removed (FND-033 family) |
+| FND-057 | LOW-MEDIUM | Public routes `/`, `/pricing`, `/register-tenant` not host-restricted → reachable on tenant hosts | Modules/Landlord/routes/web.php | COMPLETED | 2026-10-01 | 2026-10-01 | php -l pass | Wrapped in `Route::middleware('landlord')` (existing EnsureLandlordContext → 404 on tenant hosts) |
 
 ### Phase 3 — Cluster C3: Test infrastructure (HIGH)
 
@@ -214,9 +214,16 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 
 ### Files Modified
 - database/seeders/DatabaseSeeder.php (FND-029, FND-033)
-- database/seeders/TenantSeeder.php (FND-030)
+- database/seeders/TenantSeeder.php (FND-030, FND-053)
 - Modules/Landlord/app/Models/Tenant.php (FND-030)
-- .env.example (FND-029 — SEED_TENANT_OWNER_PASSWORD documented)
+- Modules/Landlord/app/Services/TenantProvisioner.php (FND-053 — canonical tenantDomain())
+- Modules/Landlord/app/Http/Controllers/TenantRegistrationController.php (FND-053)
+- Modules/Landlord/routes/web.php (FND-057)
+- Modules/Landlord/database/seeders/LandlordDatabaseSeeder.php (FND-029/033/053 family)
+- Modules/Landlord/resources/js/Pages/Landing/RegisterTenant.vue (FND-053)
+- Modules/Landlord/resources/js/Pages/Tenants/Create.vue (FND-053)
+- app/Http/Middleware/HandleInertiaRequests.php (FND-053 — tenancy.domain_suffix prop)
+- .env.example (FND-029 — SEED_TENANT_OWNER_PASSWORD + SEED_LANDLORD_ADMIN_PASSWORD documented)
 - README.md (FND-030 — stale fillable example)
 - docs/audit/REMEDIATION-PROGRESS.md (this file)
 

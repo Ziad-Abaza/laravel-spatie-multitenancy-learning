@@ -30,10 +30,19 @@ const page = usePage<{
     system?: {
         allow_registration?: boolean;
     };
+    tenancy?: {
+        domain_suffix?: string | null;
+    };
 }>();
 const { t } = useI18n();
 
 const allowRegistration = computed(() => page.props.system?.allow_registration !== false);
+
+// Mirrors TenantProvisioner::tenantDomain(): configured suffix, else the
+// request host (with port for display fidelity in dev).
+const domainSuffix = computed(
+    () => page.props.tenancy?.domain_suffix || window.location.host
+);
 
 // Read query param if passed e.g. /register-tenant?plan_id=2
 const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
@@ -121,7 +130,7 @@ function submit() {
                         :hint="t('subdomain_help', 'Only lowercase letters, numbers, and hyphens.')"
                         :error="form.errors.subdomain"
                     >
-                        <template #trailing>.localhost:8000</template>
+                        <template #trailing>.{{ domainSuffix }}</template>
                     </FormField>
                 </div>
 

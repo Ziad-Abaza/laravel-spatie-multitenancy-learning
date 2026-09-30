@@ -14,18 +14,20 @@ class TenantSeeder extends Seeder
      */
     public function run(): void
     {
-        // Tenants with subdomains on localhost
+        $suffix = config('multitenancy.tenant_domain_suffix') ?: 'localhost';
+
+        // Demo tenants on subdomains under the configured tenant domain suffix
         $tenants = [
             [
                 'name' => 'Tenant 1',
                 'slug' => 'tenant1',
-                'domain' => 'tenant1.localhost',
+                'domain' => "tenant1.{$suffix}",
                 'database' => 'vendor_1',
             ],
             [
                 'name' => 'Tenant 2',
                 'slug' => 'tenant2',
-                'domain' => 'tenant2.localhost',
+                'domain' => "tenant2.{$suffix}",
                 'database' => 'vendor_2',
             ],
         ];

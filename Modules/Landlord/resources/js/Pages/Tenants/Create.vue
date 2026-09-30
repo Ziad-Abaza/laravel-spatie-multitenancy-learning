@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { computed, watch } from 'vue';
+import { useForm, usePage } from '@inertiajs/vue3';
 import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
 import PageHeader from '@core/Components/PageHeader.vue';
 import Panel from '@core/Components/Panel.vue';
@@ -21,6 +21,18 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
+const page = usePage<{
+    tenancy?: {
+        domain_suffix?: string | null;
+    };
+}>();
+
+// Mirrors TenantProvisioner::tenantDomain(): configured suffix, else the
+// request host.
+const domainSuffix = computed(
+    () => page.props.tenancy?.domain_suffix || window.location.hostname
+);
+
 const form = useForm({
     name: '',
     slug: '',
@@ -34,11 +46,11 @@ const form = useForm({
 watch(() => form.name, (name) => {
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
     if (!form.slug) form.slug = slug;
-    if (!form.domain) form.domain = `${slug}.localhost`;
+    if (!form.domain) form.domain = slug ? `${slug}.${domainSuffix.value}` : '';
 });
 
 watch(() => form.slug, (slug) => {
-    form.domain = `${slug}.localhost`;
+    form.domain = slug ? `${slug}.${domainSuffix.value}` : '';
 });
 
 const planOptions = [
@@ -83,7 +95,7 @@ function submit() {
                                 v-model="form.domain"
                                 :label="t('domain', 'Domain FQDN')"
                                 required
-                                placeholder="stark.localhost"
+                                :placeholder="`stark.${domainSuffix}`"
                                 :error="form.errors.domain"
                                 class="font-mono"
                             />

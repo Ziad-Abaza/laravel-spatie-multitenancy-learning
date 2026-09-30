@@ -47,12 +47,8 @@ class TenantProvisioner
             $slug = 'tenant-'.Str::lower(Str::random(6));
         }
 
-        // Domain construction
-        $baseHost = request()->getHost() ?: 'localhost';
-        if (str_contains($baseHost, ':')) {
-            $baseHost = explode(':', $baseHost)[0];
-        }
-        $domain = $data['domain'] ?? "{$slug}.{$baseHost}";
+        // Domain construction — single source of truth: tenantDomain()
+        $domain = $data['domain'] ?? $this->tenantDomain($slug);
 
         // Ensure database name is safe with configurable prefix
         $prefix = (string) $this->settingService->get('tenant_db_prefix', 'tenant_', 'system');
@@ -117,6 +113,24 @@ class TenantProvisioner
         event(new TenantProvisioned($tenant));
 
         return $tenant;
+    }
+
+    /**
+     * Canonical tenant domain for a slug: {slug}.{TENANT_DOMAIN_SUFFIX}.
+     * Falls back to the current request host when no suffix is configured.
+     * This is the single construction point — callers must not hardcode
+     * a suffix.
+     */
+    public function tenantDomain(string $slug): string
+    {
+        $host = config('multitenancy.tenant_domain_suffix')
+            ?: (request()->getHost() ?: 'localhost');
+
+        if (str_contains($host, ':')) {
+            $host = explode(':', $host)[0];
+        }
+
+        return strtolower($slug).'.'.strtolower($host);
     }
 
     /**

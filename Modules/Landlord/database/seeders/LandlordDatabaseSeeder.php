@@ -24,21 +24,25 @@ class LandlordDatabaseSeeder extends Seeder
         // 1. Seed SaaS Subscription Plans
         $this->call(PlanSeeder::class);
 
-        // 2. Setup Landlord permission catalog + Super Admin role and user
+        // 2. Setup Landlord permission catalog + Super Admin role and user —
+        //    never with a predictable password outside local development.
+        //    Set SEED_LANDLORD_ADMIN_PASSWORD to control the credential.
         app(AccessBaselineProvisioner::class)->ensureLandlordBaseline();
 
-        $admin = LandlordUser::updateOrCreate(
-            ['email' => 'admin@landlord.test'],
-            [
-                'name' => 'Landlord Super Admin',
-                'password' => Hash::make('password'),
-            ]
-        );
+        $adminPassword = env('SEED_LANDLORD_ADMIN_PASSWORD')
+            ?? (app()->environment('local') ? 'password' : null);
 
-        if (method_exists($admin, 'assignRole')) {
-            try {
+        if ($adminPassword !== null) {
+            $admin = LandlordUser::updateOrCreate(
+                ['email' => 'admin@landlord.test'],
+                [
+                    'name' => 'Landlord Super Admin',
+                    'password' => Hash::make($adminPassword),
+                ]
+            );
+
+            if (method_exists($admin, 'assignRole')) {
                 $admin->assignRole(LandlordPermissions::ROLE_SUPER_ADMIN);
-            } catch (\Throwable) {
             }
         }
 
@@ -63,7 +67,9 @@ class LandlordDatabaseSeeder extends Seeder
         $proPlan = Plan::where('slug', 'pro')->first();
         $subscriptionService = app(SubscriptionService::class);
 
-        $tenant1 = Tenant::where('slug', 'tenant1')->orWhere('domain', 'tenant1.localhost')->first();
+        $suffix = config('multitenancy.tenant_domain_suffix') ?: 'localhost';
+
+        $tenant1 = Tenant::where('slug', 'tenant1')->orWhere('domain', "tenant1.{$suffix}")->first();
         if ($tenant1) {
             $tenant1->update([
                 'slug' => 'tenant1',
@@ -75,7 +81,7 @@ class LandlordDatabaseSeeder extends Seeder
             }
         }
 
-        $tenant2 = Tenant::where('slug', 'tenant2')->orWhere('domain', 'tenant2.localhost')->first();
+        $tenant2 = Tenant::where('slug', 'tenant2')->orWhere('domain', "tenant2.{$suffix}")->first();
         if ($tenant2) {
             $tenant2->update([
                 'slug' => 'tenant2',

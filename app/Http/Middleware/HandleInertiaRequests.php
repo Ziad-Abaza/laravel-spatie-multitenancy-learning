@@ -110,6 +110,9 @@ class HandleInertiaRequests extends Middleware
             'system' => [
                 'allow_registration' => (bool) $settings->get('allow_registration', true, 'system'),
             ],
+            'tenancy' => [
+                'domain_suffix' => config('multitenancy.tenant_domain_suffix'),
+            ],
             'billing' => [
                 'currency' => $settings->get('default_currency', Currency::Usd->value, 'billing'),
             ],

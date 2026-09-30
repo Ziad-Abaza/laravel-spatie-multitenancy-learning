@@ -71,7 +71,15 @@ class TenantRegistrationController extends Controller
                 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
                 Rule::notIn($reservedSubdomains),
                 Rule::unique(Tenant::class, 'slug'),
-                Rule::unique(Tenant::class, 'domain'),
+                // Domains are stored as {slug}.{suffix}; the raw subdomain input
+                // never matches the domain column, so uniqueness must be checked
+                // against the composed domain.
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $domain = $this->provisioner->tenantDomain(strtolower((string) $value));
+                    if (Tenant::where('domain', $domain)->exists()) {
+                        $fail(__('validation.unique', ['attribute' => 'domain']));
+                    }
+                },
             ],
             'admin_name' => ['required', 'string', 'max:100'],
             'admin_email' => ['required', 'email', 'max:150'],
@@ -82,7 +90,6 @@ class TenantRegistrationController extends Controller
         $tenant = $this->provisioner->provision([
             'name' => $validated['organization_name'],
             'slug' => strtolower($validated['subdomain']),
-            'domain' => strtolower($validated['subdomain']).'.localhost',
             'admin_name' => $validated['admin_name'],
             'admin_email' => $validated['admin_email'],
             'admin_password' => $validated['admin_password'],

@@ -11,11 +11,15 @@ use Modules\Landlord\Http\Controllers\ModuleManagementController;
 use Modules\Landlord\Http\Controllers\TenantController;
 use Modules\Landlord\Http\Controllers\TenantRegistrationController;
 
-// Public SaaS Landing & Onboarding
-Route::get('/', [LandingController::class, 'welcome'])->name('landing.welcome');
-Route::get('/pricing', [LandingController::class, 'pricing'])->name('landing.pricing');
-Route::get('/register-tenant', [TenantRegistrationController::class, 'show'])->name('tenant.register.show');
-Route::post('/register-tenant', [TenantRegistrationController::class, 'register'])->name('tenant.register');
+// Public SaaS Landing & Onboarding — landlord hosts only; on tenant hosts
+// these routes 404 (EnsureLandlordContext) instead of exposing the
+// platform surface inside a tenant context.
+Route::middleware('landlord')->group(function () {
+    Route::get('/', [LandingController::class, 'welcome'])->name('landing.welcome');
+    Route::get('/pricing', [LandingController::class, 'pricing'])->name('landing.pricing');
+    Route::get('/register-tenant', [TenantRegistrationController::class, 'show'])->name('tenant.register.show');
+    Route::post('/register-tenant', [TenantRegistrationController::class, 'register'])->name('tenant.register');
+});
 
 // Landlord Authentication & Administration — landlord hosts only
 Route::middleware('landlord')->prefix('landlord')->group(function () {
