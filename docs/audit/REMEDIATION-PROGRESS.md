@@ -14,15 +14,15 @@ tags: []
 
 ## CURRENT STATE
 
-- **Current Phase:** Phase 11
-- **Current Cluster:** C11 — UX/FE polish
-- **Current Finding:** FND-026
+- **Current Phase:** Complete
+- **Current Cluster:** — all 11 clusters closed
+- **Current Finding:** — none pending
 
 ### Queue
 
-- **Pending:** C11 (see phase plan below)
-- **In Progress:** C11
-- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037), C7 (FND-063, FND-061, FND-056, FND-064, FND-066), C8 (FND-055, FND-054), C9 (FND-001, FND-002, FND-003, FND-007, FND-008, FND-009, FND-011, FND-012, FND-016, FND-019, FND-020, FND-023, FND-024, FND-025, FND-027, FND-034, FND-040, FND-048, FND-050, FND-059, FND-062), C10 (FND-004, FND-005, FND-013, FND-028, FND-035, FND-044, FND-045; FND-068 REJECTED-BY-ADR-STUBS-001)
+- **Pending:** final verification sweep
+- **In Progress:** —
+- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037), C7 (FND-063, FND-061, FND-056, FND-064, FND-066), C8 (FND-055, FND-054), C9 (FND-001, FND-002, FND-003, FND-007, FND-008, FND-009, FND-011, FND-012, FND-016, FND-019, FND-020, FND-023, FND-024, FND-025, FND-027, FND-034, FND-040, FND-048, FND-050, FND-059, FND-062), C10 (FND-004, FND-005, FND-013, FND-028, FND-035, FND-044, FND-045; FND-068 REJECTED-BY-ADR-STUBS-001), C11 (FND-026, FND-036, FND-043, FND-046, FND-047, FND-049, FND-060)
 - **Blocked:** —
 
 ### Phase plan (order = cluster order per mandate; tiers per §11.2)
@@ -175,7 +175,7 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 | FND-034 | LOW | Missing `down()` on landlord tenants+media migrations → irreversible | landlord tenants+media migrations | COMPLETED | 2026-10-01 | 2026-10-01 | migrations parse; tests green | down() added to both |
 | FND-040 | LOW | Hardcoded status literals `in:active,inactive,suspended`, `'Member'`/`'active'` fallbacks | UserController; TenantDashboardController; new Core\Enums\UserStatus | COMPLETED | 2026-10-01 | 2026-10-01 | suite green | UserStatus enum created; Rule::enum replaces in: literal; Member/active fallbacks via TenantPermissions/UserStatus/TenantStatus |
 | FND-048 | LOW | LanguageSwitcher hardcodes EN/AR + `=== 'ar'` RTL vs server `locale.supported`/`is_rtl` map | LanguageSwitcher.vue | COMPLETED | 2026-10-01 | 2026-10-01 | prop-driven render | Buttons iterate locale.supported; dir/lang via setupInertiaStateBridge (is_rtl from server) |
-| FND-050 | MEDIUM | Duplicate of FND-025 (same whole-catalog translations root cause) | HandleInertiaRequests.php | COMPLETED | 2026-10-01 | 2026-10-01 | same as FND-025 | Closed with FND-025 |
+| FND-050 | MEDIUM | Duplicate of FND-025 (same whole-catalog translations root cause) | HandleInertiaRequests.php | COMPLETED | 2026-10-01 | 2026-10-01 | same as FND-025 | Closed with FND-025. C11 note: useThemeStore.initTheme matchMedia listener now guarded against double-registration (mediaListenerAttached) |
 | FND-059 | LOW | Modules/Index.vue duplicates locked-module list vs ModuleManagementController | Modules/Index.vue; ModuleManagementController.php | COMPLETED | 2026-10-01 | 2026-10-01 | suite green | LOCKED_MODULES const on controller; page uses mod.is_locked prop |
 | FND-062 | LOW | `is_public` write-only — stored/cast, no reader | SettingService; contracts; models; migrations | COMPLETED | 2026-10-01 | 2026-10-01 | suite green | Flag removed entirely: set() signature, fillable/cast, columns dropped via new landlord+tenant migrations (idempotent hasColumn guards) |
 
@@ -196,13 +196,13 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 
 | ID | Severity | Root Cause | Files | Status | Started | Completed | Verification | Notes |
 |---|---|---|---|---|---|---|---|---|
-| FND-026 | LOW | SetLocale writes session every request; accepts POST `locale` input | SetLocale.php | PENDING | — | — | — | Write only on change; query-only input |
-| FND-036 | LOW | Hardcoded `#6366f1` Inertia progress color bypasses design tokens | resources/js/app.js | PENDING | — | — | — | Use token |
-| FND-043 | LOW | Users index: per-row EffectivePermissionSet → getAllPermissions; roles.permissions not eager-loaded | TenantUserService.php; UserController.php | PENDING | — | — | — | Eager-load roles.permissions |
-| FND-046 | LOW-MEDIUM | EnterpriseDataGrid emits search per keystroke, no debounce | EnterpriseDataGrid.vue | PENDING | — | — | — | Debounce |
-| FND-047 | LOW | Modal.vue toggles body overflow per instance — scroll lock not reference-counted | Modal.vue | PENDING | — | — | — | Refcounted lock utility |
-| FND-049 | LOW | FormEngine/ConfirmDialog hand-roll `<button>` vs BaseButton; icon variant via CSS-class matching | FormEngine.vue; ConfirmDialog.vue | PENDING | — | — | — | Compose BaseButton |
-| FND-060 | LOW-MEDIUM | Tenants/Show.vue delete dialog defaults `drop_database: true` | Tenants/Show.vue | PENDING | — | — | — | Default false (P0) |
+| FND-026 | LOW | SetLocale writes session every request; accepts POST `locale` input | app/Http/Middleware/SetLocale.php | COMPLETED | 2026-10-01 | 2026-10-01 | suite green | $request->query() instead of get(); session written only when locale differs |
+| FND-036 | LOW | Hardcoded `#6366f1` Inertia progress color bypasses design tokens | resources/js/app.js | COMPLETED | 2026-10-01 | 2026-10-01 | npm build pass | progress color read from --color-primary-500 CSS var at runtime |
+| FND-043 | LOW | Users index: per-row EffectivePermissionSet → getAllPermissions; roles.permissions not eager-loaded | TenantUserService.php | COMPLETED | 2026-10-01 | 2026-10-01 | suite green | with(roles.permissions); also fixed leftover 'active' literal -> UserStatus::Active |
+| FND-046 | LOW-MEDIUM | EnterpriseDataGrid emits search per keystroke, no debounce | EnterpriseDataGrid.vue | COMPLETED | 2026-10-01 | 2026-10-01 | build pass | 300ms debounce on search emit; update:searchQuery stays immediate |
+| FND-047 | LOW | Modal.vue toggles body overflow per instance — scroll lock not reference-counted | Modal.vue + new Composables/useScrollLock.ts | COMPLETED | 2026-10-01 | 2026-10-01 | build pass | Shared refcounted lock; stale lock released on unmount |
+| FND-049 | LOW | FormEngine/ConfirmDialog hand-roll `<button>` vs BaseButton; icon variant via CSS-class matching | ConfirmDialog.vue; EnterpriseFormEngine.vue; BaseButton.vue | COMPLETED | 2026-10-01 | 2026-10-01 | build pass | Buttons via BaseButton; icon keyed on variant prop (class-sniffing + confirmButtonClass removed); BaseButton click emit added for multi-root attr fallthrough |
+| FND-060 | LOW-MEDIUM | Tenants/Show.vue delete dialog defaults `drop_database: true` | Tenants/Show.vue | COMPLETED | 2026-10-01 | 2026-10-01 | build pass | drop_database defaults false |
 
 ### Non-actionable findings (audit-closed)
 
@@ -291,6 +291,14 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - deleted: 6× Modules/*/config/config.php, 6× package.json, 6× vite.config.js, 5× empty DatabaseSeeders, 5× stale .gitkeep (FND-044)
 - deleted: Modules/Core CoreController.php + Index/Create/Edit/Show.vue (FND-045)
 - FND-068 REJECTED-BY-ADR-STUBS-001 — stubs/ tree protected, no code change
+- app/Http/Middleware/SetLocale.php (FND-026)
+- resources/js/app.js (FND-036 — token-driven progress color)
+- Modules/Core/resources/js/Components/EnterpriseDataGrid.vue (FND-046 — debounced search)
+- Modules/Core/resources/js/Composables/useScrollLock.ts (FND-047 — new refcounted lock)
+- Modules/Core/resources/js/Components/Modal.vue (FND-047)
+- Modules/Core/resources/js/Components/{ConfirmDialog,EnterpriseFormEngine,BaseButton}.vue (FND-049)
+- Modules/Landlord/resources/js/Pages/Tenants/Show.vue (FND-060 — drop_database defaults false)
+- Modules/Core/resources/js/Stores/useThemeStore.ts (C11 initTheme listener idempotence)
 
 ### Migrations Added
 - database/migrations/tenant/2026_10_02_000001_add_is_system_to_roles_table.php (FND-032)

@@ -81,7 +81,7 @@ const showArchiveModal = ref(false);
 const showCancelSubModal = ref(false);
 
 const suspendForm = useForm({ reason: '' });
-const deleteForm = useForm({ drop_database: true });
+const deleteForm = useForm({ drop_database: false });
 const archiveForm = useForm({});
 const activateForm = useForm({});
 const cancelSubForm = useForm({});

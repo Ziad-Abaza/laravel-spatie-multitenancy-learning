@@ -19,7 +19,7 @@ class SetLocale
         $supportedLocales = array_keys($settings->supportedLocales());
         $defaultLocale = $settings->defaultLocale();
 
-        $locale = $request->get('locale')
+        $locale = $request->query('locale')
             ?? session('locale')
             ?? $request->getPreferredLanguage($supportedLocales)
             ?? $defaultLocale;
@@ -29,7 +29,10 @@ class SetLocale
         }
 
         app()->setLocale($locale);
-        session(['locale' => $locale]);
+
+        if (session('locale') !== $locale) {
+            session(['locale' => $locale]);
+        }
 
         return $next($request);
     }

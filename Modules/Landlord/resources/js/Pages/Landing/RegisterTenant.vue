@@ -26,14 +26,7 @@ const props = defineProps<{
     plans: Plan[];
 }>();
 
-const page = usePage<{
-    system?: {
-        allow_registration?: boolean;
-    };
-    tenancy?: {
-        domain_suffix?: string | null;
-    };
-}>();
+const page = usePage();
 const { t } = useI18n();
 
 const allowRegistration = computed(() => page.props.system?.allow_registration !== false);

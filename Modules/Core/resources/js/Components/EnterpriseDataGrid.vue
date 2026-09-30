@@ -60,7 +60,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const page = usePage<{ locale?: { is_rtl?: boolean } }>();
+const page = usePage();
 
 const localSearch = ref(props.searchQuery || '');
 const sortKey = ref<string>('');
@@ -75,10 +75,16 @@ watch(
     }
 );
 
+let searchTimer: ReturnType<typeof setTimeout> | null = null;
+
 function onSearchInput(val: string) {
     localSearch.value = val;
-    emit('search', val);
     emit('update:searchQuery', val);
+
+    if (searchTimer) {
+        clearTimeout(searchTimer);
+    }
+    searchTimer = setTimeout(() => emit('search', val), 300);
 }
 
 function toggleSort(col: Column<T>) {

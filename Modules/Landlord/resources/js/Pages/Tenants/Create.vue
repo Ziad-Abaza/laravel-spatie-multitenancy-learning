@@ -21,11 +21,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const page = usePage<{
-    tenancy?: {
-        domain_suffix?: string | null;
-    };
-}>();
+const page = usePage();
 
 // Mirrors TenantProvisioner::tenantDomain(): configured suffix, else the
 // request host.

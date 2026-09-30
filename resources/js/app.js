@@ -30,6 +30,9 @@ createInertiaApp({
         app.mount(el)
     },
     progress: {
-        color: '#6366f1',
+        // Resolved from the active theme's primary-500 token at runtime.
+        color: typeof getComputedStyle !== 'undefined'
+            ? getComputedStyle(document.documentElement).getPropertyValue('--color-primary-500').trim() || '#6366f1'
+            : '#6366f1',
     },
 })

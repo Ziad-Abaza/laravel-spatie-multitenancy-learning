@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, watch, onMounted, onUnmounted } from 'vue';
 import { X } from 'lucide-vue-next';
+import { lockScroll, unlockScroll } from '../Composables/useScrollLock';
 
 defineOptions({
     inheritAttrs: false,
@@ -37,17 +38,23 @@ function handleKeydown(e: KeyboardEvent) {
     }
 }
 
-onMounted(() => window.addEventListener('keydown', handleKeydown));
-onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
-
-watch(
-    isVisible,
-    (isOpen) => {
-        if (typeof document !== 'undefined') {
-            document.body.style.overflow = isOpen ? 'hidden' : '';
-        }
+watch(isVisible, (isOpen) => {
+    if (isOpen) {
+        lockScroll();
+    } else {
+        unlockScroll();
     }
-);
+});
+
+onMounted(() => window.addEventListener('keydown', handleKeydown));
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown);
+
+    // Release any lock still held if the component is destroyed while open.
+    if (isVisible.value) {
+        unlockScroll();
+    }
+});
 
 const maxWidthClasses = {
     sm: 'max-w-sm',

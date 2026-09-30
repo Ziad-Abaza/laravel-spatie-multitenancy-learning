@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Modules\Access\Support\TenantPermissions;
 use Modules\Core\Contracts\QuotaManagerContract;
+use Modules\Core\Enums\UserStatus;
 
 class TenantUserService
 {
@@ -29,7 +30,7 @@ class TenantUserService
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('job_title', 'like', "%{$search}%");
             })
-            ->with('roles')
+            ->with('roles.permissions')
             ->latest()
             ->get();
     }
@@ -65,7 +66,7 @@ class TenantUserService
             'password' => Hash::make($data['password']),
             'job_title' => $data['job_title'] ?? null,
             'phone' => $data['phone'] ?? null,
-            'status' => 'active',
+            'status' => UserStatus::Active->value,
         ]);
 
         $roleName = $data['role'] ?? TenantPermissions::ROLE_MEMBER;

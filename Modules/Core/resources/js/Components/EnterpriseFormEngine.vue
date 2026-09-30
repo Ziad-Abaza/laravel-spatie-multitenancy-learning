@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '../Composables/useI18n';
+import BaseButton from './BaseButton.vue';
 
 withDefaults(
     defineProps<{
@@ -46,24 +47,23 @@ const { t } = useI18n();
 
         <!-- Form actions footer -->
         <div class="mt-8 pt-5 border-t border-border-subtle flex items-center justify-end gap-3">
-            <button
+            <BaseButton
                 v-if="cancelText || $slots.cancel"
-                type="button"
-                class="px-4 py-2.5 rounded-xl border border-border-subtle bg-surface-input hover:bg-surface-hover text-sm font-medium text-text-main transition-colors"
+                variant="secondary"
                 :disabled="loading"
                 @click="emit('cancel')"
             >
                 <slot name="cancel">{{ cancelText || t('cancel', 'Cancel') }}</slot>
-            </button>
+            </BaseButton>
 
-            <button
+            <BaseButton
                 type="submit"
-                class="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-sm font-semibold text-on-primary transition-all shadow-md shadow-primary-600/20 disabled:opacity-50 inline-flex items-center gap-2 cursor-pointer"
-                :disabled="loading || disabled"
+                variant="primary"
+                :loading="loading"
+                :disabled="disabled"
             >
-                <span v-if="loading" class="w-4 h-4 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" />
                 <slot name="submit">{{ submitText || t('save', 'Save Changes') }}</slot>
-            </button>
+            </BaseButton>
         </div>
     </form>
 </template>

@@ -58,11 +58,14 @@ export const useThemeStore = defineStore('theme', () => {
         }
     }
 
+    let mediaListenerAttached = false;
+
     function initTheme(initialTheme?: string, initialMode?: string) {
         applyTheme(asPalette(initialTheme) ?? 'indigo');
         applyMode(asMode(initialMode) ?? 'dark');
 
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && ! mediaListenerAttached) {
+            mediaListenerAttached = true;
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
                 if (currentMode.value === 'system') {
                     applyMode('system');
