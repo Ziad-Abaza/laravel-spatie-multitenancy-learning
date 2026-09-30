@@ -9,7 +9,8 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
-use Modules\Access\Models\Role;
+use Modules\Access\Services\AccessBaselineProvisioner;
+use Modules\Access\Support\TenantPermissions;
 use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Landlord\Database\Seeders\LandlordDatabaseSeeder;
 
@@ -51,15 +52,18 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        // 1. Create standard Spatie roles on the tenant connection
-        if (Schema::hasTable('roles')) {
-            foreach (['Owner', 'Admin', 'Member'] as $roleName) {
-                Role::findOrCreate($roleName, 'web');
-            }
+        // 1. Permission catalog + baseline roles on the tenant connection —
+        //    single source of truth is AccessBaselineProvisioner. Inside a
+        //    tenant context the DEFAULT connection stays on the landlord, so
+        //    every check must target the tenant connection explicitly.
+        $tenantConnection = config('multitenancy.tenant_database_connection_name', 'tenant');
+
+        if (Schema::connection($tenantConnection)->hasTable('roles')) {
+            app(AccessBaselineProvisioner::class)->ensureBaseline();
         }
 
         // 2. Create tenant owner / admin user
-        if (Schema::hasTable('users')) {
+        if (Schema::connection($tenantConnection)->hasTable('users')) {
             $emails = [
                 'admin@'.$tenant->domain,
                 'admin@'.$tenant->domain.'.com',
@@ -77,7 +81,7 @@ class DatabaseSeeder extends Seeder
 
                 if (method_exists($user, 'assignRole')) {
                     try {
-                        $user->assignRole('Owner');
+                        $user->assignRole(TenantPermissions::ROLE_OWNER);
                     } catch (\Throwable) {
                     }
                 }
@@ -86,7 +90,7 @@ class DatabaseSeeder extends Seeder
 
         // 3. Seed default tenant settings through the governed service.
         // Workspace name is tenants.name — no settings row.
-        if (Schema::hasTable('tenant_settings')) {
+        if (Schema::connection($tenantConnection)->hasTable('tenant_settings')) {
             $settings = app(SettingManagerContract::class);
             $settings->set('palette', 'indigo', 'theme', true);
             $settings->set('mode', 'dark', 'theme', true);

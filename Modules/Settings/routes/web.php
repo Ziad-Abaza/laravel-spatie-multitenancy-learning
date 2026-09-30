@@ -7,7 +7,7 @@ use Modules\Settings\Http\Controllers\LandlordSettingsController;
 use Modules\Settings\Http\Controllers\TenantSettingsController;
 
 // Landlord Settings — landlord hosts only
-Route::prefix('landlord')->middleware(['landlord', 'auth:landlord'])->group(function () {
+Route::prefix('landlord')->middleware(['landlord', 'auth:landlord', 'landlord.active'])->group(function () {
     Route::get('/settings', [LandlordSettingsController::class, 'index'])->name('landlord.settings.index')->middleware('permission:'.LP::PLATFORM_SETTINGS_VIEW.',landlord');
     Route::post('/settings', [LandlordSettingsController::class, 'update'])->name('landlord.settings.update')->middleware('permission:'.LP::PLATFORM_SETTINGS_MANAGE.',landlord');
 });

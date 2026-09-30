@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Database\QueryException;
 use Modules\Access\Models\User;
 use Modules\Access\Services\AccessBaselineProvisioner;
+use Modules\Access\Services\AccessInvariants;
 use Modules\Access\Support\TenantPermissions;
 use Spatie\Multitenancy\Commands\Concerns\TenantAware;
 use Spatie\Multitenancy\Models\Tenant;
@@ -36,10 +37,9 @@ class SyncTenantAccessCommand extends Command
             return;
         }
 
-        // "Privileged" = any user holding a management capability — judged by
-        // permissions from the Spatie tables, never by role names.
-        $privilegedExists = User::permission(TenantPermissions::ROLES_UPDATE)->exists()
-            || User::permission(TenantPermissions::SETTINGS_MANAGE)->exists();
+        // "Privileged" = any active principal covering the tenant management
+        // baseline — judged on effective permissions, never role names.
+        $privilegedExists = AccessInvariants::principalsQuery('web')->exists();
 
         if ($privilegedExists) {
             $this->line('  Privileged member already present — no promotion needed.');

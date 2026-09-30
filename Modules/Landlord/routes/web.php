@@ -4,7 +4,9 @@ use Illuminate\Support\Facades\Route;
 use Modules\Access\Support\LandlordPermissions as LP;
 use Modules\Landlord\Http\Controllers\DashboardController;
 use Modules\Landlord\Http\Controllers\LandingController;
+use Modules\Landlord\Http\Controllers\LandlordAdminController;
 use Modules\Landlord\Http\Controllers\LandlordAuthController;
+use Modules\Landlord\Http\Controllers\LandlordRoleController;
 use Modules\Landlord\Http\Controllers\ModuleManagementController;
 use Modules\Landlord\Http\Controllers\TenantController;
 use Modules\Landlord\Http\Controllers\TenantRegistrationController;
@@ -21,8 +23,8 @@ Route::middleware('landlord')->prefix('landlord')->group(function () {
     Route::post('/login', [LandlordAuthController::class, 'login'])->name('landlord.login.post');
     Route::post('/logout', [LandlordAuthController::class, 'logout'])->name('landlord.logout');
 
-    // Landlord Protected Administration
-    Route::middleware('auth:landlord')->group(function () {
+    // Landlord Protected Administration — auth first, then live status check
+    Route::middleware(['auth:landlord', 'landlord.active'])->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('landlord.dashboard');
 
         // Tenant Management
@@ -42,5 +44,21 @@ Route::middleware('landlord')->prefix('landlord')->group(function () {
         // Module Management
         Route::get('/modules', [ModuleManagementController::class, 'index'])->name('landlord.modules.index')->middleware('permission:'.LP::MODULES_VIEW.',landlord');
         Route::post('/modules/{module}/toggle', [ModuleManagementController::class, 'toggle'])->name('landlord.modules.toggle')->middleware('permission:'.LP::MODULES_MANAGE.',landlord');
+
+        // Platform Administrator Management
+        Route::get('/admins', [LandlordAdminController::class, 'index'])->name('landlord.admins.index')->middleware('permission:'.LP::ADMINS_VIEW.',landlord');
+        Route::post('/admins', [LandlordAdminController::class, 'store'])->name('landlord.admins.store')->middleware('permission:'.LP::ADMINS_CREATE.',landlord');
+        Route::put('/admins/{admin}', [LandlordAdminController::class, 'update'])->name('landlord.admins.update')->middleware('permission:'.LP::ADMINS_UPDATE.',landlord');
+        Route::put('/admins/{admin}/role', [LandlordAdminController::class, 'assignRole'])->name('landlord.admins.assign-role')->middleware('permission:'.LP::ADMINS_ASSIGN_ROLE.',landlord');
+        Route::put('/admins/{admin}/password', [LandlordAdminController::class, 'resetPassword'])->name('landlord.admins.reset-password')->middleware('permission:'.LP::ADMINS_RESET_PASSWORD.',landlord');
+        Route::post('/admins/{admin}/suspend', [LandlordAdminController::class, 'suspend'])->name('landlord.admins.suspend')->middleware('permission:'.LP::ADMINS_SUSPEND.',landlord');
+        Route::post('/admins/{admin}/reactivate', [LandlordAdminController::class, 'reactivate'])->name('landlord.admins.reactivate')->middleware('permission:'.LP::ADMINS_SUSPEND.',landlord');
+        Route::delete('/admins/{admin}', [LandlordAdminController::class, 'destroy'])->name('landlord.admins.destroy')->middleware('permission:'.LP::ADMINS_DELETE.',landlord');
+
+        // Platform Roles & Permissions
+        Route::get('/roles', [LandlordRoleController::class, 'index'])->name('landlord.roles.index')->middleware('permission:'.LP::ROLES_VIEW.',landlord');
+        Route::post('/roles', [LandlordRoleController::class, 'store'])->name('landlord.roles.store')->middleware('permission:'.LP::ROLES_MANAGE.',landlord');
+        Route::put('/roles/{role}', [LandlordRoleController::class, 'update'])->name('landlord.roles.update')->middleware('permission:'.LP::ROLES_MANAGE.',landlord');
+        Route::delete('/roles/{role}', [LandlordRoleController::class, 'destroy'])->name('landlord.roles.destroy')->middleware('permission:'.LP::ROLES_MANAGE.',landlord');
     });
 });

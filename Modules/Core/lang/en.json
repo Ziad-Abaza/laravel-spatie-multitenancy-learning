@@ -74,5 +74,20 @@
     "confirm_cancel_sub_message": "The active subscription will be marked canceled. The workspace keeps its data; assign a new plan to restore billing.",
     "drop_database": "Also drop the tenant database (irreversible)",
     "all_statuses": "All Statuses",
-    "all_plans": "All Plans"
+    "all_plans": "All Plans",
+    "preset_full_scope": "Full Scope",
+    "preset_read_only": "Read Only",
+    "class_read": "read",
+    "class_write": "write",
+    "class_sensitive": "sensitive",
+    "perm_group_users": "Team",
+    "perm_group_roles": "Roles & Access",
+    "perm_group_subscription": "Subscription",
+    "perm_group_settings": "Settings",
+    "perm_group_tenants": "Tenants",
+    "perm_group_plans": "Plans",
+    "perm_group_subscriptions": "Subscriptions",
+    "perm_group_modules": "Modules",
+    "perm_group_platform": "Platform Settings",
+    "perm_group_admins": "Administrators"
 }

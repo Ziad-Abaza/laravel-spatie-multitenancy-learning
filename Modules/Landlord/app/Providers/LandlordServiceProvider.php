@@ -3,6 +3,7 @@
 namespace Modules\Landlord\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Modules\Landlord\Console\RebuildDatabasesCommand;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class LandlordServiceProvider extends ModuleServiceProvider
@@ -22,7 +23,9 @@ class LandlordServiceProvider extends ModuleServiceProvider
      *
      * @var string[]
      */
-    // protected array $commands = [];
+    protected array $commands = [
+        RebuildDatabasesCommand::class,
+    ];
 
     /**
      * Provider classes to register.

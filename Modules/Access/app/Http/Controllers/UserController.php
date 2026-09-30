@@ -8,12 +8,14 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Access\Models\Role;
-use Modules\Access\Services\AccessGuard;
+use Modules\Access\Services\AccessInvariants;
+use Modules\Access\Services\ManagementPolicy;
 use Modules\Access\Services\TenantUserService;
 use Modules\Core\Contracts\QuotaManagerContract;
 
@@ -22,7 +24,7 @@ class UserController extends Controller
     public function __construct(
         protected TenantUserService $userService,
         protected QuotaManagerContract $quotaManager,
-        protected AccessGuard $accessGuard
+        protected ManagementPolicy $policy
     ) {}
 
     /**
@@ -44,12 +46,12 @@ class UserController extends Controller
             'role' => $user->roles->first()?->name ?? 'Member',
             'avatar_url' => $user->getAvatarUrl(),
             'created_at' => $user->created_at?->format('Y-m-d') ?? '-',
-            'can_edit' => $this->accessGuard->canManage($actor, $user),
-            'can_delete' => $this->accessGuard->isDeletableBy($actor, $user),
+            'can_edit' => $this->policy->canManage($actor, $user, 'web'),
+            'can_delete' => $this->policy->isDeletableBy($actor, $user, 'web'),
         ]);
 
         // Only roles fully covered by the actor's permissions may be assigned.
-        $roles = $this->accessGuard->assignableRoleNames($actor, 'web');
+        $roles = $this->policy->assignableRoleNames($actor, 'web');
 
         $currentTenant = Tenant::current();
         $userLimit = $this->quotaManager->getUserLimit($currentTenant);
@@ -83,9 +85,9 @@ class UserController extends Controller
             'phone' => ['nullable', 'string', 'max:30'],
         ]);
 
-        // Role names are opaque labels — assignability is proven by comparing
-        // the role's permission set against the actor's own permissions.
-        $this->accessGuard->assertAssignableRole($request->user(), $validated['role'], 'web');
+        // Role names are opaque labels — grantability is proven by comparing
+        // the role's permission set against the actor's effective set.
+        $this->policy->assertRoleGrantable($request->user(), $validated['role'], 'web');
 
         $this->userService->createUser($validated);
 
@@ -111,16 +113,16 @@ class UserController extends Controller
 
         // Account hijack protection: the actor must cover every permission
         // the target holds before modifying it (e.g. resetting credentials).
-        if (! $this->accessGuard->canManage($actor, $user)) {
+        if (! $this->policy->canManage($actor, $user, 'web')) {
             abort(403);
         }
 
         if (! empty($validated['role'])) {
-            $this->accessGuard->assertAssignableRole($actor, $validated['role'], 'web');
+            $this->policy->assertAssignableRole($actor, $user, $validated['role'], 'web');
         }
 
         // Self-lockout protection: you cannot change your own role or status.
-        if ($user->id === $actor->getAuthIdentifier()
+        if ($user->is($actor)
             && (! empty($validated['role']) && $validated['role'] !== $user->roles->first()?->name
                 || isset($validated['status']) && $validated['status'] !== $user->status)) {
             throw ValidationException::withMessages([
@@ -128,7 +130,15 @@ class UserController extends Controller
             ]);
         }
 
-        $this->userService->updateUser($user, $validated);
+        $accessChanged = ! empty($validated['role']) || isset($validated['status']);
+
+        DB::transaction(function () use ($user, $validated, $accessChanged) {
+            $this->userService->updateUser($user, $validated);
+
+            if ($accessChanged) {
+                AccessInvariants::assertManagementCapacity('web');
+            }
+        });
 
         return back()->with('success', __('user_updated'));
     }
@@ -138,19 +148,18 @@ class UserController extends Controller
      */
     public function destroy(Request $request, User $user): RedirectResponse
     {
-        if ($user->id === Auth::id()) {
+        if ($user->is(Auth::user())) {
             return back()->with('error', __('cannot_delete_own_account'));
         }
 
-        if (! $this->accessGuard->canManage($request->user(), $user)) {
+        if (! $this->policy->canManage($request->user(), $user, 'web')) {
             return back()->with('error', __('cannot_manage_more_privileged_user'));
         }
 
-        if ($this->accessGuard->isLastManager($user)) {
-            return back()->with('error', __('cannot_delete_workspace_owner'));
-        }
-
-        $this->userService->deleteUser($user);
+        DB::transaction(function () use ($user) {
+            $this->userService->deleteUser($user);
+            AccessInvariants::assertManagementCapacity('web');
+        });
 
         return back()->with('success', __('user_removed'));
     }

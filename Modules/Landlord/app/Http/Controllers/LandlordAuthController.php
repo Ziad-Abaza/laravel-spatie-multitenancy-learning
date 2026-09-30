@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Landlord\Models\LandlordUser;
 
 class LandlordAuthController extends Controller
 {
@@ -29,6 +30,14 @@ class LandlordAuthController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
+
+        // Reject suspended administrator accounts before any session exists.
+        $account = LandlordUser::where('email', $credentials['email'])->first();
+        if ($account !== null && $account->status !== 'active') {
+            throw ValidationException::withMessages([
+                'email' => [__('account_suspended')],
+            ]);
+        }
 
         if (Auth::guard('landlord')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();

@@ -20,6 +20,7 @@ class LandlordUser extends Authenticatable
         'name',
         'email',
         'password',
+        'status',
     ];
 
     protected $hidden = [

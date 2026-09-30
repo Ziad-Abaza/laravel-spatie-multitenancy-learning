@@ -8,6 +8,8 @@ import {
     Layers,
     Settings,
     Box,
+    Users,
+    ShieldCheck,
     LogOut,
     Menu,
     X,
@@ -54,6 +56,8 @@ const navItems = computed(() =>
         { name: t('subscriptions', 'Subscriptions'), href: '/landlord/subscriptions', icon: CreditCard, visible: can('subscriptions.view') },
         { name: t('settings', 'Settings'), href: '/landlord/settings', icon: Settings, visible: can('platform.settings.view') },
         { name: t('modules', 'Modules'), href: '/landlord/modules', icon: Box, visible: can('modules.view') },
+        { name: t('admins', 'Administrators'), href: '/landlord/admins', icon: Users, visible: can('admins.view') },
+        { name: t('roles', 'Roles'), href: '/landlord/roles', icon: ShieldCheck, visible: can('roles.view') },
     ].filter((item) => item.visible)
 );
 

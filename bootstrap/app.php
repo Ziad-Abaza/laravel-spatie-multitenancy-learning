@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\TenantSuspendedException;
+use App\Http\Middleware\EnsureLandlordAdminActive;
 use App\Http\Middleware\EnsureLandlordContext;
 use App\Http\Middleware\EnsureTenantIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -46,6 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'landlord' => EnsureLandlordContext::class,
+            'landlord.active' => EnsureLandlordAdminActive::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,

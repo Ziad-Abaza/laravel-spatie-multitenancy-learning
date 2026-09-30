@@ -74,5 +74,20 @@
     "confirm_cancel_sub_message": "سيُعلَّم الاشتراك النشط كملغى. تحتفظ مساحة العمل ببياناتها؛ عيّن خطة جديدة لاستعادة الفوترة.",
     "drop_database": "حذف قاعدة بيانات المستأجر أيضاً (لا يمكن التراجع)",
     "all_statuses": "كل الحالات",
-    "all_plans": "كل الخطط"
+    "all_plans": "كل الخطط",
+    "preset_full_scope": "النطاق الكامل",
+    "preset_read_only": "قراءة فقط",
+    "class_read": "قراءة",
+    "class_write": "تعديل",
+    "class_sensitive": "حساس",
+    "perm_group_users": "الفريق",
+    "perm_group_roles": "الأدوار والوصول",
+    "perm_group_subscription": "الاشتراك",
+    "perm_group_settings": "الإعدادات",
+    "perm_group_tenants": "المستأجرون",
+    "perm_group_plans": "الخطط",
+    "perm_group_subscriptions": "الاشتراكات",
+    "perm_group_modules": "الوحدات",
+    "perm_group_platform": "إعدادات المنصة",
+    "perm_group_admins": "المديرون"
 }

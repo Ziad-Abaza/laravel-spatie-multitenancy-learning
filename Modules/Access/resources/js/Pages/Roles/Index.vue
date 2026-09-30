@@ -7,6 +7,7 @@ import BaseButton from '@core/Components/BaseButton.vue';
 import FormModal from '@core/Components/FormModal.vue';
 import FormField from '@core/Components/FormField.vue';
 import { useI18n } from '@core/Composables/useI18n';
+import PermissionBundlePicker, { PermissionGroup } from '@core/Components/PermissionBundlePicker.vue';
 import { ShieldCheck, Plus, Check } from 'lucide-vue-next';
 
 interface RoleItem {
@@ -18,7 +19,7 @@ interface RoleItem {
 
 const props = defineProps<{
     roles: RoleItem[];
-    permissions: string[];
+    permissionGroups: PermissionGroup[];
 }>();
 
 const { t } = useI18n();
@@ -119,21 +120,8 @@ function submit() {
 
             <div>
                 <label class="block text-xs font-medium text-text-main mb-2">{{ t('assign_permissions', 'Assign Permissions') }}</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-1">
-                    <label
-                        v-for="perm in permissions"
-                        :key="perm"
-                        class="flex items-center gap-2 p-2 rounded-lg bg-surface-input border border-border-subtle cursor-pointer text-xs text-text-muted hover:text-text-main"
-                    >
-                        <input
-                            type="checkbox"
-                            :value="perm"
-                            v-model="form.permissions"
-                            class="rounded bg-surface-hover border-border-subtle text-primary-600 focus:ring-primary-500"
-                        />
-                        <span class="font-mono text-[11px]">{{ perm }}</span>
-                    </label>
-                </div>
+                <PermissionBundlePicker v-model="form.permissions" :groups="permissionGroups" />
+                <p v-if="form.errors.permissions" class="mt-1.5 text-[11px] text-danger-fg">{{ form.errors.permissions }}</p>
             </div>
         </FormModal>
     </TenantLayout>

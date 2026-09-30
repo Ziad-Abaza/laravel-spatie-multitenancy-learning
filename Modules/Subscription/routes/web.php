@@ -7,7 +7,7 @@ use Modules\Subscription\Http\Controllers\PlanController;
 use Modules\Subscription\Http\Controllers\SubscriptionController;
 
 // Landlord Subscription & Plan Management — landlord hosts only
-Route::prefix('landlord')->middleware(['landlord', 'auth:landlord'])->group(function () {
+Route::prefix('landlord')->middleware(['landlord', 'auth:landlord', 'landlord.active'])->group(function () {
     Route::get('/plans', [PlanController::class, 'index'])->name('landlord.plans.index')->middleware('permission:'.LP::PLANS_VIEW.',landlord');
     Route::post('/plans', [PlanController::class, 'store'])->name('landlord.plans.store')->middleware('permission:'.LP::PLANS_MANAGE.',landlord');
     Route::put('/plans/{plan}', [PlanController::class, 'update'])->name('landlord.plans.update')->middleware('permission:'.LP::PLANS_MANAGE.',landlord');

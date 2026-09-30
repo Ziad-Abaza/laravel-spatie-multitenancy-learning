@@ -8,14 +8,14 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Access\Models\Permission;
 use Modules\Access\Models\Role;
-use Modules\Access\Services\AccessGuard;
+use Modules\Access\Services\ManagementPolicy;
+use Modules\Access\Support\TenantPermissions;
 
 class RoleController extends Controller
 {
     public function __construct(
-        protected AccessGuard $accessGuard
+        protected ManagementPolicy $policy
     ) {}
 
     /**
@@ -33,12 +33,32 @@ class RoleController extends Controller
                 'permissions' => $role->permissions->pluck('name'),
             ]);
 
-        // A role can only carry permissions the actor already holds.
-        $permissions = $request->user()->getAllPermissions()->pluck('name');
+        // Bundle structure for the picker — scoped to what the actor can
+        // actually delegate; groups never expose out-of-scope keys.
+        $scope = $this->policy->scopePermissions($request->user(), 'web');
+        $manifest = TenantPermissions::manifest();
+
+        $permissionGroups = collect(TenantPermissions::groups())
+            ->map(function ($keys, $groupKey) use ($scope, $manifest) {
+                $permissions = collect($keys)
+                    ->filter(fn ($key) => in_array($key, $scope, true))
+                    ->map(fn ($key) => ['key' => $key, 'classification' => $manifest[$key]])
+                    ->values()
+                    ->all();
+
+                return [
+                    'key' => $groupKey,
+                    'label' => __("perm_group_{$groupKey}"),
+                    'permissions' => $permissions,
+                ];
+            })
+            ->filter(fn ($group) => count($group['permissions']) > 0)
+            ->values()
+            ->all();
 
         return Inertia::render('Access/Roles/Index', [
             'roles' => $roles,
-            'permissions' => $permissions,
+            'permissionGroups' => $permissionGroups,
         ]);
     }
 
@@ -54,7 +74,7 @@ class RoleController extends Controller
 
         // Server-side scope check: a role may only carry permissions the
         // actor already holds — prevents minting a superset role.
-        $this->accessGuard->assertPermissionsWithinScope($request->user(), $validated['permissions'] ?? [], 'web');
+        $this->policy->assertPermissionsWithinScope($request->user(), $validated['permissions'] ?? [], 'web');
 
         $role = Role::create([
             'name' => $validated['name'],

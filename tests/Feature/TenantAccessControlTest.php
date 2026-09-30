@@ -3,11 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Tenant;
+use App\Models\User;
 use Modules\Access\Models\Permission;
 use Modules\Access\Models\Role;
-use Modules\Access\Models\User;
 use Modules\Access\Services\AccessBaselineProvisioner;
-use Modules\Access\Services\AccessGuard;
+use Modules\Access\Services\ManagementPolicy;
 use Modules\Access\Support\LandlordPermissions;
 use Modules\Access\Support\TenantPermissions;
 use Modules\Landlord\Models\LandlordUser;
@@ -198,7 +198,7 @@ class TenantAccessControlTest extends TestCase
                     'password' => 'password123',
                     'role' => 'Owner',
                 ])
-                ->assertSessionHasErrors('role');
+                ->assertForbidden();
 
             // Assigning a subset role (Member = users.view) is allowed.
             $this->actingAs($hr, 'web')
@@ -270,7 +270,7 @@ class TenantAccessControlTest extends TestCase
                     'name' => 'god-mode-'.uniqid(),
                     'permissions' => [TenantPermissions::SETTINGS_MANAGE],
                 ])
-                ->assertSessionHasErrors('permissions');
+                ->assertForbidden();
         } finally {
             $roleAdmin->roles()->detach();
             $roleAdmin->delete();
@@ -286,7 +286,7 @@ class TenantAccessControlTest extends TestCase
         $tenant->makeCurrent();
         app(AccessBaselineProvisioner::class)->ensureBaseline();
 
-        $guard = app(AccessGuard::class);
+        $guard = app(ManagementPolicy::class);
         $owner = User::where('email', 'admin@tenant1.localhost')->first();
         $this->assertNotNull($owner);
 
@@ -299,7 +299,7 @@ class TenantAccessControlTest extends TestCase
 
         try {
             // Equal privilege → deletable while another manager remains.
-            $this->assertTrue($guard->isDeletableBy($owner, $peer));
+            $this->assertTrue($guard->isDeletableBy($owner, $peer, 'web'));
 
             $this->actingAs($owner, 'web')
                 ->delete("http://tenant1.localhost/users/{$peer->id}")
