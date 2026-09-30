@@ -360,7 +360,27 @@ $tenant->execute(function () {
 | **Migrate one specific tenant (e.g. ID 2)** | `php artisan tenants:artisan "migrate --path=database/migrations/tenant --database=tenant" --tenant=2` |
 | **Seed all tenant databases** | `php artisan tenants:artisan "db:seed"` |
 | **Seed one specific tenant (e.g. ID 2)** | `php artisan tenants:artisan "db:seed" --tenant=2` |
+| **Rebuild landlord DB (fresh + seed)** | `php artisan db:rebuild` |
+| **Rebuild landlord + every tenant DB** | `php artisan db:rebuild --all` |
+| **Rebuild specific tenant DB(s)** | `php artisan db:rebuild --tenant=tenant1.localhost --tenant=2` |
+| **Sync tenant permission baseline** | `php artisan access:sync-tenants` |
+| **Sync landlord permission baseline** | `php artisan access:sync-landlord` |
+| **Repair broken landlord admin baseline** | `php artisan access:sync-landlord --repair` |
 | **Run Tinker** | `php artisan tinker` |
+
+### `db:rebuild` — one-command full reset
+
+`db:rebuild` wraps `migrate:fresh --seed` across both contexts. It is **destructive** and asks for confirmation outside local; `--force` bypasses.
+
+```bash
+php artisan db:rebuild            # landlord only (modules + database/migrations/landlord)
+php artisan db:rebuild --all      # landlord + every tenant record's database
+php artisan db:rebuild --tenant=tenant1.localhost   # one tenant, by id / slug / domain
+```
+
+* Tenant databases are rebuilt inside `$tenant->execute()` with an **explicit `--database=tenant`** and a `Tenant::checkCurrent()` guard — without them, `migrate:fresh` would wipe the **landlord** database (see Pitfall 4).
+* Tenant rows whose physical database is missing are skipped with a warning, not fatal.
+* Seeding runs the context-aware `DatabaseSeeder`: landlord gets plans + Super Admin + baseline permission catalog; each tenant gets its permission catalog, baseline roles, and owner account.
 
 ---
 
@@ -376,3 +396,8 @@ $tenant->execute(function () {
 
 ### 3. Duplicate migrations in `database/migrations` root
 * **Caution:** If migration files exist in both `database/migrations/` root and `database/migrations/tenant/`, running `php artisan migrate` will run them in the landlord database. Keep tenant-specific migrations strictly inside `database/migrations/tenant`.
+
+### 4. `migrate:fresh` inside `$tenant->execute()` wipes the LANDLORD database
+* **Cause:** `SwitchTenantDatabaseTask` only rewrites `database.connections.tenant.database` — it does **not** change `database.default`, which stays `landlord`. `Artisan::call('migrate')` inside `execute()` therefore targets the landlord connection.
+* **Fix:** Always pass `'--database' => 'tenant'` explicitly, and guard with `throw_unless(Tenant::checkCurrent(), ...)` before running. `db:rebuild` already does both — prefer it over hand-rolled calls.
+* **Model class matters:** switching must use `App\Models\Tenant` (the configured `tenant_model`), not `Modules\Landlord\Models\Tenant` — the parent class triggers a `Tenant::current()` return-type error mid-switch.
