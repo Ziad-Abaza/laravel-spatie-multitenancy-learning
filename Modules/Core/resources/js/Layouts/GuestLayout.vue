@@ -9,9 +9,9 @@ import { useI18n } from '../Composables/useI18n';
 const page = usePage();
 const { t } = useI18n();
 
-const tenant = computed(() => (page.props as any).tenant);
-const branding = computed(() => (page.props as any).branding || {});
-const system = computed(() => (page.props as any).system || {});
+const tenant = computed(() => page.props.tenant);
+const branding = computed(() => page.props.branding || {});
+const system = computed(() => page.props.system || {});
 const allowRegistration = computed(() => system.value.allow_registration ?? true);
 
 const appName = computed(() => {
