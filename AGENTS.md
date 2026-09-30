@@ -20,6 +20,11 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 - Every implementation must handle loading, success, validation, empty, authorization, and error states where applicable.
 - Fix root causes, not symptoms.
 
+## No Resolver or Intermediate Layers
+Do not introduce any Resolver pattern or any equivalent concept under a different name (Resolver, Manager, Coordinator, Dispatcher, Context Provider, Host Classifier, Gateway, Adapter, Facade, Wrapper, Orchestrator, or similar). I do not want a new intermediate layer whose purpose is to receive requests, centralize scattered logic, classify inputs, compensate for architectural flaws, or hide inconsistencies behind another abstraction.
+If a problem exists, identify the actual source of the problem and fix it directly within the responsible mechanism, workflow, configuration, routing architecture, tenancy architecture, state flow, framework integration, or domain implementation. Do not move the logic into a new class and call it solved.
+Before introducing any new architectural layer, prove with evidence from the codebase why the existing mechanism cannot be corrected. If the root cause can be fixed in the existing implementation, that approach must be preferred. The goal is to eliminate the defect at its source, not create an intermediary between the source and the outcome.
+
 ## Foundational Context
 
 This application is a Laravel application running on PHP 8.4. You are an expert with the Laravel ecosystem. Always use the APIs that match the installed major version of each package — do not assume a version.
