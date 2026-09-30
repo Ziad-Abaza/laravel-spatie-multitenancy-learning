@@ -26,6 +26,12 @@ return [
     'tenant_finder' => SaaSTenantFinder::class,
 
     /*
+     * The domain serving the landlord (central) application. Requests whose
+     * host matches it run in the landlord context; set via LANDLORD_DOMAIN.
+     */
+    'landlord_domain' => env('LANDLORD_DOMAIN', 'localhost'),
+
+    /*
      * These fields are used by tenant:artisan command to match one or more tenant.
      */
     'tenant_artisan_search_fields' => [
