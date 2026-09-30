@@ -14,15 +14,15 @@ tags: []
 
 ## CURRENT STATE
 
-- **Current Phase:** Phase 10
-- **Current Cluster:** C10 — Scaffold debt (stubs protected per ADR-STUBS-001)
-- **Current Finding:** FND-004
+- **Current Phase:** Phase 11
+- **Current Cluster:** C11 — UX/FE polish
+- **Current Finding:** FND-026
 
 ### Queue
 
-- **Pending:** C10 → C11 (see phase plan below)
-- **In Progress:** C10
-- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037), C7 (FND-063, FND-061, FND-056, FND-064, FND-066), C8 (FND-055, FND-054), C9 (FND-001, FND-002, FND-003, FND-007, FND-008, FND-009, FND-011, FND-012, FND-016, FND-019, FND-020, FND-023, FND-024, FND-025, FND-027, FND-034, FND-040, FND-048, FND-050, FND-059, FND-062)
+- **Pending:** C11 (see phase plan below)
+- **In Progress:** C11
+- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037), C7 (FND-063, FND-061, FND-056, FND-064, FND-066), C8 (FND-055, FND-054), C9 (FND-001, FND-002, FND-003, FND-007, FND-008, FND-009, FND-011, FND-012, FND-016, FND-019, FND-020, FND-023, FND-024, FND-025, FND-027, FND-034, FND-040, FND-048, FND-050, FND-059, FND-062), C10 (FND-004, FND-005, FND-013, FND-028, FND-035, FND-044, FND-045; FND-068 REJECTED-BY-ADR-STUBS-001)
 - **Blocked:** —
 
 ### Phase plan (order = cluster order per mandate; tiers per §11.2)
@@ -183,13 +183,13 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 
 | ID | Severity | Root Cause | Files | Status | Started | Completed | Verification | Notes |
 |---|---|---|---|---|---|---|---|---|
-| FND-004 | LOW | Dead committed content: empty CLAUDE.md, verbatim upstream CHANGELOG.md, `/.github export-ignore` nonexistent | CLAUDE.md; CHANGELOG.md; .gitattributes | PENDING | — | — | — | Remove/rectify |
-| FND-005 | MEDIUM | vite-module-loader.js dead AND broken (`__dirname` in ESM, 0 consumers) | vite-module-loader.js | PENDING | — | — | — | Delete dead file |
-| FND-013 | LOW | `concurrently` devDependency unused | package.json | PENDING | — | — | — | Remove dep |
-| FND-028 | LOW | public/favicon.ico is 0 bytes; robots.txt allows /landlord/* crawl (INFO part) | public/favicon.ico; robots.txt | PENDING | — | — | — | Fix asset; disallow admin surface |
-| FND-035 | LOW | app.js dual module-page globs — one unreachable dead fallback | resources/js/app.js | PENDING | — | — | — | Keep working glob only |
-| FND-044 | LOW | Scaffold debt: unused config/config.php stubs, empty seeders, stale .gitkeep in populated dirs, dead per-module package.json/vite.config.js | Modules/* | PENDING | — | — | — | Remove dead scaffold (NOT stubs/ — protected) |
-| FND-045 | LOW | CoreController + 4 scaffold Core pages unrouted/dead | Modules/Core | PENDING | — | — | — | Remove dead scaffold |
+| FND-004 | LOW | Dead committed content: empty CLAUDE.md, verbatim upstream CHANGELOG.md, `/.github export-ignore` nonexistent | CLAUDE.md; CHANGELOG.md; .gitattributes | COMPLETED | 2026-10-01 | 2026-10-01 | deleted; .gitattributes cleaned | Empty CLAUDE.md + upstream CHANGELOG.md removed; stale export-ignore lines dropped |
+| FND-005 | MEDIUM | vite-module-loader.js dead AND broken (`__dirname` in ESM, 0 consumers) | vite-module-loader.js | COMPLETED | 2026-10-01 | 2026-10-01 | deleted; 0 consumers confirmed | Dead+broken ESM file removed |
+| FND-013 | LOW | `concurrently` devDependency unused | package.json + lockfile | COMPLETED | 2026-10-01 | 2026-10-01 | npm remove; lockfile updated | concurrently devDep removed |
+| FND-028 | LOW | public/favicon.ico is 0 bytes; robots.txt allows /landlord/* crawl (INFO part) | public/favicon.ico; robots.txt | COMPLETED | 2026-10-01 | 2026-10-01 | hex-verified ICO; robots.txt updated | Valid 16x16 ICO (brand #6366f1); Disallow: /landlord |
+| FND-035 | LOW | app.js dual module-page globs — one unreachable dead fallback | resources/js/app.js | COMPLETED | 2026-10-01 | 2026-10-01 | tests green | Single absolute /Modules glob retained |
+| FND-044 | LOW | Scaffold debt: unused config/config.php stubs, empty seeders, stale .gitkeep in populated dirs, dead per-module package.json/vite.config.js | Modules/* | COMPLETED | 2026-10-01 | 2026-10-01 | 115 tests pass | Deleted 6 config stubs, 6 package.json, 6 vite.config.js, 5 empty seeders, 5 stale .gitkeep (populated dirs only) |
+| FND-045 | LOW | CoreController + 4 scaffold Core pages unrouted/dead | Modules/Core | COMPLETED | 2026-10-01 | 2026-10-01 | tests green; no render refs | CoreController + Index/Create/Edit/Show.vue removed; locale/theme controllers + ErrorPage kept |
 | FND-068 | LOW | Stub tree claimed dead | stubs/nwidart-stubs/* | REJECTED-BY-ADR | — | — | ADR-STUBS-001 | Deletion prohibited; kept as protected asset. Status = COMPLETED via ADR (no code change) |
 
 ### Phase 11 — Cluster C11: UX/FE polish (LOW)
@@ -284,6 +284,13 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - SettingManagerContract + SettingService + Setting/TenantSetting models + settings migrations (FND-062 — is_public removed)
 - new migrations: Modules/Settings/.../drop_is_public_from_settings, database/migrations/tenant/.../drop_is_public_from_tenant_settings (FND-062)
 - resources/lang/{en,ar}.json (FND-025 — max_users/storage → global), Modules/Subscription/lang/{en,ar}.json (moved keys out)
+- deleted: CLAUDE.md, CHANGELOG.md, vite-module-loader.js (FND-004/005)
+- .gitattributes (FND-004), public/robots.txt + public/favicon.ico (FND-028)
+- resources/js/app.js (FND-035 — single glob)
+- package.json + package-lock.json (FND-013 — concurrently removed)
+- deleted: 6× Modules/*/config/config.php, 6× package.json, 6× vite.config.js, 5× empty DatabaseSeeders, 5× stale .gitkeep (FND-044)
+- deleted: Modules/Core CoreController.php + Index/Create/Edit/Show.vue (FND-045)
+- FND-068 REJECTED-BY-ADR-STUBS-001 — stubs/ tree protected, no code change
 
 ### Migrations Added
 - database/migrations/tenant/2026_10_02_000001_add_is_system_to_roles_table.php (FND-032)

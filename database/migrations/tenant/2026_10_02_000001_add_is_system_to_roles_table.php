@@ -12,16 +12,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('roles', function (Blueprint $table) {
-            $table->boolean('is_system')->default(false)->index();
-        });
+        // Idempotent: the base permission-tables migration creates this
+        // column for new tenant databases; this migration exists for tenant
+        // databases that were migrated before it was introduced.
+        if (! Schema::hasColumn('roles', 'is_system')) {
+            Schema::table('roles', function (Blueprint $table) {
+                $table->boolean('is_system')->default(false)->index();
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('roles', function (Blueprint $table) {
-            $table->dropIndex(['is_system']);
-            $table->dropColumn('is_system');
-        });
+        if (Schema::hasColumn('roles', 'is_system')) {
+            Schema::table('roles', function (Blueprint $table) {
+                $table->dropIndex(['is_system']);
+                $table->dropColumn('is_system');
+            });
+        }
     }
 };
