@@ -22,7 +22,7 @@ tags: []
 
 - **Pending:** final verification sweep
 - **In Progress:** —
-- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037), C7 (FND-063, FND-061, FND-056, FND-064, FND-066), C8 (FND-055, FND-054), C9 (FND-001, FND-002, FND-003, FND-007, FND-008, FND-009, FND-011, FND-012, FND-016, FND-019, FND-020, FND-023, FND-024, FND-025, FND-027, FND-034, FND-040, FND-048, FND-050, FND-059, FND-062), C10 (FND-004, FND-005, FND-013, FND-028, FND-035, FND-044, FND-045; FND-068 REJECTED-BY-ADR-STUBS-001), C11 (FND-026, FND-036, FND-043, FND-046, FND-047, FND-049, FND-060)
+- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037), C7 (FND-063, FND-061, FND-056, FND-064, FND-066), C8 (FND-055, FND-054), C9 (FND-001, FND-002, FND-003, FND-007, FND-008, FND-009, FND-011, FND-012, FND-016, FND-019, FND-020, FND-023, FND-024, FND-025, FND-027, FND-034, FND-040, FND-048, FND-050, FND-059, FND-062), C10 (FND-004, FND-005, FND-013, FND-028, FND-035, FND-044, FND-045; FND-068 NO-ACTION per ADR-STUBS-001), C11 (FND-026, FND-036, FND-043, FND-046, FND-047, FND-049, FND-060)
 - **Blocked:** —
 
 ### Phase plan (order = cluster order per mandate; tiers per §11.2)
@@ -190,7 +190,7 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 | FND-035 | LOW | app.js dual module-page globs — one unreachable dead fallback | resources/js/app.js | COMPLETED | 2026-10-01 | 2026-10-01 | tests green | Single absolute /Modules glob retained |
 | FND-044 | LOW | Scaffold debt: unused config/config.php stubs, empty seeders, stale .gitkeep in populated dirs, dead per-module package.json/vite.config.js | Modules/* | COMPLETED | 2026-10-01 | 2026-10-01 | 115 tests pass | Deleted 6 config stubs, 6 package.json, 6 vite.config.js, 5 empty seeders, 5 stale .gitkeep (populated dirs only) |
 | FND-045 | LOW | CoreController + 4 scaffold Core pages unrouted/dead | Modules/Core | COMPLETED | 2026-10-01 | 2026-10-01 | tests green; no render refs | CoreController + Index/Create/Edit/Show.vue removed; locale/theme controllers + ErrorPage kept |
-| FND-068 | LOW | Stub tree claimed dead | stubs/nwidart-stubs/* | REJECTED-BY-ADR | — | — | ADR-STUBS-001 | Deletion prohibited; kept as protected asset. Status = COMPLETED via ADR (no code change) |
+| FND-068 | LOW | Stub tree claimed dead | stubs/nwidart-stubs/* | NO-ACTION | — | 2026-10-01 | ADR-STUBS-001 | Deletion prohibited; stub tree is a protected asset per ADR-STUBS-001 — resolved by decision, no code change |
 
 ### Phase 11 — Cluster C11: UX/FE polish (LOW)
 
@@ -290,7 +290,7 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - package.json + package-lock.json (FND-013 — concurrently removed)
 - deleted: 6× Modules/*/config/config.php, 6× package.json, 6× vite.config.js, 5× empty DatabaseSeeders, 5× stale .gitkeep (FND-044)
 - deleted: Modules/Core CoreController.php + Index/Create/Edit/Show.vue (FND-045)
-- FND-068 REJECTED-BY-ADR-STUBS-001 — stubs/ tree protected, no code change
+- FND-068 NO-ACTION per ADR-STUBS-001 — stubs/ tree protected, no code change
 - app/Http/Middleware/SetLocale.php (FND-026)
 - resources/js/app.js (FND-036 — token-driven progress color)
 - Modules/Core/resources/js/Components/EnterpriseDataGrid.vue (FND-046 — debounced search)
