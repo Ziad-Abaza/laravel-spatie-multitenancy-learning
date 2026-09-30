@@ -5,11 +5,11 @@ namespace Modules\Landlord\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Core\Enums\TenantStatus;
 use Modules\Landlord\Services\TenantLifecycleService;
 use Modules\Landlord\Services\TenantProvisioner;
 use Modules\Subscription\Models\Plan;
@@ -160,12 +160,7 @@ class TenantController extends Controller
             'trial_ends_at' => ['required', 'date', 'after:today'],
         ]);
 
-        $tenant->update([
-            'trial_ends_at' => $validated['trial_ends_at'],
-            'status' => TenantStatus::Trialing,
-        ]);
-
-        $tenant->currentSubscription?->update(['trial_ends_at' => $validated['trial_ends_at']]);
+        $this->lifecycleService->extendTrial($tenant, Carbon::parse($validated['trial_ends_at']));
 
         return back()->with('success', __('tenant_trial_extended'));
     }

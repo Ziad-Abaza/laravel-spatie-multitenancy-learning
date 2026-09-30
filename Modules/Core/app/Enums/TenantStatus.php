@@ -28,4 +28,18 @@ enum TenantStatus: string
             self::Archived => 'slate',
         };
     }
+
+    /**
+     * The tenant lifecycle state machine. Archived is terminal.
+     * Trialing→Trialing is the trial-extension transition.
+     */
+    public function canTransitionTo(self $to): bool
+    {
+        return match ($this) {
+            self::Trialing => in_array($to, [self::Trialing, self::Active, self::Suspended, self::Archived], true),
+            self::Active => in_array($to, [self::Trialing, self::Suspended, self::Archived], true),
+            self::Suspended => in_array($to, [self::Active, self::Archived], true),
+            self::Archived => false,
+        };
+    }
 }

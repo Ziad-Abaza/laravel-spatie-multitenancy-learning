@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use Modules\Access\Support\LandlordPermissions;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Landlord\Models\LandlordUser;
+use Modules\Landlord\Services\TenantLifecycleService;
 use Modules\Subscription\Models\Plan;
 use Tests\TestCase;
 
@@ -242,6 +243,32 @@ class LandlordTenantProvisioningTest extends TestCase
             ->delete("/landlord/plans/{$plan->id}")
             ->assertRedirect()
             ->assertSessionHas('error');
+    }
+
+    public function test_extend_trial_rejects_non_trialing_tenants(): void
+    {
+        $tenant = $this->provisionTenant(['slug' => 'trial-guard']);
+        app(TenantLifecycleService::class)->suspend($tenant);
+
+        $this->actingAs($this->admin, 'landlord')
+            ->post("/landlord/tenants/{$tenant->id}/trial", [
+                'trial_ends_at' => now()->addDays(30)->toDateString(),
+            ])
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame(TenantStatus::Suspended->value, $tenant->fresh()->getStatus());
+    }
+
+    public function test_archived_tenant_is_terminal(): void
+    {
+        $tenant = $this->provisionTenant(['slug' => 'terminal']);
+        app(TenantLifecycleService::class)->archive($tenant);
+
+        $this->actingAs($this->admin, 'landlord')
+            ->post("/landlord/tenants/{$tenant->id}/activate")
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame(TenantStatus::Archived->value, $tenant->fresh()->getStatus());
     }
 
     public function test_orphan_plan_can_be_deleted(): void

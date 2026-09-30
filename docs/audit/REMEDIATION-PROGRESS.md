@@ -14,15 +14,15 @@ tags: []
 
 ## CURRENT STATE
 
-- **Current Phase:** Phase 8
-- **Current Cluster:** C8 — Lifecycle atomicity
-- **Current Finding:** FND-055
+- **Current Phase:** Phase 9
+- **Current Cluster:** C9 — SSoT / config drift
+- **Current Finding:** FND-001
 
 ### Queue
 
-- **Pending:** C8 → C11 (see phase plan below)
-- **In Progress:** C8
-- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037), C7 (FND-063, FND-061, FND-056, FND-064, FND-066)
+- **Pending:** C9 → C11 (see phase plan below)
+- **In Progress:** C9
+- **Completed:** C1 (FND-029, FND-030, FND-033), C2 (FND-053, FND-057), C3 (FND-067, FND-006, FND-052; incl. dependency fixes FND-027 + provisioner tenant-migration defect), C4 (FND-058, FND-039, FND-065), C5 (FND-015, FND-018, FND-032, FND-042, FND-021, FND-022), C6 (FND-041, FND-031, FND-017, FND-037), C7 (FND-063, FND-061, FND-056, FND-064, FND-066), C8 (FND-055, FND-054)
 - **Blocked:** —
 
 ### Phase plan (order = cluster order per mandate; tiers per §11.2)
@@ -150,8 +150,8 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 
 | ID | Severity | Root Cause | Files | Status | Started | Completed | Verification | Notes |
 |---|---|---|---|---|---|---|---|---|
-| FND-055 | LOW-MEDIUM | Provision/delete not transactional: orphan DB+row+subscription on mid-failure; sequential non-atomic deletes, swallowed drop errors | TenantProvisioner.php; TenantLifecycleService.php | PENDING | — | — | — | Wrap in txn + compensation |
-| FND-054 | MEDIUM | `extendTrial` unconditionally sets status=Trialing — bypasses status machine; any→any transitions | TenantController.php; TenantLifecycleService.php | PENDING | — | — | — | Transition guards via TenantStatus enum |
+| FND-055 | LOW-MEDIUM | Provision/delete not transactional: orphan DB+row+subscription on mid-failure; sequential non-atomic deletes, swallowed drop errors | TenantProvisioner.php; TenantLifecycleService.php | COMPLETED | 2026-10-01 | 2026-10-01 | suite green incl. all lifecycle tests | Landlord writes (tenant row + subscription + DB create) now run inside a landlord transaction; on any later failure (migrate/seed) the catch block deletes the rows via atomic `delete()` and drops the tenant DB via shared `dropTenantDatabase()` — compensation errors are reported, never mask the original. `delete()` wraps subs+tenant delete in a landlord txn; drop failures now throw instead of being swallowed |
+| FND-054 | MEDIUM | `extendTrial` unconditionally sets status=Trialing — bypasses status machine; any→any transitions | Modules/Core/app/Enums/TenantStatus.php; TenantLifecycleService.php; TenantController.php | COMPLETED | 2026-10-01 | 2026-10-01 | `test_extend_trial_rejects_non_trialing_tenants` (Suspended→Trialing refused), `test_archived_tenant_is_terminal` (Archived→Active refused) | `TenantStatus::canTransitionTo()` is now the state machine; suspend/activate/archive/extendTrial all pass through `assertTransition` → ValidationException; extendTrial moved into the lifecycle service (controller was bypassing it). New `tenant_invalid_transition` key (en+ar) |
 
 ### Phase 9 — Cluster C9: SSoT / config drift (MEDIUM/LOW)
 
@@ -261,6 +261,11 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - Modules/Core/app/Contracts/QuotaManagerContract.php + Modules/Subscription/app/Services/QuotaService.php (FND-064 — getStorageUsageMb)
 - Modules/Subscription/app/Http/Controllers/SubscriptionController.php + Modules/Tenant/app/Http/Controllers/TenantDashboardController.php (FND-064)
 - Modules/Subscription/resources/js/Pages/LandlordSubscriptions.vue (FND-066)
+- Modules/Core/app/Enums/TenantStatus.php (FND-054 — canTransitionTo)
+- Modules/Landlord/app/Services/TenantLifecycleService.php (FND-054/055 — transition guards, extendTrial, atomic delete, dropTenantDatabase)
+- Modules/Landlord/app/Services/TenantProvisioner.php (FND-055 — landlord txn + compensation)
+- Modules/Landlord/app/Http/Controllers/TenantController.php (FND-054 — delegates to service)
+- Modules/Landlord/lang/{en,ar}.json (FND-054 — tenant_invalid_transition)
 
 ### Migrations Added
 - database/migrations/tenant/2026_10_02_000001_add_is_system_to_roles_table.php (FND-032)
@@ -274,6 +279,7 @@ Status values: PENDING / IN PROGRESS / COMPLETED / BLOCKED / NO-ACTION (resolved
 - test_tenant_login_attempts_are_rate_limited, test_tenant_provisioning_endpoint_is_rate_limited (TenancySecurityTest)
 - test_tenant_member_registration_respects_platform_allow_registration, test_password_reset_tokens_are_stored_in_the_tenant_database (TenantAccessControlTest)
 - test_subscription_amount_and_interval_come_from_the_plan, test_change_plan_refreshes_interval_currency_and_ends_at, test_metrics_emit_real_mrr_key_with_sql_aggregation, test_storage_usage_reflects_real_tenant_media_bytes (QuotaEnforcementTest)
+- test_extend_trial_rejects_non_trialing_tenants, test_archived_tenant_is_terminal (LandlordTenantProvisioningTest)
 
 ### Risks
 - `docs/audit/` contains this file + MASTER-AUDIT.md only; do not regenerate findings.

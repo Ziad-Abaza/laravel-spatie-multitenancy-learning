@@ -21,7 +21,8 @@ class TenantProvisioner
 {
     public function __construct(
         protected SubscriptionService $subscriptionService,
-        protected SettingManagerContract $settingService
+        protected SettingManagerContract $settingService,
+        protected TenantLifecycleService $lifecycleService
     ) {}
 
     /**
@@ -59,55 +60,74 @@ class TenantProvisioner
             ? database_path("{$databaseName}.sqlite")
             : $databaseName;
 
-        // 1. Create tenant database if MySQL (or prepare sqlite in test)
-        $this->createDatabaseIfNotExists($database);
-
         // Retrieve system defaults for trial duration and theme
         $defaultTrialDays = (int) $this->settingService->get('default_trial_days', 14, 'system');
         $defaultPalette = (string) $this->settingService->get('palette', 'indigo', 'theme');
         $defaultMode = (string) $this->settingService->get('mode', 'dark', 'theme');
 
-        // 2. Create Tenant record on landlord connection
-        $tenant = Tenant::create([
-            'name' => $name,
-            'slug' => $slug,
-            'domain' => $domain,
-            'database' => $database,
-            'status' => TenantStatus::Trialing,
-            'trial_ends_at' => now()->addDays($defaultTrialDays),
-        ]);
-
-        // 3. Assign Plan and Subscription — explicit choice, then the
-        // configured default plan, then the lowest active plan as last resort.
         $plan = null;
-        if (! empty($data['plan_id'])) {
-            $plan = Plan::find($data['plan_id']);
-        }
-        if (! $plan) {
-            $defaultPlanId = (int) $this->settingService->get('default_plan_id', 0, 'billing');
-            $plan = $defaultPlanId ? Plan::where('is_active', true)->find($defaultPlanId) : null;
-        }
-        if (! $plan) {
-            $plan = Plan::where('is_active', true)->orderBy('sort_order')->first();
-        }
+        $tenant = null;
 
-        if ($plan) {
-            $this->subscriptionService->subscribeTenant(
-                $tenant,
-                $plan,
-                true
-            );
+        try {
+            // Landlord-side writes (tenant row + subscription) are atomic;
+            // the external resource (tenant database) is compensated in the
+            // catch block since DDL cannot join the transaction.
+            $tenant = DB::connection(
+                config('multitenancy.landlord_database_connection_name', 'landlord')
+            )->transaction(function () use ($data, $name, $slug, $domain, $database, $defaultTrialDays, &$plan) {
+                $this->createDatabaseIfNotExists($database);
+
+                $tenant = Tenant::create([
+                    'name' => $name,
+                    'slug' => $slug,
+                    'domain' => $domain,
+                    'database' => $database,
+                    'status' => TenantStatus::Trialing,
+                    'trial_ends_at' => now()->addDays($defaultTrialDays),
+                ]);
+
+                // Assign Plan and Subscription — explicit choice, then the
+                // configured default plan, then the lowest active plan.
+                if (! empty($data['plan_id'])) {
+                    $plan = Plan::find($data['plan_id']);
+                }
+                if (! $plan) {
+                    $defaultPlanId = (int) $this->settingService->get('default_plan_id', 0, 'billing');
+                    $plan = $defaultPlanId ? Plan::where('is_active', true)->find($defaultPlanId) : null;
+                }
+                if (! $plan) {
+                    $plan = Plan::where('is_active', true)->orderBy('sort_order')->first();
+                }
+
+                if ($plan) {
+                    $this->subscriptionService->subscribeTenant($tenant, $plan, true);
+                }
+
+                return $tenant;
+            });
+
+            $this->runTenantMigrations($tenant);
+
+            $this->seedTenantInitialData($tenant, [
+                'name' => $data['admin_name'],
+                'email' => $data['admin_email'],
+                'password' => $data['admin_password'],
+            ], $defaultPalette, $defaultMode);
+        } catch (\Throwable $e) {
+            // Compensation: a half-provisioned tenant must leave no orphan
+            // rows or databases behind. A compensation failure must not mask
+            // the original exception.
+            try {
+                if ($tenant !== null) {
+                    $this->lifecycleService->delete($tenant);
+                }
+                $this->lifecycleService->dropTenantDatabase($database);
+            } catch (\Throwable $compensationError) {
+                report($compensationError);
+            }
+
+            throw $e;
         }
-
-        // 4. Run tenant migrations
-        $this->runTenantMigrations($tenant);
-
-        // 5. Seed owner user and roles in the tenant database
-        $this->seedTenantInitialData($tenant, [
-            'name' => $data['admin_name'],
-            'email' => $data['admin_email'],
-            'password' => $data['admin_password'],
-        ], $defaultPalette, $defaultMode);
 
         event(new TenantCreated($tenant, [
             'name' => $data['admin_name'],

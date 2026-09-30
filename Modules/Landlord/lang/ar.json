@@ -104,6 +104,7 @@
     "tenant_activated_notice": "تم تفعيل المستأجر :name.",
     "tenant_databases_status": "حالة قواعد بيانات المستأجرين",
     "tenant_deleted_notice": "تم حذف المستأجر :name بنجاح.",
+    "tenant_invalid_transition": "لا يمكن نقل المستأجر من :from إلى :to.",
     "tenant_management": "إدارة المستأجرين",
     "tenant_owner_account": "حساب المالك المبدئي",
     "tenant_provisioned": "تم تجهيز المستأجر بنجاح.",

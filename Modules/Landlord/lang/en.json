@@ -104,6 +104,7 @@
     "tenant_activated_notice": "Tenant :name has been activated.",
     "tenant_databases_status": "Dedicated tenant databases status",
     "tenant_deleted_notice": "Tenant :name was deleted successfully.",
+    "tenant_invalid_transition": "Cannot transition tenant from :from to :to.",
     "tenant_management": "Tenant Management",
     "tenant_owner_account": "Initial Owner Account",
     "tenant_provisioned": "Tenant provisioned successfully.",
