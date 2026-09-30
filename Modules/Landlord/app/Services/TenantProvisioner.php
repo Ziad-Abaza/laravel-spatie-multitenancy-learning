@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Modules\Access\Services\AccessBaselineProvisioner;
+use Modules\Access\Support\TenantPermissions;
 use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Core\Events\TenantCreated;
@@ -164,7 +165,7 @@ class TenantProvisioner
 
             // Assign Owner role
             if (method_exists($user, 'assignRole')) {
-                $user->assignRole('Owner');
+                $user->assignRole(TenantPermissions::ROLE_OWNER);
             }
 
             // Default tenant settings — always through the governed service

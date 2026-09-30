@@ -4,13 +4,16 @@ namespace Modules\Access\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Access\Services\TenantUserService;
+use Modules\Access\Support\TenantPermissions;
 
 class TenantAuthController extends Controller
 {
@@ -77,7 +80,7 @@ class TenantAuthController extends Controller
         }
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:150', 'unique:users,email'],
+            'email' => ['required', 'email', 'max:150', Rule::unique(User::class, 'email')],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -85,7 +88,7 @@ class TenantAuthController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => $validated['password'],
-            'role' => 'Member',
+            'role' => TenantPermissions::ROLE_MEMBER,
         ]);
 
         Auth::guard('web')->login($user);

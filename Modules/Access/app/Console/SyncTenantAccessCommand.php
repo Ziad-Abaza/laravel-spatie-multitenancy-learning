@@ -57,7 +57,7 @@ class SyncTenantAccessCommand extends Command
             return;
         }
 
-        $user->assignRole('Owner');
+        $user->assignRole(TenantPermissions::ROLE_OWNER);
         $this->line("  Promoted {$user->email} to Owner.");
     }
 }

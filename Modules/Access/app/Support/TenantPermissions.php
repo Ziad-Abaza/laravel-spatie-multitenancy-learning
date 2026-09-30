@@ -20,6 +20,17 @@ namespace Modules\Access\Support;
  */
 final class TenantPermissions
 {
+    /**
+     * Baseline role names — provisioning labels only. Renaming them is safe
+     * because no authorization decision ever compares role names; only the
+     * permission sets attached in the Spatie tables matter.
+     */
+    public const ROLE_OWNER = 'Owner';
+
+    public const ROLE_ADMIN = 'Admin';
+
+    public const ROLE_MEMBER = 'Member';
+
     public const USERS_VIEW = 'users.view';
 
     public const USERS_CREATE = 'users.create';
@@ -73,9 +84,9 @@ final class TenantPermissions
     public static function roleMap(): array
     {
         return [
-            'Owner' => self::all(),
-            'Admin' => self::all(),
-            'Member' => [self::USERS_VIEW],
+            self::ROLE_OWNER => self::all(),
+            self::ROLE_ADMIN => self::all(),
+            self::ROLE_MEMBER => [self::USERS_VIEW],
         ];
     }
 }

@@ -15,6 +15,9 @@ final class LandlordPermissions
 {
     public const GUARD = 'landlord';
 
+    /** Baseline role name — provisioning label only, never an auth check. */
+    public const ROLE_SUPER_ADMIN = 'Super Admin';
+
     public const TENANTS_VIEW = 'tenants.view';
 
     public const TENANTS_CREATE = 'tenants.create';
@@ -66,7 +69,7 @@ final class LandlordPermissions
     public static function roleMap(): array
     {
         return [
-            'Super Admin' => self::all(),
+            self::ROLE_SUPER_ADMIN => self::all(),
         ];
     }
 }

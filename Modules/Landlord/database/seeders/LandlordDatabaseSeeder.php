@@ -5,6 +5,7 @@ namespace Modules\Landlord\Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Modules\Access\Services\AccessBaselineProvisioner;
+use Modules\Access\Support\LandlordPermissions;
 use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Landlord\Models\LandlordUser;
@@ -36,7 +37,7 @@ class LandlordDatabaseSeeder extends Seeder
 
         if (method_exists($admin, 'assignRole')) {
             try {
-                $admin->assignRole('Super Admin');
+                $admin->assignRole(LandlordPermissions::ROLE_SUPER_ADMIN);
             } catch (\Throwable) {
             }
         }
