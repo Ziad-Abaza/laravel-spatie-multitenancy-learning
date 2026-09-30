@@ -11,7 +11,11 @@ use Spatie\Multitenancy\TenantFinder\TenantFinder;
 class SaaSTenantFinder extends TenantFinder
 {
     /**
-     * Resolve the current tenant from the given request.
+     * Resolve the tenant for the given request. Pure lookup only: exact
+     * domain match first (covers platform subdomains and custom domains),
+     * then slug matching under the configured tenant domain suffix.
+     * Admission policy (landlord hosts, unknown hosts) is handled by the
+     * IdentifyTenant middleware; tenant status by EnsureTenantIsActive.
      */
     public function findForRequest(Request $request): ?IsTenant
     {
@@ -20,56 +24,27 @@ class SaaSTenantFinder extends TenantFinder
 
         $host = strtolower($request->getHost());
 
-        // Landlord host definitions
-        $landlordHosts = array_filter([
-            'localhost',
-            '127.0.0.1',
-            '::1',
-            strtolower((string) parse_url(config('app.url', 'http://localhost'), PHP_URL_HOST)),
-            strtolower((string) config('multitenancy.landlord_domain')),
-        ]);
+        $tenant = $tenantModel::query()->where('domain', $host)->first();
 
-        $isLandlordHost = in_array($host, $landlordHosts, true);
-
-        // Allow explicit header or query parameter for testing or API clients
-        $tenantIdentifier = $request->header('X-Tenant')
-            ?? $request->header('x-tenant')
-            ?? $request->server('HTTP_X_TENANT')
-            ?? ($request->has('tenant') ? (string) $request->query('tenant') : null);
-
-        if ($tenantIdentifier) {
-            return $tenantModel::query()
-                ->where('id', $tenantIdentifier)
-                ->orWhere('domain', $tenantIdentifier)
-                ->orWhere('slug', $tenantIdentifier)
-                ->first();
-        }
-
-        if ($isLandlordHost) {
-            return null;
-        }
-
-        // 1. Direct match on domain
-        $tenant = $tenantModel::where('domain', $host)->first();
         if ($tenant) {
             return $tenant;
         }
 
-        // 2. Subdomain extraction (e.g. tenant1.localhost or tenant1.app.test)
-        $parts = explode('.', $host);
-        if (count($parts) >= 2) {
-            $subdomain = $parts[0];
-            $tenant = $tenantModel::query()
-                ->where('slug', $subdomain)
-                ->orWhere('domain', $subdomain)
-                ->orWhere('domain', "{$subdomain}.localhost")
-                ->first();
+        $suffix = $this->tenantDomainSuffix();
 
-            if ($tenant) {
-                return $tenant;
-            }
+        if ($suffix !== null && str_ends_with($host, '.'.$suffix)) {
+            $subdomain = explode('.', $host)[0];
+
+            return $tenantModel::query()->where('slug', $subdomain)->first();
         }
 
         return null;
+    }
+
+    protected function tenantDomainSuffix(): ?string
+    {
+        $suffix = config('multitenancy.tenant_domain_suffix');
+
+        return is_string($suffix) && $suffix !== '' ? strtolower($suffix) : null;
     }
 }

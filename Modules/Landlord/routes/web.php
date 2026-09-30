@@ -14,8 +14,8 @@ Route::get('/pricing', [LandingController::class, 'pricing'])->name('landing.pri
 Route::get('/register-tenant', [TenantRegistrationController::class, 'show'])->name('tenant.register.show');
 Route::post('/register-tenant', [TenantRegistrationController::class, 'register'])->name('tenant.register');
 
-// Landlord Authentication
-Route::prefix('landlord')->group(function () {
+// Landlord Authentication & Administration — landlord hosts only
+Route::middleware('landlord')->prefix('landlord')->group(function () {
     Route::get('/login', [LandlordAuthController::class, 'showLoginForm'])->name('landlord.login');
     Route::post('/login', [LandlordAuthController::class, 'login'])->name('landlord.login.post');
     Route::post('/logout', [LandlordAuthController::class, 'logout'])->name('landlord.logout');

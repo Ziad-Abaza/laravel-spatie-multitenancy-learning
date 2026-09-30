@@ -7,6 +7,7 @@ import {
     Ban,
     CloudOff,
     Compass,
+    CreditCard,
     FileQuestion,
     Gauge,
     Home,
@@ -38,13 +39,17 @@ interface ErrorSpec {
 
 const props = withDefaults(defineProps<{
     status?: number;
+    title?: string | null;
     message?: string | null;
+    hint?: string | null;
     exception?: string | null;
     loginUrl?: string;
     homeUrl?: string;
 }>(), {
     status: 500,
+    title: null,
     message: null,
+    hint: null,
     exception: null,
     loginUrl: '/login',
     homeUrl: '/',
@@ -61,6 +66,7 @@ const statusMap: Record<number, ErrorSpec> = {
     405: { icon: Ban, tone: 'warning', titleKey: 'error_405_title', messageKey: 'error_405_message', actions: ['home', 'back'] },
     408: { icon: Timer, tone: 'warning', titleKey: 'error_408_title', messageKey: 'error_408_message', actions: ['reload', 'home'] },
     419: { icon: TimerReset, tone: 'warning', titleKey: 'error_419_title', messageKey: 'error_419_message', actions: ['reload'] },
+    423: { icon: CreditCard, tone: 'warning', titleKey: 'error_423_title', messageKey: 'error_423_message', actions: ['home'] },
     429: { icon: Gauge, tone: 'warning', titleKey: 'error_429_title', messageKey: 'error_429_message', actions: ['reload', 'home'] },
     500: { icon: ServerCrash, tone: 'danger', titleKey: 'error_500_title', messageKey: 'error_500_message', hintKey: 'error_contact_support', actions: ['reload', 'home'] },
     502: { icon: CloudOff, tone: 'danger', titleKey: 'error_502_title', messageKey: 'error_502_message', hintKey: 'error_contact_support', actions: ['reload', 'home'] },
@@ -79,9 +85,9 @@ const defaultSpec: ErrorSpec = {
 
 const spec = computed<ErrorSpec>(() => statusMap[props.status] ?? defaultSpec);
 
-const title = computed(() => t(spec.value.titleKey));
+const title = computed(() => props.title?.trim() || t(spec.value.titleKey));
 const description = computed(() => props.message?.trim() || t(spec.value.messageKey));
-const hint = computed(() => (spec.value.hintKey ? t(spec.value.hintKey) : ''));
+const hint = computed(() => props.hint?.trim() || (spec.value.hintKey ? t(spec.value.hintKey) : ''));
 const headTitle = computed(() => `${props.status} — ${title.value}`);
 
 const toneClasses: Record<ErrorTone, { iconWrap: string; code: string }> = {

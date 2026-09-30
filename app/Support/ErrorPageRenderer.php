@@ -2,11 +2,13 @@
 
 namespace App\Support;
 
+use App\Exceptions\TenantSuspendedException;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\Locale;
+use Spatie\Multitenancy\Contracts\IsTenant;
 use Spatie\Multitenancy\Exceptions\NoCurrentTenant;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -23,12 +25,30 @@ class ErrorPageRenderer
         }
 
         try {
-            $status = $e instanceof NoCurrentTenant ? 404 : $response->getStatusCode();
+            $status = match (true) {
+                $e instanceof NoCurrentTenant => 404,
+                $e instanceof TenantSuspendedException => 423,
+                default => $response->getStatusCode(),
+            };
+
+            if ($e instanceof TenantSuspendedException) {
+                // Render in the landlord context: the suspended tenant's
+                // database may be unreachable and its domain must not be
+                // used for navigation targets.
+                app(IsTenant::class)::forgetCurrent();
+            }
+
             $hasTenant = Tenant::current() !== null;
 
             return Inertia::render('Core/ErrorPage', [
                 'status' => $status,
-                'message' => $e instanceof NoCurrentTenant ? __('error_tenant_not_found') : null,
+                'title' => $e instanceof TenantSuspendedException ? __('tenant_suspended_title') : null,
+                'message' => match (true) {
+                    $e instanceof NoCurrentTenant => __('error_tenant_not_found'),
+                    $e instanceof TenantSuspendedException => __('tenant_suspended_message'),
+                    default => null,
+                },
+                'hint' => $e instanceof TenantSuspendedException ? __('tenant_suspended_hint') : null,
                 'exception' => config('app.debug') ? $e->getMessage() : null,
                 'loginUrl' => $hasTenant ? '/login' : '/landlord/login',
                 'homeUrl' => $hasTenant ? '/' : (rtrim((string) config('app.url', '/'), '/') ?: '/'),

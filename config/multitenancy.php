@@ -28,8 +28,28 @@ return [
     /*
      * The domain serving the landlord (central) application. Requests whose
      * host matches it run in the landlord context; set via LANDLORD_DOMAIN.
+     * Accepts a comma-separated list for multiple central domains.
      */
     'landlord_domain' => env('LANDLORD_DOMAIN', 'localhost'),
+
+    /*
+     * All hosts serving the landlord application: the configured landlord
+     * domain list plus the APP_URL host (plus loopback hosts outside
+     * production). Hosts that are neither landlord nor a known tenant are
+     * rejected with a 404.
+     */
+    'landlord_domains' => array_values(array_unique(array_filter(array_merge(
+        array_map('trim', explode(',', (string) env('LANDLORD_DOMAIN', 'localhost'))),
+        [parse_url((string) env('APP_URL', ''), PHP_URL_HOST)],
+        env('APP_ENV') === 'production' ? [] : ['localhost', '127.0.0.1', '::1'],
+    )))),
+
+    /*
+     * Parent domain under which tenant subdomains are resolved by slug,
+     * e.g. {slug}.{TENANT_DOMAIN_SUFFIX}. Empty disables slug matching.
+     * Custom tenant domains always match via the `domain` column directly.
+     */
+    'tenant_domain_suffix' => env('TENANT_DOMAIN_SUFFIX'),
 
     /*
      * These fields are used by tenant:artisan command to match one or more tenant.

@@ -1,5 +1,8 @@
 <?php
 
+use App\Exceptions\TenantSuspendedException;
+use App\Http\Middleware\EnsureLandlordContext;
+use App\Http\Middleware\EnsureTenantIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\IdentifyTenant;
 use App\Http\Middleware\SetLocale;
@@ -25,9 +28,15 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(prepend: [
             IdentifyTenant::class,
+            EnsureTenantIsActive::class,
         ], append: [
             SetLocale::class,
             HandleInertiaRequests::class,
+        ]);
+
+        $middleware->api(prepend: [
+            IdentifyTenant::class,
+            EnsureTenantIsActive::class,
         ]);
 
         $middleware->group('tenant', [
@@ -36,6 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
+            'landlord' => EnsureLandlordContext::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
@@ -51,6 +61,16 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'message' => __('error_tenant_not_found'),
                 ], 404);
+            }
+
+            // Web requests fall through to the unified error page in respond() below.
+        });
+
+        $exceptions->render(function (TenantSuspendedException $e, Request $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => __('tenant_suspended_message'),
+                ], 423);
             }
 
             // Web requests fall through to the unified error page in respond() below.
