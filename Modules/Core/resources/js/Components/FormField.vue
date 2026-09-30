@@ -1,5 +1,5 @@
-<script setup lang="ts" generic="V = string | number | boolean | null">
-import { computed } from 'vue';
+<script setup lang="ts" generic="V extends string | number | boolean | null = string | number | boolean | null">
+import { computed, type Component } from 'vue';
 import { useI18n } from '../Composables/useI18n';
 
 /**
@@ -19,6 +19,7 @@ const props = withDefaults(
         required?: boolean;
         disabled?: boolean;
         size?: 'sm' | 'md';
+        icon?: Component;
         dir?: string;
         min?: number | string;
         max?: number | string;
@@ -35,6 +36,7 @@ const props = withDefaults(
         required: false,
         disabled: false,
         size: 'md',
+        icon: undefined,
         dir: undefined,
         min: undefined,
         max: undefined,
@@ -65,6 +67,10 @@ const normalizedOptions = computed(() => {
     }
     return Object.entries(props.options).map(([value, label]) => ({ value, label }));
 });
+
+const controlValue = computed<string | number | null>(() =>
+    typeof props.modelValue === 'boolean' ? null : (props.modelValue as string | number | null)
+);
 
 function onInput(e: Event) {
     const target = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -97,7 +103,7 @@ function onInput(e: Event) {
         <select
             v-if="type === 'select'"
             :id="fieldId"
-            :value="modelValue"
+            :value="controlValue"
             :disabled="disabled"
             :class="controlClass"
             @change="onInput"
@@ -111,7 +117,7 @@ function onInput(e: Event) {
         <textarea
             v-else-if="type === 'textarea'"
             :id="fieldId"
-            :value="modelValue"
+            :value="controlValue"
             :placeholder="placeholder"
             :disabled="disabled"
             :required="required"
@@ -121,21 +127,33 @@ function onInput(e: Event) {
             @input="onInput"
         />
 
-        <input
-            v-else
-            :id="fieldId"
-            :type="type"
-            :value="modelValue"
-            :placeholder="placeholder"
-            :disabled="disabled"
-            :required="required"
-            :min="min"
-            :max="max"
-            :step="step"
-            :dir="dir"
-            :class="controlClass"
-            @input="onInput"
-        />
+        <div v-else class="relative">
+            <input
+                :id="fieldId"
+                :type="type"
+                :value="controlValue"
+                :placeholder="placeholder"
+                :disabled="disabled"
+                :required="required"
+                :min="min"
+                :max="max"
+                :step="step"
+                :dir="dir"
+                :class="[controlClass, icon ? 'ps-10' : '', $slots.trailing ? 'pe-0 rounded-e-none border-e-0' : '']"
+                @input="onInput"
+            />
+            <component
+                :is="icon"
+                v-if="icon"
+                class="w-4 h-4 text-text-subtle absolute start-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+            />
+            <span
+                v-if="$slots.trailing"
+                class="absolute inset-y-0 end-0 px-4 inline-flex items-center bg-surface-hover text-xs font-mono text-text-muted border border-border-subtle border-s-0 rounded-e-xl"
+            >
+                <slot name="trailing" />
+            </span>
+        </div>
 
         <p v-if="hint && !error" class="mt-1 text-[11px] text-text-muted">{{ hint }}</p>
         <p v-if="error" class="mt-1 text-xs text-danger-fg" role="alert">{{ error }}</p>

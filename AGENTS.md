@@ -130,6 +130,34 @@ Do not duplicate formatting logic across table columns when an established seman
 
 - **Visual Consistency:** Reuse established design-system components and patterns before introducing new visual primitives.
 
+### 6.1 Mandatory UI Component System (Required for ALL Agents)
+
+Every new page or page modification MUST be composed from the shared component library in `Modules/Core/resources/js/Components/`. Hand-written duplicates of these primitives are not allowed — if a page needs a button, field, card, modal, or table, use the component below instead of re-implementing its markup.
+
+| Component | Mandatory Use |
+|---|---|
+| `PageHeader` | Every page's title/subtitle/actions/back-link block — replaces custom `text-2xl font-bold` header divs. |
+| `Panel` | Every `rounded-3xl bg-surface-card` content card — title/icon/description header, `actions` + `footer` slots, padding variants. |
+| `FormField` | ALL form controls — label + input/select/textarea/checkbox + hint + error. Use `size="sm"` inside modals/cards, `md` for standalone forms. `icon` prop for leading icons, `#trailing` slot for addon suffixes. |
+| `BaseButton` | EVERY button/link-styled-as-button — variants `primary/secondary/success/warning/danger/ghost`, `size`, `icon`, `loading`, `href` (Inertia Link) / `external`. Never write `<button>` or styled `<Link>` for actions. |
+| `IconButton` | Icon-only actions in table rows and headers. |
+| `FormModal` | ALL create/edit dialog forms — wraps `Modal` + form + footer submit/cancel. |
+| `ConfirmDialog` | ALL destructive/state-change confirmations. Pass structured warning content via its default slot. |
+| `DataTable` | Read-only tables inside detail pages/panels — columns config + `cell-{key}` slots + built-in empty state. |
+| `EnterpriseDataGrid` | ALL index/listing pages — toolbar, search, sorting, dynamic numbered pagination (`pagination` prop + `@page-change`). |
+| `FilterSelect` | Filter `<select>`s in grid toolbars — emits `update:modelValue` + `change`. |
+| `TabNav` | Tab switchers — `items: {key,label,icon}[]` + `v-model`. |
+| `PalettePicker` | Theme palette radio grids. |
+| `EmptyState`, `SkeletonLoader`, `StatusBadge`, `BadgeCell`, `CurrencyCell`, `StatCard` | Standard states and semantic formatters — never hand-roll equivalents. |
+
+Rules:
+
+- New pages must be built by composing these components; do not copy their internal class strings into page markup.
+- When a needed variation is missing, EXTEND the shared component (props/slots) rather than pasting parallel markup.
+- Keep components domain-agnostic: no business logic, route names, or module-specific assumptions inside `Core/Components`.
+- Module-specific composed fragments (e.g. `PlanFormFields`) live in the module's own `resources/js/Components/` directory.
+- If a genuinely new primitive is needed app-wide, add it to `Core/Components` with typed props, empty/loading/error states where data-driven, RTL-safe classes (`ps-`/`pe-`/`ms-`/`me-`), and update this table.
+
 ### 7. Review Gate
 
 Before considering a change complete, verify:

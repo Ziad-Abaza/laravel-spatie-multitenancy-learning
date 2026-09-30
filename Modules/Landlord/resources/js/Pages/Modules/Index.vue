@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
 import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
+import PageHeader from '@core/Components/PageHeader.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import { Box, Layers, ShieldCheck, Power, Folder } from 'lucide-vue-next';
@@ -30,10 +31,10 @@ function toggleModule(name: string) {
 <template>
     <LandlordLayout>
         <div class="space-y-6">
-            <div>
-                <h1 class="text-2xl font-bold text-text-main tracking-tight">{{ t('system_modules', 'Modular Monolith Modules') }}</h1>
-                <p class="text-xs text-text-muted mt-1">{{ t('system_modules_sub', 'Self-contained domain modules powered by nwidart/laravel-modules.') }}</p>
-            </div>
+            <PageHeader
+                :title="t('system_modules', 'Modular Monolith Modules')"
+                :subtitle="t('system_modules_sub', 'Self-contained domain modules powered by nwidart/laravel-modules.')"
+            />
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div

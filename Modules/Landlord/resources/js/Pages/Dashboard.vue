@@ -4,6 +4,8 @@ import LandlordLayout from '@core/Layouts/LandlordLayout.vue';
 import StatCard from '@core/Components/StatCard.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
 import DataTable from '@core/Components/DataTable.vue';
+import PageHeader from '@core/Components/PageHeader.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
 import CurrencyCell from '@core/Components/CurrencyCell.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import { useCurrency } from '@core/Composables/useCurrency';
@@ -53,22 +55,16 @@ const { format: formatCurrency } = useCurrency();
     <LandlordLayout>
         <div class="space-y-8">
             <!-- Header Section -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-2xl font-bold text-text-main tracking-tight">{{ t('landlord_dashboard', 'Landlord Platform Overview') }}</h1>
-                    <p class="text-xs text-text-muted mt-1">{{ t('landlord_dashboard_sub', 'Real-time telemetry, tenant database provisioning, and revenue metrics.') }}</p>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <Link
-                        href="/landlord/tenants/create"
-                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-lg shadow-primary-600/25 transition-all"
-                    >
-                        <Plus class="w-4 h-4" />
-                        <span>{{ t('provision_tenant', 'Provision Tenant') }}</span>
-                    </Link>
-                </div>
-            </div>
+            <PageHeader
+                :title="t('landlord_dashboard', 'Landlord Platform Overview')"
+                :subtitle="t('landlord_dashboard_sub', 'Real-time telemetry, tenant database provisioning, and revenue metrics.')"
+            >
+                <template #actions>
+                    <BaseButton href="/landlord/tenants/create" :icon="Plus" class="shadow-lg shadow-primary-600/25">
+                        {{ t('provision_tenant', 'Provision Tenant') }}
+                    </BaseButton>
+                </template>
+            </PageHeader>
 
             <!-- KPI Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

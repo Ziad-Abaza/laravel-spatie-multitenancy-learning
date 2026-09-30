@@ -5,6 +5,8 @@ import TenantLayout from '@core/Layouts/TenantLayout.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
 import ConfirmDialog from '@core/Components/ConfirmDialog.vue';
 import CurrencyCell from '@core/Components/CurrencyCell.vue';
+import PageHeader from '@core/Components/PageHeader.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import {
     CreditCard,
@@ -82,11 +84,10 @@ function confirmChangePlan() {
 <template>
     <TenantLayout>
         <div class="space-y-8 max-w-6xl mx-auto">
-            <!-- Header -->
-            <div>
-                <h1 class="text-2xl font-bold text-text-main tracking-tight">{{ t('subscription_and_quotas', 'Subscription & Quota Management') }}</h1>
-                <p class="text-xs text-text-muted mt-1">{{ t('subscription_quotas_sub', 'Manage your workspace plan, view live resource quotas, and upgrade features.') }}</p>
-            </div>
+            <PageHeader
+                :title="t('subscription_and_quotas', 'Subscription & Quota Management')"
+                :subtitle="t('subscription_quotas_sub', 'Manage your workspace plan, view live resource quotas, and upgrade features.')"
+            />
 
             <!-- Current Plan & Quota Telemetry -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -230,15 +231,14 @@ function confirmChangePlan() {
                         </div>
 
                         <div class="pt-6 mt-6 border-t border-border-subtle">
-                            <button
+                            <BaseButton
                                 v-if="!targetPlan.is_current"
-                                type="button"
+                                :icon="ArrowUpCircle"
+                                class="w-full"
                                 @click="promptChangePlan(targetPlan)"
-                                class="w-full py-2.5 px-4 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-md shadow-primary-600/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                             >
-                                <ArrowUpCircle class="w-4 h-4" />
-                                <span>{{ t('switch_to_plan', 'Switch to this Plan') }}</span>
-                            </button>
+                                {{ t('switch_to_plan', 'Switch to this Plan') }}
+                            </BaseButton>
                             <div
                                 v-else
                                 class="w-full py-2.5 text-center text-xs font-semibold text-text-subtle"

@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useForm, usePage, Link } from '@inertiajs/vue3';
 import GuestLayout from '@core/Layouts/GuestLayout.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import CurrencyCell from '@core/Components/CurrencyCell.vue';
-import { Building2, User, Lock, Sparkles, CheckCircle2, ArrowRight, AlertTriangle } from 'lucide-vue-next';
+import FormField from '@core/Components/FormField.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
+import { Building2, User, Sparkles, CheckCircle2, ArrowRight, AlertTriangle } from 'lucide-vue-next';
 
 interface Plan {
     id: number;
@@ -50,11 +52,11 @@ function slugify(text: string) {
         .replace(/(^-|-$)+/g, '');
 }
 
-function onOrgNameInput() {
-    if (!form.subdomain || form.subdomain === slugify(form.organization_name.slice(0, -1))) {
-        form.subdomain = slugify(form.organization_name);
+watch(() => form.organization_name, (name, prev) => {
+    if (!form.subdomain || form.subdomain === slugify(prev || '')) {
+        form.subdomain = slugify(name);
     }
-}
+});
 
 function submit() {
     if (!allowRegistration.value) return;
@@ -85,9 +87,9 @@ function submit() {
                     {{ t('registration_disabled_message', 'Self-service organization registration is currently disabled by system administrators.') }}
                 </p>
                 <div class="pt-4">
-                    <Link href="/" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary text-xs font-semibold shadow-md transition-all">
+                    <BaseButton href="/" class="!px-6 shadow-md">
                         {{ t('return_home', 'Return Home') }}
-                    </Link>
+                    </BaseButton>
                 </div>
             </div>
 
@@ -99,36 +101,24 @@ function submit() {
                         <span>{{ t('organization_details', 'Workspace Details') }}</span>
                     </h2>
 
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('organization_name', 'Organization / Company Name') }}</label>
-                        <input
-                            v-model="form.organization_name"
-                            type="text"
-                            required
-                            @input="onOrgNameInput"
-                            placeholder="Acme Corporation"
-                            class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
-                        />
-                        <p v-if="form.errors.organization_name" class="mt-1 text-xs text-danger-fg">{{ form.errors.organization_name }}</p>
-                    </div>
+                    <FormField
+                        v-model="form.organization_name"
+                        :label="t('organization_name', 'Organization / Company Name')"
+                        required
+                        placeholder="Acme Corporation"
+                        :error="form.errors.organization_name"
+                    />
 
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('subdomain_identifier', 'Workspace Subdomain / URL') }}</label>
-                        <div class="flex items-center rounded-xl bg-surface-input border border-border-subtle overflow-hidden focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
-                            <input
-                                v-model="form.subdomain"
-                                type="text"
-                                required
-                                placeholder="acme"
-                                class="flex-1 px-4 py-2.5 bg-transparent text-text-main text-sm outline-none placeholder:text-text-subtle"
-                            />
-                            <span class="px-4 py-2.5 bg-surface-hover text-xs font-mono text-text-muted border-s border-border-subtle">
-                                .localhost:8000
-                            </span>
-                        </div>
-                        <p class="mt-1 text-[11px] text-text-subtle">{{ t('subdomain_help', 'Only lowercase letters, numbers, and hyphens.') }}</p>
-                        <p v-if="form.errors.subdomain" class="mt-1 text-xs text-danger-fg">{{ form.errors.subdomain }}</p>
-                    </div>
+                    <FormField
+                        v-model="form.subdomain"
+                        :label="t('subdomain_identifier', 'Workspace Subdomain / URL')"
+                        required
+                        placeholder="acme"
+                        :hint="t('subdomain_help', 'Only lowercase letters, numbers, and hyphens.')"
+                        :error="form.errors.subdomain"
+                    >
+                        <template #trailing>.localhost:8000</template>
+                    </FormField>
                 </div>
 
                 <!-- Section 2: Choose Plan -->
@@ -179,69 +169,53 @@ function submit() {
                         <span>{{ t('administrator_credentials', 'Workspace Administrator Account') }}</span>
                     </h2>
 
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('admin_name_label', 'Full Name') }}</label>
-                        <input
-                            v-model="form.admin_name"
-                            type="text"
-                            required
-                            placeholder="John Doe"
-                            class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
-                        />
-                        <p v-if="form.errors.admin_name" class="mt-1 text-xs text-danger-fg">{{ form.errors.admin_name }}</p>
-                    </div>
+                    <FormField
+                        v-model="form.admin_name"
+                        :label="t('admin_name_label', 'Full Name')"
+                        required
+                        placeholder="John Doe"
+                        :error="form.errors.admin_name"
+                    />
 
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('admin_email_label', 'Work Email') }}</label>
-                        <input
-                            v-model="form.admin_email"
-                            type="email"
-                            required
-                            placeholder="john@example.com"
-                            class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
-                        />
-                        <p v-if="form.errors.admin_email" class="mt-1 text-xs text-danger-fg">{{ form.errors.admin_email }}</p>
-                    </div>
+                    <FormField
+                        v-model="form.admin_email"
+                        :label="t('admin_email_label', 'Work Email')"
+                        type="email"
+                        required
+                        placeholder="john@example.com"
+                        :error="form.errors.admin_email"
+                    />
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('admin_password_label', 'Password') }}</label>
-                            <input
-                                v-model="form.admin_password"
-                                type="password"
-                                required
-                                minlength="8"
-                                placeholder="••••••••"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
-                            />
-                            <p v-if="form.errors.admin_password" class="mt-1 text-xs text-danger-fg">{{ form.errors.admin_password }}</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('confirm_password_label', 'Confirm Password') }}</label>
-                            <input
-                                v-model="form.admin_password_confirmation"
-                                type="password"
-                                required
-                                placeholder="••••••••"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle"
-                            />
-                        </div>
+                        <FormField
+                            v-model="form.admin_password"
+                            :label="t('admin_password_label', 'Password')"
+                            type="password"
+                            required
+                            :min="8"
+                            placeholder="••••••••"
+                            :error="form.errors.admin_password"
+                        />
+                        <FormField
+                            v-model="form.admin_password_confirmation"
+                            :label="t('confirm_password_label', 'Confirm Password')"
+                            type="password"
+                            required
+                            placeholder="••••••••"
+                            :error="form.errors.admin_password_confirmation"
+                        />
                     </div>
                 </div>
 
                 <div class="pt-6 border-t border-border-subtle">
-                    <button
+                    <BaseButton
                         type="submit"
-                        :disabled="form.processing"
-                        class="w-full py-3.5 px-6 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-on-primary font-bold text-sm shadow-xl shadow-primary-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                        :loading="form.processing"
+                        :icon="form.processing ? undefined : ArrowRight"
+                        class="w-full !py-3.5 !px-6 !text-sm font-bold shadow-xl shadow-primary-600/30"
                     >
-                        <span v-if="form.processing">{{ t('provisioning_tenant', 'Provisioning Dedicated Database...') }}</span>
-                        <template v-else>
-                            <span>{{ t('provision_workspace_button', 'Deploy Isolated Workspace') }}</span>
-                            <ArrowRight class="w-4 h-4 rtl:rotate-180" />
-                        </template>
-                    </button>
+                        {{ form.processing ? t('provisioning_tenant', 'Provisioning Dedicated Database...') : t('provision_workspace_button', 'Deploy Isolated Workspace') }}
+                    </BaseButton>
                     <p class="text-[11px] text-text-subtle text-center mt-3">{{ t('workspace_provisioning_hint', 'Zero-downtime deployment: Migrates dedicated schema & seeds administrative roles instantly.') }}</p>
                 </div>
             </form>

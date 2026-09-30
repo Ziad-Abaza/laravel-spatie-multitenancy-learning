@@ -60,7 +60,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const page = usePage();
+const page = usePage<{ locale?: { is_rtl?: boolean } }>();
 
 const localSearch = ref(props.searchQuery || '');
 const sortKey = ref<string>('');

@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 import { useForm, usePage, Link } from '@inertiajs/vue3';
 import GuestLayout from '@core/Layouts/GuestLayout.vue';
+import FormField from '@core/Components/FormField.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import { User, Mail, Lock, ArrowRight, LogIn } from 'lucide-vue-next';
 
@@ -41,75 +43,46 @@ function submit() {
                 </div>
 
                 <form @submit.prevent="submit" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('full_name', 'Full Name') }}</label>
-                        <div class="relative">
-                            <input
-                                v-model="form.name"
-                                type="text"
-                                required
-                                autofocus
-                                placeholder="Sarah Connor"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle ps-10"
-                            />
-                            <User class="w-4 h-4 text-text-subtle absolute start-3.5 top-3" />
-                        </div>
-                        <p v-if="form.errors.name" class="mt-1 text-xs text-danger-fg">{{ form.errors.name }}</p>
-                    </div>
+                    <FormField
+                        v-model="form.name"
+                        :label="t('full_name', 'Full Name')"
+                        :icon="User"
+                        required
+                        placeholder="Sarah Connor"
+                        :error="form.errors.name"
+                    />
+                    <FormField
+                        v-model="form.email"
+                        :label="t('email', 'Email Address')"
+                        type="email"
+                        :icon="Mail"
+                        required
+                        placeholder="sarah@company.com"
+                        :error="form.errors.email"
+                    />
+                    <FormField
+                        v-model="form.password"
+                        :label="t('password', 'Password')"
+                        type="password"
+                        :icon="Lock"
+                        required
+                        :min="8"
+                        placeholder="••••••••"
+                        :error="form.errors.password"
+                    />
+                    <FormField
+                        v-model="form.password_confirmation"
+                        :label="t('confirm_password', 'Confirm Password')"
+                        type="password"
+                        :icon="Lock"
+                        required
+                        placeholder="••••••••"
+                        :error="form.errors.password_confirmation"
+                    />
 
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('email', 'Email Address') }}</label>
-                        <div class="relative">
-                            <input
-                                v-model="form.email"
-                                type="email"
-                                required
-                                placeholder="sarah@company.com"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle ps-10"
-                            />
-                            <Mail class="w-4 h-4 text-text-subtle absolute start-3.5 top-3" />
-                        </div>
-                        <p v-if="form.errors.email" class="mt-1 text-xs text-danger-fg">{{ form.errors.email }}</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('password', 'Password') }}</label>
-                        <div class="relative">
-                            <input
-                                v-model="form.password"
-                                type="password"
-                                required
-                                minlength="8"
-                                placeholder="••••••••"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle ps-10"
-                            />
-                            <Lock class="w-4 h-4 text-text-subtle absolute start-3.5 top-3" />
-                        </div>
-                        <p v-if="form.errors.password" class="mt-1 text-xs text-danger-fg">{{ form.errors.password }}</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('confirm_password', 'Confirm Password') }}</label>
-                        <div class="relative">
-                            <input
-                                v-model="form.password_confirmation"
-                                type="password"
-                                required
-                                placeholder="••••••••"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle ps-10"
-                            />
-                            <Lock class="w-4 h-4 text-text-subtle absolute start-3.5 top-3" />
-                        </div>
-                    </div>
-
-                    <button
-                        type="submit"
-                        :disabled="form.processing"
-                        class="w-full py-3 px-4 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-on-primary font-semibold text-xs shadow-lg shadow-primary-600/30 flex items-center justify-center gap-2 transition-all mt-2 cursor-pointer"
-                    >
-                        <span>{{ form.processing ? t('registering', 'Creating account...') : t('create_account', 'Create Account') }}</span>
-                        <ArrowRight class="w-4 h-4 rtl:rotate-180" />
-                    </button>
+                    <BaseButton type="submit" :loading="form.processing" :icon="ArrowRight" class="w-full !py-3 shadow-lg shadow-primary-600/30 mt-2">
+                        {{ form.processing ? t('registering', 'Creating account...') : t('create_account', 'Create Account') }}
+                    </BaseButton>
 
                     <div class="pt-4 border-t border-border-subtle text-center">
                         <Link href="/login" class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 inline-flex items-center gap-1.5">

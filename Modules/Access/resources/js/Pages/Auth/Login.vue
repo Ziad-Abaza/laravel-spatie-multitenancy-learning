@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 import { useForm, usePage, Link } from '@inertiajs/vue3';
 import GuestLayout from '@core/Layouts/GuestLayout.vue';
+import FormField from '@core/Components/FormField.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import { Lock, Mail, ArrowRight, UserPlus } from 'lucide-vue-next';
 
@@ -40,36 +42,25 @@ function submit() {
                 </div>
 
                 <form @submit.prevent="submit" class="space-y-5">
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('email', 'Email Address') }}</label>
-                        <div class="relative">
-                            <input
-                                v-model="form.email"
-                                type="email"
-                                required
-                                autofocus
-                                placeholder="name@company.com"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle ps-10"
-                            />
-                            <Mail class="w-4 h-4 text-text-subtle absolute start-3.5 top-3" />
-                        </div>
-                        <p v-if="form.errors.email" class="mt-1 text-xs text-danger-fg">{{ form.errors.email }}</p>
-                    </div>
+                    <FormField
+                        v-model="form.email"
+                        :label="t('email', 'Email Address')"
+                        type="email"
+                        :icon="Mail"
+                        required
+                        placeholder="name@company.com"
+                        :error="form.errors.email"
+                    />
 
-                    <div>
-                        <label class="block text-xs font-medium text-text-main mb-1.5">{{ t('password', 'Password') }}</label>
-                        <div class="relative">
-                            <input
-                                v-model="form.password"
-                                type="password"
-                                required
-                                placeholder="••••••••"
-                                class="w-full px-4 py-2.5 rounded-xl bg-surface-input border border-border-subtle text-text-main text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder:text-text-subtle ps-10"
-                            />
-                            <Lock class="w-4 h-4 text-text-subtle absolute start-3.5 top-3" />
-                        </div>
-                        <p v-if="form.errors.password" class="mt-1 text-xs text-danger-fg">{{ form.errors.password }}</p>
-                    </div>
+                    <FormField
+                        v-model="form.password"
+                        :label="t('password', 'Password')"
+                        type="password"
+                        :icon="Lock"
+                        required
+                        placeholder="••••••••"
+                        :error="form.errors.password"
+                    />
 
                     <div class="flex items-center justify-between text-xs">
                         <label class="flex items-center gap-2 text-text-muted cursor-pointer">
@@ -82,14 +73,9 @@ function submit() {
                         </label>
                     </div>
 
-                    <button
-                        type="submit"
-                        :disabled="form.processing"
-                        class="w-full py-3 px-4 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-on-primary font-semibold text-xs shadow-lg shadow-primary-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
-                    >
-                        <span>{{ form.processing ? t('authenticating', 'Signing in...') : t('sign_in', 'Sign In') }}</span>
-                        <ArrowRight class="w-4 h-4 rtl:rotate-180" />
-                    </button>
+                    <BaseButton type="submit" :loading="form.processing" :icon="ArrowRight" class="w-full !py-3 shadow-lg shadow-primary-600/30">
+                        {{ form.processing ? t('authenticating', 'Signing in...') : t('sign_in', 'Sign In') }}
+                    </BaseButton>
 
                     <div class="pt-4 border-t border-border-subtle text-center">
                         <Link href="/register" class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 inline-flex items-center gap-1.5">

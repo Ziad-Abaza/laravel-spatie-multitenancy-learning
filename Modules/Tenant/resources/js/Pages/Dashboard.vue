@@ -4,6 +4,8 @@ import TenantLayout from '@core/Layouts/TenantLayout.vue';
 import StatCard from '@core/Components/StatCard.vue';
 import StatusBadge from '@core/Components/StatusBadge.vue';
 import DataTable from '@core/Components/DataTable.vue';
+import PageHeader from '@core/Components/PageHeader.vue';
+import BaseButton from '@core/Components/BaseButton.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import {
     Users,
@@ -79,33 +81,25 @@ const { t, trans } = useI18n();
             </div>
 
             <!-- Header Section -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-3">
-                        <h1 class="text-2xl font-bold text-text-main tracking-tight">{{ tenant.name }}</h1>
+            <PageHeader :title="tenant.name" :subtitle="tenant.domain">
+                <template #title>
+                    <span class="flex items-center gap-3">
+                        {{ tenant.name }}
                         <StatusBadge :status="tenant.status" size="sm" />
-                    </div>
-                    <p class="text-xs text-text-muted mt-1 font-mono">{{ tenant.domain }}</p>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <Link
-                        href="/users"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-on-primary font-semibold text-xs shadow-md shadow-primary-600/20 transition-all"
-                    >
-                        <UserPlus class="w-4 h-4" />
-                        <span>{{ t('invite_team', 'Add Member') }}</span>
-                    </Link>
-
-                    <Link
-                        href="/settings"
-                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-card hover:bg-surface-hover text-text-main text-xs font-semibold border border-border-subtle transition-all"
-                    >
-                        <Settings class="w-4 h-4" />
-                        <span>{{ t('settings', 'Settings') }}</span>
-                    </Link>
-                </div>
-            </div>
+                    </span>
+                </template>
+                <template #subtitle>
+                    <span class="font-mono">{{ tenant.domain }}</span>
+                </template>
+                <template #actions>
+                    <BaseButton href="/users" :icon="UserPlus">
+                        {{ t('invite_team', 'Add Member') }}
+                    </BaseButton>
+                    <BaseButton href="/settings" variant="secondary" :icon="Settings">
+                        {{ t('settings', 'Settings') }}
+                    </BaseButton>
+                </template>
+            </PageHeader>
 
             <!-- Telemetry KPI Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
