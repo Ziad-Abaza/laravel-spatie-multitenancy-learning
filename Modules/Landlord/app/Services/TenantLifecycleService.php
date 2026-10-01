@@ -6,11 +6,19 @@ use App\Models\Tenant;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Access\Services\AuditWriter;
+use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Core\Events\TenantStatusChanged;
 
 class TenantLifecycleService
 {
+    public function __construct(
+        protected TenantBackupService $backups,
+        protected SettingManagerContract $settingsManager,
+        protected AuditWriter $audit
+    ) {}
+
     /**
      * Guard a lifecycle transition against the TenantStatus state machine.
      *
@@ -114,6 +122,93 @@ class TenantLifecycleService
     }
 
     /**
+     * Schedule erasure of an archived tenant: mark the request, then give the
+     * workspace a governed grace window (`system.retention_grace_days`)
+     * before the sweep permanently purges it. Archived-only by design —
+     * erasure of an operating workspace is never a valid request.
+     */
+    public function requestErasure(Tenant $tenant): Tenant
+    {
+        throw_unless(
+            $tenant->getStatus() === TenantStatus::Archived->value,
+            ValidationException::withMessages([
+                'status' => [__('tenant_erasure_requires_archived')],
+            ])
+        );
+
+        $graceDays = (int) $this->settingsManager->get('retention_grace_days', 30, 'system');
+        $graceDays = $graceDays > 0 ? $graceDays : 30;
+
+        $settings = $tenant->settings ?? [];
+        $settings['erasure_requested_at'] = now()->toIso8601String();
+        $settings['retention_until'] = now()->addDays($graceDays)->toIso8601String();
+
+        $tenant->update(['settings' => $settings]);
+
+        $this->audit->record(
+            auth('landlord')->user(), 'landlord', 'tenant.erasure_requested', 'tenant', $tenant,
+            $tenant->name,
+            after: ['retention_until' => $settings['retention_until']],
+        );
+
+        return $tenant;
+    }
+
+    /**
+     * Cancel a pending erasure before the grace window lapses.
+     */
+    public function cancelErasure(Tenant $tenant): Tenant
+    {
+        $wasRequested = isset(($tenant->settings ?? [])['erasure_requested_at']);
+
+        $settings = $tenant->settings ?? [];
+        unset($settings['erasure_requested_at'], $settings['retention_until']);
+
+        $tenant->update(['settings' => $settings]);
+
+        if ($wasRequested) {
+            $this->audit->record(
+                auth('landlord')->user(), 'landlord', 'tenant.erasure_canceled', 'tenant', $tenant,
+                $tenant->name,
+            );
+        }
+
+        return $tenant;
+    }
+
+    /**
+     * Permanently purge tenants whose retention window has elapsed: a final
+     * backup is exported, then the database and rows are dropped.
+     *
+     * @return int number of tenants purged
+     */
+    public function purgeExpiredRetentions(): int
+    {
+        $purged = 0;
+
+        Tenant::query()
+            ->where('status', TenantStatus::Archived->value)
+            ->get()
+            ->filter(function (Tenant $tenant) {
+                $until = $tenant->settings['retention_until'] ?? null;
+
+                return $until !== null
+                    && isset($tenant->settings['erasure_requested_at'])
+                    && \Illuminate\Support\Carbon::parse($until)->isPast();
+            })
+            ->each(function (Tenant $tenant) use (&$purged) {
+                // Full erasure: database, row, AND backup artifacts. A dump
+                // created here would be deleted by delete()'s dir purge
+                // anyway — retention artifacts are the admin's job *before*
+                // requesting erasure, not a hidden last-copy.
+                $this->delete($tenant, dropDatabase: true);
+                $purged++;
+            });
+
+        return $purged;
+    }
+
+    /**
      * Delete tenant and optionally drop the associated tenant database.
      * Row-level deletion is atomic on the landlord connection; a failed
      * database drop surfaces as an exception before any row is removed.
@@ -126,10 +221,27 @@ class TenantLifecycleService
 
         $landlordConnection = config('multitenancy.landlord_database_connection_name', 'landlord');
 
+        $snapshot = [
+            'name' => $tenant->name,
+            'slug' => $tenant->slug,
+            'domain' => $tenant->domain,
+            'status' => $tenant->getStatus(),
+        ];
+
         DB::connection($landlordConnection)->transaction(function () use ($tenant) {
             $tenant->subscriptions()->delete();
             $tenant->delete();
         });
+
+        $this->audit->record(
+            auth('landlord')->user(), 'landlord', 'tenant.deleted', 'tenant', null,
+            $snapshot['name'],
+            before: $snapshot + ['id' => $tenant->id, 'database_dropped' => $dropDatabase],
+        );
+
+        // Registry rows cascade with the tenant; artifacts must not outlive
+        // them — purge the per-tenant backup directory after the row is gone.
+        $this->backups->purgeTenantDirectory($tenant);
     }
 
     /**

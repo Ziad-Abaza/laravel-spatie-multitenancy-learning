@@ -23,12 +23,16 @@ class TenantSeeder extends Seeder
                 'slug' => 'tenant1',
                 'domain' => "tenant1.{$suffix}",
                 'database' => 'vendor_1',
+                'status' => 'active',
+                'email_verified_at' => now(),
             ],
             [
                 'name' => 'Tenant 2',
                 'slug' => 'tenant2',
                 'domain' => "tenant2.{$suffix}",
                 'database' => 'vendor_2',
+                'status' => 'active',
+                'email_verified_at' => now(),
             ],
         ];
 

@@ -3,11 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\Tenant;
+use Illuminate\Support\Facades\Artisan;
 use Modules\Access\Support\LandlordPermissions;
+use Modules\Core\Enums\SubscriptionStatus;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Landlord\Models\LandlordUser;
 use Modules\Landlord\Services\TenantLifecycleService;
 use Modules\Subscription\Models\Plan;
+use Modules\Subscription\Models\Subscription;
 use Tests\TestCase;
 
 class LandlordTenantProvisioningTest extends TestCase
@@ -292,5 +295,108 @@ class LandlordTenantProvisioningTest extends TestCase
             ->assertSessionHas('success');
 
         $this->assertNull($plan->fresh());
+    }
+
+    public function test_expired_trial_tenant_is_suspended_by_lifecycle_command(): void
+    {
+        $tenant = $this->createTenantRecord([
+            'slug' => 'trial-expired',
+            'status' => TenantStatus::Trialing,
+            'trial_ends_at' => now()->subDay(),
+        ]);
+
+        Artisan::call('tenants:enforce-lifecycle');
+
+        $tenant->refresh();
+        $this->assertSame(TenantStatus::Suspended, $tenant->status);
+        $this->assertNotNull($tenant->suspended_at);
+        $this->assertSame('Trial period expired', $tenant->settings['suspension_reason'] ?? null);
+    }
+
+    public function test_active_trial_is_not_touched_by_lifecycle_command(): void
+    {
+        $tenant = $this->createTenantRecord([
+            'slug' => 'trial-active',
+            'status' => TenantStatus::Trialing,
+            'trial_ends_at' => now()->addDays(7),
+        ]);
+
+        Artisan::call('tenants:enforce-lifecycle');
+
+        $this->assertSame(TenantStatus::Trialing, $tenant->fresh()->status);
+    }
+
+    public function test_expired_subscription_marks_expired_and_suspends_tenant(): void
+    {
+        $tenant = $this->createTenantRecord([
+            'slug' => 'sub-expired',
+            'status' => TenantStatus::Active,
+        ]);
+
+        $subscription = Subscription::create([
+            'tenant_id' => $tenant->id,
+            'plan_id' => Plan::first()->id,
+            'status' => SubscriptionStatus::Active,
+            'billing_interval' => 'monthly',
+            'amount' => 10,
+            'currency' => 'USD',
+            'starts_at' => now()->subMonths(2),
+            'ends_at' => now()->subDay(),
+        ]);
+
+        Artisan::call('tenants:enforce-lifecycle');
+
+        $this->assertSame(SubscriptionStatus::Expired, $subscription->fresh()->status);
+        $this->assertSame(TenantStatus::Suspended, $tenant->fresh()->status);
+    }
+
+    public function test_archived_tenant_subscription_expires_without_touching_tenant(): void
+    {
+        $tenant = $this->createTenantRecord([
+            'slug' => 'archived-expired',
+            'status' => TenantStatus::Archived,
+        ]);
+
+        $subscription = Subscription::create([
+            'tenant_id' => $tenant->id,
+            'plan_id' => Plan::first()->id,
+            'status' => SubscriptionStatus::Active,
+            'billing_interval' => 'monthly',
+            'amount' => 10,
+            'currency' => 'USD',
+            'starts_at' => now()->subMonths(2),
+            'ends_at' => now()->subDay(),
+        ]);
+
+        Artisan::call('tenants:enforce-lifecycle');
+
+        // Archived is terminal — the subscription still records expiry,
+        // but the state machine must not resurrect or re-suspend it.
+        $this->assertSame(SubscriptionStatus::Expired, $subscription->fresh()->status);
+        $this->assertSame(TenantStatus::Archived, $tenant->fresh()->status);
+    }
+
+    public function test_open_ended_subscription_is_never_expired(): void
+    {
+        $tenant = $this->createTenantRecord([
+            'slug' => 'sub-open',
+            'status' => TenantStatus::Active,
+        ]);
+
+        $subscription = Subscription::create([
+            'tenant_id' => $tenant->id,
+            'plan_id' => Plan::first()->id,
+            'status' => SubscriptionStatus::Active,
+            'billing_interval' => 'monthly',
+            'amount' => 10,
+            'currency' => 'USD',
+            'starts_at' => now()->subMonths(2),
+            'ends_at' => null,
+        ]);
+
+        Artisan::call('tenants:enforce-lifecycle');
+
+        $this->assertSame(SubscriptionStatus::Active, $subscription->fresh()->status);
+        $this->assertSame(TenantStatus::Active, $tenant->fresh()->status);
     }
 }

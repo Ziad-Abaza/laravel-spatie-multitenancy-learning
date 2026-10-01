@@ -15,6 +15,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Access\Models\Role;
 use Modules\Access\Services\AccessInvariants;
+use Modules\Access\Services\AuditWriter;
 use Modules\Access\Services\ManagementPolicy;
 use Modules\Access\Services\TenantUserService;
 use Modules\Access\Support\TenantPermissions;
@@ -26,7 +27,8 @@ class UserController extends Controller
     public function __construct(
         protected TenantUserService $userService,
         protected QuotaManagerContract $quotaManager,
-        protected ManagementPolicy $policy
+        protected ManagementPolicy $policy,
+        protected AuditWriter $audit
     ) {}
 
     /**
@@ -91,7 +93,20 @@ class UserController extends Controller
         // the role's permission set against the actor's effective set.
         $this->policy->assertRoleGrantable($request->user(), $validated['role'], 'web');
 
-        $this->userService->createUser($validated);
+        $user = DB::transaction(function () use ($validated, $request) {
+            $user = $this->userService->createUser($validated);
+
+            $this->audit->record(
+                $request->user(), 'web', 'user.created', 'user', $user, $user->email,
+                after: [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $validated['role'],
+                ],
+            );
+
+            return $user;
+        });
 
         return back()->with('success', __('member_invited'));
     }
@@ -134,8 +149,26 @@ class UserController extends Controller
 
         $accessChanged = ! empty($validated['role']) || isset($validated['status']);
 
-        DB::transaction(function () use ($user, $validated, $accessChanged) {
+        $before = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'status' => $user->status,
+            'role' => $user->roles->first()?->name,
+        ];
+
+        DB::transaction(function () use ($user, $validated, $accessChanged, $before, $request) {
             $this->userService->updateUser($user, $validated);
+
+            $this->audit->record(
+                $request->user(), 'web', 'user.updated', 'user', $user, $user->email,
+                before: $before,
+                after: [
+                    'name' => $user->fresh()->name,
+                    'email' => $user->fresh()->email,
+                    'status' => $user->fresh()->status,
+                    'role' => $user->fresh()->roles->first()?->name,
+                ],
+            );
 
             if ($accessChanged) {
                 AccessInvariants::assertManagementCapacity('web');
@@ -158,8 +191,23 @@ class UserController extends Controller
             return back()->with('error', __('cannot_manage_more_privileged_user'));
         }
 
-        DB::transaction(function () use ($user) {
+        DB::transaction(function () use ($user, $request) {
+            $before = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'status' => $user->status,
+                'role' => $user->roles->first()?->name,
+            ];
+            $targetId = $user->id;
+            $targetLabel = $user->email;
+
             $this->userService->deleteUser($user);
+
+            $this->audit->record(
+                $request->user(), 'web', 'user.deleted', 'user', null, $targetLabel,
+                before: $before + ['id' => $targetId],
+            );
+
             AccessInvariants::assertManagementCapacity('web');
         });
 

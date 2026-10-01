@@ -40,6 +40,8 @@ final class LandlordPermissions
 
     public const TENANTS_DELETE = 'tenants.delete';
 
+    public const TENANTS_EXPORT = 'tenants.export';
+
     public const PLANS_VIEW = 'plans.view';
 
     public const PLANS_MANAGE = 'plans.manage';
@@ -72,6 +74,14 @@ final class LandlordPermissions
 
     public const ROLES_MANAGE = 'roles.manage';
 
+    public const AUDIT_VIEW = 'audit.view';
+
+    public const METRICS_VIEW = 'metrics.view';
+
+    public const WEBHOOKS_VIEW = 'webhooks.view';
+
+    public const WEBHOOKS_MANAGE = 'webhooks.manage';
+
     /**
      * Key → classification. 'read' keys compose the view-only preset and the
      * Support baseline role; 'sensitive' keys are irreversible or
@@ -87,6 +97,7 @@ final class LandlordPermissions
             self::TENANTS_UPDATE => self::CLASS_WRITE,
             self::TENANTS_LIFECYCLE => self::CLASS_SENSITIVE,
             self::TENANTS_DELETE => self::CLASS_SENSITIVE,
+            self::TENANTS_EXPORT => self::CLASS_SENSITIVE,
             self::PLANS_VIEW => self::CLASS_READ,
             self::PLANS_MANAGE => self::CLASS_WRITE,
             self::SUBSCRIPTIONS_VIEW => self::CLASS_READ,
@@ -103,6 +114,10 @@ final class LandlordPermissions
             self::ADMINS_DELETE => self::CLASS_SENSITIVE,
             self::ROLES_VIEW => self::CLASS_READ,
             self::ROLES_MANAGE => self::CLASS_SENSITIVE,
+            self::AUDIT_VIEW => self::CLASS_READ,
+            self::METRICS_VIEW => self::CLASS_READ,
+            self::WEBHOOKS_VIEW => self::CLASS_READ,
+            self::WEBHOOKS_MANAGE => self::CLASS_SENSITIVE,
         ];
     }
 

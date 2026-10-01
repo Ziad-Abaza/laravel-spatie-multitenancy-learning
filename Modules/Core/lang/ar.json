@@ -1,5 +1,10 @@
 {
+    "action": "الإجراء",
+    "actor": "المنفّذ",
+    "all_actions": "كل الإجراءات",
     "arabic": "العربية",
+    "audit_log": "سجل التدقيق",
+    "audit_log_sub": "سجل إلحاقي لنشاط مساحة العمل والمنصة.",
     "choose_theme": "اختيار المظهر",
     "collapse_sidebar": "طي القائمة الجانبية",
     "dark_mode": "الوضع الداكن",
@@ -89,5 +94,9 @@
     "perm_group_subscriptions": "الاشتراكات",
     "perm_group_modules": "الوحدات",
     "perm_group_platform": "إعدادات المنصة",
-    "perm_group_admins": "المديرون"
+    "perm_group_admins": "المديرون",
+    "perm_group_audit": "التدقيق",
+    "ip_address": "عنوان IP",
+    "target": "الهدف",
+    "time": "الوقت"
 }

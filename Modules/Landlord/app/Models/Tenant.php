@@ -55,6 +55,11 @@ class Tenant extends BaseTenant implements HasMedia, TenantContract
         return $this->hasOne(Subscription::class, 'tenant_id')->latestOfMany();
     }
 
+    public function backups(): HasMany
+    {
+        return $this->hasMany(TenantBackup::class, 'tenant_id');
+    }
+
     public function getId(): int|string
     {
         return $this->id;

@@ -26,6 +26,8 @@
     "workspace_settings_updated": "Workspace settings updated successfully.",
     "workspace_tagline": "Workspace Tagline / Slogan",
     "workspace_tagline_example": "e.g. Innovating together",
+    "workspace_logo": "Workspace Logo",
+    "workspace_logo_hint": "PNG, JPG or WebP, up to 2MB.",
     "billing": "Billing",
     "default_currency_label": "Default Currency",
     "default_plan_label": "Default Plan for New Registrations",

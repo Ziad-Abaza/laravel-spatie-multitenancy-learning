@@ -10,10 +10,12 @@ import {
     Box,
     Users,
     ShieldCheck,
+    ScrollText,
     LogOut,
     Menu,
     X,
     Shield,
+    Webhook,
     ChevronLeft,
     ChevronRight,
     CheckCircle2,
@@ -58,6 +60,8 @@ const navItems = computed(() =>
         { name: t('modules', 'Modules'), href: '/landlord/modules', icon: Box, visible: can('modules.view') },
         { name: t('admins', 'Administrators'), href: '/landlord/admins', icon: Users, visible: can('admins.view') },
         { name: t('roles', 'Roles'), href: '/landlord/roles', icon: ShieldCheck, visible: can('roles.view') },
+        { name: t('audit_log', 'Audit Log'), href: '/landlord/audit-logs', icon: ScrollText, visible: can('audit.view') },
+        { name: t('webhooks', 'Webhooks'), href: '/landlord/webhooks', icon: Webhook, visible: can('webhooks.view') },
     ].filter((item) => item.visible)
 );
 

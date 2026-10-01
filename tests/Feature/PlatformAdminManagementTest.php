@@ -26,29 +26,6 @@ class PlatformAdminManagementTest extends TestCase
         $this->superAdmin->assignRole(LP::ROLE_SUPER_ADMIN);
     }
 
-    /** Build a landlord admin holding exactly the given permissions. */
-    protected function makeScopedAdmin(string $prefix, array $permissions): LandlordUser
-    {
-        $role = Role::findOrCreate('T'.ucfirst($prefix).'-'.uniqid(), 'landlord');
-        $role->syncPermissions($permissions);
-
-        $admin = LandlordUser::create([
-            'name' => ucfirst($prefix),
-            'email' => $prefix.'-'.uniqid().'@landlord.test',
-            'password' => bcrypt('password'),
-            'status' => 'active',
-        ]);
-        $admin->assignRole($role);
-
-        return $admin;
-    }
-
-    protected function cleanup(LandlordUser $admin): void
-    {
-        $admin->roles()->detach();
-        $admin->delete();
-    }
-
     // ── Catalog integrity ─────────────────────────────────────────
 
     public function test_groups_derive_fully_from_manifest_without_orphans(): void
@@ -69,6 +46,12 @@ class PlatformAdminManagementTest extends TestCase
 
         try {
             $this->actingAs($viewer, 'landlord')->get('/landlord/admins')->assertOk();
+
+            // A different principal on the same session is a fixation smell —
+            // AuthenticateSession correctly expires it. Fresh session = honest
+            // test of the permission gate, not of session integrity.
+            $this->flushSession();
+
             $this->actingAs($none, 'landlord')->get('/landlord/admins')->assertForbidden();
         } finally {
             $this->cleanup($viewer);

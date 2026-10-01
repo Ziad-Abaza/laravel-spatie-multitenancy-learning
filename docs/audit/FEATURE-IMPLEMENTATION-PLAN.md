@@ -144,8 +144,8 @@ Legend: Gates = ✅ pass · ⚠️ conditional · ❌ blocked · Status = PLANNE
 **Security Gate:** AuthN ✅ (status checked at `attempt` + mid-request); AuthZ ✅; Permissions n/a; IDOR n/a; PrivEsc ✅ closes the gap; MassAssign ✅ (`status` already guarded in `UserController`); Validation ✅; Audit — record `auth.suspended_blocked` only if FEAT-07 lands first, else skip (no new audit infra for this).
 **Database Gate:** ✅ no migration — `users.status` + `UserStatus` enum exist.
 **UI Gate:** ✅ reuse flash/error translation keys; add `account_suspended` key to Access lang files (en/ar).
-**Risks:** suspended owner self-lockout is already impossible (ManagementPolicy blocks self-status-change) — verify test.
-**Status:** PLANNED · Priority rank 1
+**Risks:** suspended owner self-lockout is already impossible (ManagementPolicy blocks self-status-change) — covered by existing `equal_privilege_member...` tests.
+**Status:** **DONE** 2026-10-01 · `EnsureTenantUserActive` in `tenant` middleware group + login pre-check in `TenantAuthController`. Mini-audit: mirrors `EnsureLandlordAdminActive` exactly; `account_suspended` key pre-existed (no new lang); +3 tests.
 
 ---
 
@@ -168,7 +168,7 @@ Legend: Gates = ✅ pass · ⚠️ conditional · ❌ blocked · Status = PLANNE
 **Database Gate:** ✅ table exists, zero migrations.
 **UI Gate:** ✅ two pages (`Auth/ForgotPassword.vue`, `Auth/ResetPassword.vue`) composed from shared components only.
 **Dependency:** notification/mail channel (FEAT-04 minimal baseline ships together — the `ResetPassword` notification IS the first consumer; `MAIL_MAILER=log` already suffices for dev).
-**Status:** PLANNED · Priority rank 2
+**Status:** **DONE** 2026-10-01 · `PasswordResetController` + 4 guest routes (`password.request/email/reset/update`, throttled like login) + `ResetPassword::createUrlUsing` builds tenant-domain URLs + `ForgotPassword`/`ResetPassword` Vue pages + forgot link on Login. Mini-audit: zero new tables (`password_reset_tokens` already tenant-scoped), no enumeration (uniform response), broker events fired.
 
 ---
 
@@ -189,8 +189,8 @@ Legend: Gates = ✅ pass · ⚠️ conditional · ❌ blocked · Status = PLANNE
 **Tenant Gate:** Storage → Tenant = THE gate item: path must include tenant key; Cache n/a; Queue n/a (unless conversions queued — keep sync); API n/a.
 **Security Gate:** Validation ✅ (`image`, `max:2048`, mime whitelist); MassAssign ✅ (`addMediaFromRequest('logo')`); IDOR ✅ (own tenant/self only); PrivEsc ✅ permission-gated; Audit optional (`settings.updated`); storage-quota accounting ✅ already counted by `QuotaService::getStorageUsageMb` — free enforcement.
 **Database Gate:** ✅ none.
-**UI Gate:** ✅ file input inside existing settings/profile forms; no new patterns.
-**Status:** PLANNED (conditional on FND-018 fix inside this feature) · Priority rank 3
+**UI Gate:** ✅ `FormField` extended with `type="file"` + `accept` (shared component, not a hand-rolled input); previews reuse existing markup.
+**Status:** **DONE** 2026-10-01 · FND-018 found already resolved (`TenantAwarePathGenerator` wired in `config/media-library.php:144`) — feature consumed the existing scoping. Mini-audit: files clean; `logo` rule is tenant-context-gated in `UpdateSettingsRequest`; media rows land on the correct connection per owner (landlord for tenant logo, tenant for avatars).
 
 ---
 
@@ -212,7 +212,7 @@ Legend: Gates = ✅ pass · ⚠️ conditional · ❌ blocked · Status = PLANNE
 **Security Gate:** AuthZ ✅ (notifications to own tenant users); MassAssign n/a; Validation n/a; Audit — delivery failures logged; PrivEsc n/a.
 **Database Gate:** ⚠️ deferred — mail-only MVP needs zero tables; DB-channel feed adds `notifications` migration to BOTH migration dirs.
 **UI Gate:** ✅ toast/flash surface already exists; bell deferred.
-**Status:** PLANNED · Priority rank 6 · **Unblocks FEAT-02 delivery, FEAT-05 alerts**
+**Status:** **DONE (MVP)** 2026-10-01 · Listeners wired on existing events (`TenantCreated`→welcome, `TenantStatusChanged`→owner notice) via Landlord `EventServiceProvider`. **Design note:** queued notifications were tried first and reverted — `queues_are_tenant_aware_by_default` binds/rejects landlord-context jobs, and `SendQueuedNotifications` can't be exempted per-notification; sync mail is the honest MVP (lifecycle ops are rare, driver is log/array in dev/test). In-app bell + DB channel deferred until a real consumer exists.
 
 ---
 
@@ -234,8 +234,8 @@ Legend: Gates = ✅ pass · ⚠️ conditional · ❌ blocked · Status = PLANNE
 **Security Gate:** console-only, no web surface; Audit ✅ emit events → audit records when FEAT-07 lands; no validation surface.
 **Database Gate:** ✅ none — statuses/datetime columns exist.
 **UI Gate:** n/a (surfaced via existing dashboard metrics).
-**Decision needed:** expiry semantics — `trialing` → `suspended` (fail-safe) vs grace period; recommend suspend + notice via FEAT-04.
-**Status:** PLANNED · Priority rank 4
+**Decision (resolved 2026-10-01, owner-approved):** fail-closed suspend — expired trial OR expired subscription `ends_at` → `suspend()` via `TenantLifecycleService`; subscription row itself → `SubscriptionStatus::Expired`. Archived tenants: subscription expires but tenant untouched (terminal).
+**Status:** **DONE** 2026-10-01 · `tenants:enforce-lifecycle` hourly via `configureSchedules`. Mini-audit: single mutation authority preserved, enum-driven filters, no hardcoded statuses.
 
 ---
 
@@ -257,7 +257,7 @@ Legend: Gates = ✅ pass · ⚠️ conditional · ❌ blocked · Status = PLANNE
 **Security Gate:** all ✅ — self-scope only, `current_password` re-auth for revocation, audit `auth.session_revoked`.
 **Database Gate:** ✅ none.
 **UI Gate:** ✅ `DataTable` + `ConfirmDialog` on existing `Profile/Edit.vue`.
-**Status:** PLANNED · Priority rank 5
+**Status:** **DONE (scoped)** 2026-10-01 · `AuthenticateSession` on web group + `logoutOtherDevices` on password change + `POST /profile/revoke-sessions` (re-auth + audited). **Deviation:** raw session-row browser dropped — shared `sessions` table key on `user_id` alone collides across tenant DBs (IDOR); a tenant-keyed session store is a separate design decision.
 
 ---
 
@@ -279,7 +279,7 @@ Legend: Gates = ✅ pass · ⚠️ conditional · ❌ blocked · Status = PLANNE
 **Security Gate:** append-only preserved (`UPDATED_AT=null`, no update/delete routes); viewer permission-gated; sensitive `before/after` must redact `password` keys; Audit self-referential ✅.
 **Database Gate:** ⚠️ new `audit_logs` table in `database/migrations/tenant/` — justified (different scope, same shape); **also** resolve FND-032 `is_system` drift while touching schema (separate decision: add column to tenant roles or scope flag to landlord-only).
 **UI Gate:** ✅ `Landlord/Audit/Index.vue` + `Access/Audit/Index.vue` composed from shared grid.
-**Status:** PLANNED · Priority rank 7
+**Status:** **DONE** 2026-10-01 · Tenant `audit_logs` + `AuditLog` model; `AuditWriter` resolves model by context (tenant/landlord — one API, no parallel service) and redacts sensitive keys; `audit.view` added to both manifests (read class); lifecycle audited via `AuditTenantLifecycle` listener; viewers on both surfaces + nav entries; mutations audited inside their transactions.
 
 ---
 
@@ -301,7 +301,7 @@ Legend: Gates = ✅ pass · ⚠️ conditional · ❌ blocked · Status = PLANNE
 **Security Gate:** never log passwords/tokens; IP + user-agent only; rate of logging bounded by existing throttle.
 **Database Gate:** ✅ piggybacks FEAT-07 migration.
 **UI Gate:** ✅ reuse.
-**Status:** PLANNED · Priority rank 8 · **Depends on FEAT-07**
+**Status:** **DONE** 2026-10-01 · `LogAuthActivity` on `Login/Failed/Logout` → `AuditWriter` (context-local). Fixed latent bug: Access ESP's empty `configureEmailVerification()` override had disabled `Registered→SendEmailVerificationNotification` (FEAT-09 now actually mails on register).
 
 ---
 
@@ -323,7 +323,7 @@ Legend: Gates = ✅ pass · ⚠️ conditional · ❌ blocked · Status = PLANNE
 **Security Gate:** signed URLs, `signed` middleware, resend throttled, no enumeration (uniform response).
 **Database Gate:** ✅ none.
 **UI Gate:** ✅ notice/verify pages from shared components.
-**Status:** PLANNED · Priority rank 9/10 · **Depends on FEAT-04**
+**Status:** **DONE** 2026-10-01 · Owner decisions: captcha rejected → honeypot (`website`, `prohibited`) on both registration forms; full `MustVerifyEmail` — verify routes inside `tenant`+`auth:web` but outside `verified`; `signed:relative` so links validate on tenant domains; `VerifyEmail::createUrlUsing` builds tenant-domain URLs; provisioner emails the seeded owner (stays unverified until click); `Registered` fired on member register.
 
 ---
 
@@ -345,7 +345,7 @@ Legend: Gates = ✅ pass · ⚠️ conditional · ❌ blocked · Status = PLANNE
 **Reuse answers** — n/a (deletion task).
 **Architecture Gate:** ✅ each deletion is gated on a fresh `grep` proof of zero references at execution time, not on this plan's claim.
 **Tenant Gate:** n/a · **Security Gate:** removing unreachable code only. **DB Gate:** n/a · **UI Gate:** no shared component is touched.
-**Status:** PLANNED · moved to its own cleanup batch AFTER security/correctness work — scaffold removal never outranks a live security gap.
+**Status:** **DONE** 2026-10-01 · Deleted 10 proven-dead files (Tenant scaffold controller + 4 pages; Access scaffold controller + 4 pages). `CoreController` was already absent — no action needed. `stubs/` untouched (protected). `TenantDashboardController`, `Dashboard.vue`, `ErrorPage.vue`, and all real Access pages preserved.
 
 ---
 
@@ -367,7 +367,7 @@ Legend: Gates = ✅ pass · ⚠️ conditional · ❌ blocked · Status = PLANNE
 **Security Gate:** HMAC signature header, HTTPS-only URLs, secret rotation, retry backoff + dead-letter after N attempts, no payload PII beyond contract, permission `sensitive`.
 **Database Gate:** ⚠️ two landlord tables — justified (new domain, no existing fit).
 **UI Gate:** ✅ `Landlord/Webhooks/Index.vue` from shared grid+modal.
-**Status:** PLANNED · Priority rank 11
+**Status:** **DONE** 2026-10-01 · `webhook_endpoints`/`webhook_deliveries` + `DispatchDomainEventWebhooks` (whitelist payloads, `adminData` never serialized) → `DeliverWebhookJob` (`NotTenantAware`, HMAC `X-Webhook-Signature`, tries=5 w/ backoff → `dead`). HTTPS-only URL rule, secret rotation, `webhooks.view`/`webhooks.manage` (sensitive). Index page + nav item. Tests: `WebhooksTest` 5/5.
 
 ---
 
@@ -395,7 +395,7 @@ Filtering module routes at registration time intersects the nwidart boot lifecyc
 **Security Gate:** entitlement check server-side only; can't be bypassed by URL guessing; Audit on override change.
 **Database Gate:** ⚠️ prefer `tenants.settings.entitlements[]` + plan `limits.features` — zero new tables; document the key in `settings` registry pattern.
 **UI Gate:** ✅ extend `PlanFormFields` + Modules grid with per-tenant column.
-**Status:** PLANNED · Priority rank 12 · **BLOCKED on Design Gate document**
+**Status:** PLANNED · Priority rank 12 · **DESIGN GATE document written — awaiting owner approval** → `docs/audit/FEAT-12-DESIGN-GATE.md` (middleware gating, deny-by-default grants, 403 choice, route-cache safety, open questions §9). **No code written.**
 
 ---
 
@@ -417,7 +417,7 @@ Filtering module routes at registration time intersects the nwidart boot lifecyc
 **Security Gate:** ⚠️ FND-030 interaction — tenant rows may hold plaintext DB creds; backup command uses configured connection, not stored creds. Signed download, expiry, `sensitive` permission, audit record.
 **Database Gate:** ✅ one registry table justified.
 **UI Gate:** ✅ backup history panel on `Tenants/Show.vue` via `DataTable`.
-**Status:** PLANNED · Priority rank 13
+**Status:** **DONE** 2026-10-01 · `tenant_backups` registry + `TenantBackupService` (sqlite copy / mysqldump via configured connection) + `tenants:backup {tenant?}` (daily schedule) + `TenantBackupController` (store/delete via `tenants.export`, **signed** download via `tenants.view`). Backup dir purged on tenant delete. Audit: `tenant.backup_*`. Panel on `Tenants/Show.vue`. Tests: `TenantBackupTest` 6/6.
 
 ---
 
@@ -438,7 +438,7 @@ Filtering module routes at registration time intersects the nwidart boot lifecyc
 **Tenant Gate:** purge = `dropTenantDatabase` (exists) + row delete; export precedes erasure; queued job `NotTenantAware`.
 **Security Gate:** erasure is irreversible → ConfirmDialog + audit + grace window; export artifact ACL'd like FEAT-13.
 **Database Gate:** ✅ settings-json reuse.
-**Status:** PLANNED · Priority rank 14 · **Depends on FEAT-05 + FEAT-13**
+**Status:** **DONE** 2026-10-01 · `requestErasure`/`cancelErasure` on `TenantLifecycleService` (archived-only, `system.retention_grace_days` governed window), erasure markers in `tenants.settings`; sweep merged into `tenants:enforce-lifecycle` → `purgeExpiredRetentions` = full erasure (DB + row + backup artifacts). Routes `request-erasure`/`cancel-erasure` (`tenants.lifecycle`), UI buttons + retention notice + ConfirmDialog on Show.vue. Audit: `tenant.erasure_*`, `tenant.deleted`. Tests: `TenantRetentionTest` 4/4. Deviation noted: no auto-export inside purge — the artifact would be deleted by the dir purge anyway; manual backup/download is the recovery path (documented in service comment).
 
 ---
 
@@ -458,7 +458,7 @@ Filtering module routes at registration time intersects the nwidart boot lifecyc
 **Tenant Gate:** recording runs inside `$tenant->execute()` writing to landlord table — must run *after* `execute()` returns or pass scalar values out (never write cross-connection inside tenant txn).
 **Security Gate:** read-only surface; aggregate-only, no user-level data.
 **Database Gate:** ⚠️ one new table justified (time-series, no existing fit).
-**Status:** PLANNED · Priority rank 15 · **Depends on FEAT-05**
+**Status:** **DONE** 2026-10-01 · `usage_records` + `tenants:record-usage` hourly (scalars out of `execute()`, landlord-side writes — per the Tenant Gate). `metrics.view` gates the usage-history panel on `Tenants/Show.vue` (key absent entirely for unauthorized principals).
 
 ---
 
@@ -573,7 +573,7 @@ Precedent (module `api.php` stubs + `api` middleware group already tenant-aware)
 **Reuse answers** — all YES.
 **Tenant Gate:** read-only `execute()` calls — existing proven pattern (`TenantController::show` already lists users); failures return degraded state (existing try/catch pattern).
 **Security Gate:** read-only, `tenants.view`, no tenant data exfiltration beyond aggregates.
-**Status:** PLANNED · Priority: bundled with FEAT-13/15 work on the same page
+**Status:** **DONE** 2026-10-01 · `LandlordMetricsService::tenantDiagnostics()` — reachability + user counts + storage bytes via read-only `execute()`, degrades to `reachable:false` (never throws). StatCard row on `Tenants/Show.vue` under `tenants.view`. Covered in `TenantBackupTest::test_diagnostics_*`.
 
 ---
 

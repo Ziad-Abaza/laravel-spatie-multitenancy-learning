@@ -107,7 +107,7 @@ class SettingsGovernanceTest extends TestCase
         $member = User::create([
             'name' => 'Member',
             'email' => 'member-'.uniqid().'@governance.test',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('password'),            'email_verified_at' => now(),
         ]);
         $member->assignRole(Role::findOrCreate('Member', 'web'));
         $this->assertSame(['Member'], $member->fresh()->getRoleNames()->all());
@@ -131,7 +131,7 @@ class SettingsGovernanceTest extends TestCase
         $owner = User::create([
             'name' => 'Owner',
             'email' => 'owner-'.uniqid().'@governance.test',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('password'),            'email_verified_at' => now(),
         ]);
         $owner->assignRole(Role::findOrCreate('Owner', 'web'));
         $this->assertContains('Owner', $owner->fresh()->getRoleNames()->all());

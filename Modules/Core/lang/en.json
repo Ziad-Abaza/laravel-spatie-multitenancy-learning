@@ -1,5 +1,10 @@
 {
+    "action": "Action",
+    "actor": "Actor",
+    "all_actions": "All Actions",
     "arabic": "العربية",
+    "audit_log": "Audit Log",
+    "audit_log_sub": "Append-only record of workspace and platform activity.",
     "choose_theme": "Choose theme",
     "collapse_sidebar": "Collapse sidebar",
     "dark_mode": "Dark Mode",
@@ -89,5 +94,9 @@
     "perm_group_subscriptions": "Subscriptions",
     "perm_group_modules": "Modules",
     "perm_group_platform": "Platform Settings",
-    "perm_group_admins": "Administrators"
+    "perm_group_admins": "Administrators",
+    "perm_group_audit": "Audit",
+    "ip_address": "IP Address",
+    "target": "Target",
+    "time": "Time"
 }

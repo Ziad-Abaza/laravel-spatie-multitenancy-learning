@@ -17,7 +17,7 @@ Route::prefix('landlord')->middleware(['landlord', 'auth:landlord', 'landlord.ac
 });
 
 // Tenant Subscription & Plan Upgrade Management
-Route::middleware(['auth:web', 'tenant'])->group(function () {
+Route::middleware(['auth:web', 'tenant', 'verified'])->group(function () {
     Route::get('/subscription', [SubscriptionController::class, 'tenantOverview'])->name('tenant.subscription.overview')->middleware('permission:'.P::SUBSCRIPTION_VIEW);
     Route::post('/subscription/change-plan', [SubscriptionController::class, 'changePlan'])->name('tenant.subscription.change-plan')->middleware('permission:'.P::SUBSCRIPTION_MANAGE);
 });

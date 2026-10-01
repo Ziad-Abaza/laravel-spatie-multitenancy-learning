@@ -61,6 +61,8 @@ final class TenantPermissions
 
     public const SETTINGS_MANAGE = 'settings.manage';
 
+    public const AUDIT_VIEW = 'audit.view';
+
     /**
      * Key → classification. 'read' keys compose the view-only preset;
      * 'sensitive' keys are irreversible or privilege-affecting operations.
@@ -82,6 +84,7 @@ final class TenantPermissions
             self::SUBSCRIPTION_MANAGE => self::CLASS_SENSITIVE,
             self::SETTINGS_VIEW => self::CLASS_READ,
             self::SETTINGS_MANAGE => self::CLASS_WRITE,
+            self::AUDIT_VIEW => self::CLASS_READ,
         ];
     }
 

@@ -44,6 +44,15 @@ class TenantSettingsController extends Controller
             Tenant::current()->update(['name' => $request->input('workspace_name')]);
         }
 
+        // Logo is the tenant record's `logo` media collection — stored on the
+        // landlord connection alongside the tenant row, served under the
+        // tenant-scoped path prefix (TenantAwarePathGenerator).
+        if ($request->hasFile('logo')) {
+            $tenant = Tenant::current();
+            $tenant->clearMediaCollection('logo');
+            $tenant->addMediaFromRequest('logo')->toMediaCollection('logo');
+        }
+
         return back()->with('success', __('workspace_settings_updated'));
     }
 }

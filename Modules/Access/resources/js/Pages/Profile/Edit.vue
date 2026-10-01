@@ -6,7 +6,7 @@ import Panel from '@core/Components/Panel.vue';
 import FormField from '@core/Components/FormField.vue';
 import BaseButton from '@core/Components/BaseButton.vue';
 import { useI18n } from '@core/Composables/useI18n';
-import { User, Lock, Save } from 'lucide-vue-next';
+import { User, Lock, Save, MonitorSmartphone } from 'lucide-vue-next';
 
 interface ProfileData {
     id: number;
@@ -14,6 +14,7 @@ interface ProfileData {
     email: string;
     job_title: string;
     phone: string;
+    avatar_url: string;
 }
 
 const props = defineProps<{
@@ -30,11 +31,20 @@ const form = useForm({
     current_password: '',
     password: '',
     password_confirmation: '',
+    avatar: null as File | null,
 });
 
 function submit() {
     form.put('/profile', {
         onSuccess: () => form.reset('current_password', 'password', 'password_confirmation'),
+    });
+}
+
+const revokeForm = useForm({ current_password: '' });
+
+function revokeOthers() {
+    revokeForm.post('/profile/revoke-sessions', {
+        onSuccess: () => revokeForm.reset(),
     });
 }
 </script>
@@ -49,6 +59,22 @@ function submit() {
 
             <Panel :title="t('personal_information', 'Personal Information')" :icon="User">
                 <form class="space-y-6" @submit.prevent="submit">
+                    <div class="flex items-center gap-4">
+                        <img
+                            :src="props.user.avatar_url"
+                            :alt="props.user.name"
+                            class="w-14 h-14 rounded-full object-cover border border-border-subtle"
+                        />
+                        <FormField
+                            v-model="form.avatar"
+                            :label="t('profile_photo', 'Profile Photo')"
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            :hint="t('profile_photo_hint', 'PNG, JPG or WebP, up to 2MB.')"
+                            :error="form.errors.avatar"
+                            class="flex-1"
+                        />
+                    </div>
                     <div class="space-y-4">
                         <FormField v-model="form.name" :label="t('full_name', 'Full Name')" required :error="form.errors.name" />
                         <FormField v-model="form.email" :label="t('email', 'Email Address')" type="email" required :error="form.errors.email" />
@@ -94,6 +120,25 @@ function submit() {
                             {{ form.processing ? t('saving', 'Saving...') : t('save_changes', 'Save Profile') }}
                         </BaseButton>
                     </div>
+                </form>
+            </Panel>
+
+            <Panel :title="t('sessions_security', 'Sessions & Security')" :icon="MonitorSmartphone">
+                <p class="text-xs text-text-muted mb-4">
+                    {{ t('sessions_security_sub', 'If you suspect unauthorized access, revoke every other session signed in with this account.') }}
+                </p>
+                <form class="flex items-end gap-4" @submit.prevent="revokeOthers">
+                    <FormField
+                        v-model="revokeForm.current_password"
+                        :label="t('current_password', 'Current Password')"
+                        type="password"
+                        required
+                        :error="revokeForm.errors.current_password"
+                        class="flex-1"
+                    />
+                    <BaseButton type="submit" variant="danger" :loading="revokeForm.processing">
+                        {{ t('revoke_other_sessions', 'Log Out Other Devices') }}
+                    </BaseButton>
                 </form>
             </Panel>
         </div>

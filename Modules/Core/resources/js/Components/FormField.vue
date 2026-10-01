@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="V extends string | number | boolean | null = string | number | boolean | null">
+<script setup lang="ts" generic="V extends string | number | boolean | File | null = string | number | boolean | File | null">
 import { computed, type Component } from 'vue';
 import { useI18n } from '../Composables/useI18n';
 
@@ -11,7 +11,7 @@ const props = withDefaults(
     defineProps<{
         modelValue: V;
         label?: string;
-        type?: 'text' | 'email' | 'password' | 'number' | 'date' | 'url' | 'tel' | 'textarea' | 'select' | 'checkbox';
+        type?: 'text' | 'email' | 'password' | 'number' | 'date' | 'url' | 'tel' | 'textarea' | 'select' | 'checkbox' | 'file';
         options?: Array<{ value: string | number; label: string }> | Record<string, string>;
         placeholder?: string;
         hint?: string;
@@ -21,6 +21,7 @@ const props = withDefaults(
         size?: 'sm' | 'md';
         icon?: Component;
         dir?: string;
+        accept?: string;
         min?: number | string;
         max?: number | string;
         step?: number | string;
@@ -38,6 +39,7 @@ const props = withDefaults(
         size: 'md',
         icon: undefined,
         dir: undefined,
+        accept: undefined,
         min: undefined,
         max: undefined,
         step: undefined,
@@ -74,6 +76,12 @@ const controlValue = computed<string | number | null>(() =>
 
 function onInput(e: Event) {
     const target = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+    if (props.type === 'file') {
+        emit('update:modelValue', (((target as HTMLInputElement).files?.[0]) ?? null) as V);
+        return;
+    }
+
     emit('update:modelValue', (props.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value) as V);
 }
 </script>
@@ -125,6 +133,17 @@ function onInput(e: Event) {
             :dir="dir"
             :class="controlClass"
             @input="onInput"
+        />
+
+        <input
+            v-else-if="type === 'file'"
+            :id="fieldId"
+            type="file"
+            :accept="accept"
+            :disabled="disabled"
+            :required="required"
+            :class="controlClass"
+            @change="onInput"
         />
 
         <div v-else class="relative">

@@ -3,7 +3,10 @@
 namespace Modules\Landlord\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Modules\Landlord\Console\BackupTenantsCommand;
+use Modules\Landlord\Console\EnforceTenantLifecycleCommand;
 use Modules\Landlord\Console\RebuildDatabasesCommand;
+use Modules\Landlord\Console\RecordTenantUsageCommand;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class LandlordServiceProvider extends ModuleServiceProvider
@@ -25,6 +28,9 @@ class LandlordServiceProvider extends ModuleServiceProvider
      */
     protected array $commands = [
         RebuildDatabasesCommand::class,
+        EnforceTenantLifecycleCommand::class,
+        BackupTenantsCommand::class,
+        RecordTenantUsageCommand::class,
     ];
 
     /**
@@ -39,11 +45,25 @@ class LandlordServiceProvider extends ModuleServiceProvider
 
     /**
      * Define module schedules.
-     *
-     * @param  $schedule
      */
-    // protected function configureSchedules(Schedule $schedule): void
-    // {
-    //     $schedule->command('inspire')->hourly();
-    // }
+    protected function configureSchedules(Schedule $schedule): void
+    {
+        // Lifecycle enforcement is fail-closed and idempotent — an expired
+        // trial/subscription must not linger open waiting for a daily tick.
+        $schedule->command(EnforceTenantLifecycleCommand::class)
+            ->hourly()
+            ->withoutOverlapping();
+
+        // Per-tenant dumps — artifacts are registry-indexed, failures are
+        // reported per tenant and never abort the sweep.
+        $schedule->command(BackupTenantsCommand::class)
+            ->daily()
+            ->withoutOverlapping();
+
+        // Metering snapshots feed billing/fair-use history — hourly keeps
+        // resolution useful without bloating the series.
+        $schedule->command(RecordTenantUsageCommand::class)
+            ->hourly()
+            ->withoutOverlapping();
+    }
 }

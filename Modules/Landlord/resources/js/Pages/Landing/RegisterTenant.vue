@@ -49,6 +49,7 @@ const form = useForm({
     admin_email: '',
     admin_password: '',
     admin_password_confirmation: '',
+    website: '',
 });
 
 function slugify(text: string) {
@@ -100,6 +101,9 @@ function submit() {
             </div>
 
             <form v-else @submit.prevent="submit" class="bg-surface-card border border-border-subtle rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
+                <!-- Honeypot: invisible to humans, bots that fill it are rejected server-side -->
+                <input v-model="form.website" type="text" name="website" tabindex="-1" autocomplete="off" class="absolute opacity-0 -z-10 h-0 w-0 pointer-events-none" aria-hidden="true" />
+
                 <!-- Section 1: Workspace Info -->
                 <div class="space-y-5">
                     <h2 class="text-sm font-bold text-primary-600 dark:text-primary-400 uppercase tracking-wider flex items-center gap-2">

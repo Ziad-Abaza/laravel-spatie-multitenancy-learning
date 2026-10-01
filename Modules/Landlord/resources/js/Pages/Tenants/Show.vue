@@ -11,6 +11,8 @@ import FormField from '@core/Components/FormField.vue';
 import BaseButton from '@core/Components/BaseButton.vue';
 import IconButton from '@core/Components/IconButton.vue';
 import DataTable from '@core/Components/DataTable.vue';
+import BadgeCell from '@core/Components/BadgeCell.vue';
+import StatCard from '@core/Components/StatCard.vue';
 import { useI18n } from '@core/Composables/useI18n';
 import {
     Database,
@@ -24,6 +26,10 @@ import {
     CalendarClock,
     Pencil,
     AlertTriangle,
+    HardDrive,
+    Download,
+    Activity,
+    Archive,
 } from 'lucide-vue-next';
 
 interface TenantDetail {
@@ -36,6 +42,8 @@ interface TenantDetail {
     trial_ends_at: string | null;
     suspended_at: string | null;
     suspension_reason: string | null;
+    erasure_requested_at: string | null;
+    retention_until: string | null;
     url: string;
     user_count: number;
     created_at: string;
@@ -70,6 +78,28 @@ interface TenantDetail {
 const props = defineProps<{
     tenant: TenantDetail;
     plans: Array<{ id: number; name: string; price: number }>;
+    backups: Array<{
+        id: number;
+        size: number;
+        driver: string;
+        status: string;
+        created_at: string;
+        download_url: string;
+    }>;
+    can_export: boolean;
+    diagnostics: {
+        reachable: boolean;
+        user_count: number | null;
+        active_users: number | null;
+        storage_bytes: number | null;
+        last_user_activity: string | null;
+    };
+    usage: Array<{
+        id: number;
+        metric: string;
+        value: number;
+        recorded_at: string;
+    }> | null;
 }>();
 
 const { t } = useI18n();
@@ -79,12 +109,14 @@ const showActivateModal = ref(false);
 const showDeleteModal = ref(false);
 const showArchiveModal = ref(false);
 const showCancelSubModal = ref(false);
+const showErasureModal = ref(false);
 
 const suspendForm = useForm({ reason: '' });
 const deleteForm = useForm({ drop_database: false });
 const archiveForm = useForm({});
 const activateForm = useForm({});
 const cancelSubForm = useForm({});
+const erasureForm = useForm({});
 
 const identityForm = useForm({
     name: props.tenant.name,
@@ -161,6 +193,52 @@ function deleteTenant() {
         onSuccess: () => { showDeleteModal.value = false; }
     });
 }
+
+function requestErasure() {
+    erasureForm.post(`/landlord/tenants/${props.tenant.id}/request-erasure`, {
+        onSuccess: () => { showErasureModal.value = false; }
+    });
+}
+
+function cancelErasure() {
+    erasureForm.post(`/landlord/tenants/${props.tenant.id}/cancel-erasure`);
+}
+
+const backupForm = useForm({});
+const deleteBackupForm = useForm({});
+const pendingBackupDelete = ref<number | null>(null);
+
+const backupColumns = [
+    { key: 'created_at', label: t('created_at', 'Created At') },
+    { key: 'driver', label: t('driver', 'Driver') },
+    { key: 'size', label: t('size', 'Size') },
+    { key: 'status', label: t('status', 'Status') },
+    { key: 'actions', label: '' },
+];
+
+function formatBytes(bytes: number | null): string {
+    if (bytes === null) return '—';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function createBackup() {
+    backupForm.post(`/landlord/tenants/${props.tenant.id}/backups`);
+}
+
+function deleteBackup() {
+    if (pendingBackupDelete.value === null) return;
+    deleteBackupForm.delete(`/landlord/tenants/${props.tenant.id}/backups/${pendingBackupDelete.value}`, {
+        onSuccess: () => { pendingBackupDelete.value = null; },
+    });
+}
+
+const usageColumns = [
+    { key: 'recorded_at', label: t('recorded_at', 'Recorded At') },
+    { key: 'metric', label: t('metric', 'Metric') },
+    { key: 'value', label: t('value', 'Value') },
+];
 </script>
 
 <template>
@@ -217,6 +295,23 @@ function deleteTenant() {
                         @click="showArchiveModal = true"
                     >
                         {{ t('archive_tenant', 'Archive') }}
+                    </BaseButton>
+                    <BaseButton
+                        v-if="tenant.status === 'archived' && !tenant.erasure_requested_at"
+                        variant="danger"
+                        size="sm"
+                        @click="showErasureModal = true"
+                    >
+                        {{ t('request_erasure', 'Request Erasure') }}
+                    </BaseButton>
+                    <BaseButton
+                        v-if="tenant.erasure_requested_at"
+                        variant="secondary"
+                        size="sm"
+                        :loading="erasureForm.processing"
+                        @click="cancelErasure"
+                    >
+                        {{ t('cancel_erasure', 'Cancel Erasure') }}
                     </BaseButton>
                     <IconButton
                         :icon="Trash2"
@@ -323,6 +418,13 @@ function deleteTenant() {
                             {{ t('extend_trial', 'Extend Trial') }}
                         </BaseButton>
                     </form>
+                    <div
+                        v-if="tenant.erasure_requested_at"
+                        class="mt-4 rounded-xl border border-danger/25 bg-danger/10 px-3 py-2 text-xs text-danger-fg"
+                    >
+                        {{ t('erasure_scheduled_note', 'Erasure scheduled — this workspace will be permanently purged at') }}
+                        <span class="font-mono font-semibold">{{ tenant.retention_until }}</span>
+                    </div>
                 </Panel>
             </div>
 
@@ -339,6 +441,89 @@ function deleteTenant() {
                     </template>
                     <template #cell-roles="{ value }">
                         <span v-for="role in value" :key="role" class="inline-block me-1 px-2 py-0.5 rounded-md bg-primary-500/10 text-primary-600 dark:text-primary-400 text-[10px] font-semibold">{{ role }}</span>
+                    </template>
+                </DataTable>
+            </Panel>
+
+            <!-- Diagnostics (FEAT-20) — read-only support aggregates -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard
+                    :label="t('db_reachability', 'Database')"
+                    :value="diagnostics.reachable ? t('reachable', 'Reachable') : t('unreachable', 'Unreachable')"
+                    :icon="Activity"
+                />
+                <StatCard
+                    :label="t('users_total', 'Total Users')"
+                    :value="diagnostics.user_count ?? '—'"
+                    :icon="Users"
+                />
+                <StatCard
+                    :label="t('users_active', 'Active Users')"
+                    :value="diagnostics.active_users ?? '—'"
+                    :icon="Users"
+                />
+                <StatCard
+                    :label="t('storage_used', 'Storage Used')"
+                    :value="formatBytes(diagnostics.storage_bytes)"
+                    :icon="HardDrive"
+                />
+            </div>
+
+            <!-- Backups (FEAT-13) -->
+            <Panel padding="md" :title="t('backups', 'Backups')" :icon="Archive">
+                <template #actions>
+                    <BaseButton
+                        v-if="can_export"
+                        size="sm"
+                        :icon="Download"
+                        :loading="backupForm.processing"
+                        @click="createBackup"
+                    >
+                        {{ t('create_backup', 'Create Backup') }}
+                    </BaseButton>
+                </template>
+                <DataTable
+                    :columns="backupColumns"
+                    :rows="backups"
+                    :empty-title="t('no_backups_found', 'No backups yet.')"
+                    class="-mx-3"
+                >
+                    <template #cell-size="{ value }">
+                        <span class="font-mono text-xs">{{ formatBytes(value) }}</span>
+                    </template>
+                    <template #cell-status="{ value }">
+                        <StatusBadge :status="value" />
+                    </template>
+                    <template #cell-actions="{ row }">
+                        <div class="flex items-center justify-end gap-2">
+                            <a :href="row.download_url" class="text-primary-600 dark:text-primary-400 hover:underline text-xs">
+                                {{ t('download', 'Download') }}
+                            </a>
+                            <IconButton
+                                v-if="can_export"
+                                :icon="Trash2"
+                                variant="danger"
+                                :title="t('delete', 'Delete')"
+                                @click="pendingBackupDelete = row.id"
+                            />
+                        </div>
+                    </template>
+                </DataTable>
+            </Panel>
+
+            <!-- Usage metering history (FEAT-15) — metrics.view-gated server-side -->
+            <Panel v-if="usage !== null" padding="md" :title="t('usage_history', 'Usage History')" :icon="Activity">
+                <DataTable
+                    :columns="usageColumns"
+                    :rows="usage"
+                    :empty-title="t('no_usage_found', 'No usage snapshots recorded yet.')"
+                    class="-mx-3"
+                >
+                    <template #cell-metric="{ value }">
+                        <BadgeCell variant="neutral">{{ value }}</BadgeCell>
+                    </template>
+                    <template #cell-value="{ row }">
+                        <span class="font-mono text-xs">{{ row.metric === 'storage.bytes' ? formatBytes(row.value) : row.value }}</span>
                     </template>
                 </DataTable>
             </Panel>
@@ -437,5 +622,27 @@ function deleteTenant() {
                 class="mt-3"
             />
         </ConfirmDialog>
+
+        <!-- Erasure Modal -->
+        <ConfirmDialog
+            :is-open="showErasureModal"
+            :title="t('confirm_erasure_title', 'Schedule Data Erasure?')"
+            :message="t('confirm_erasure_message', 'After the retention grace window elapses, this workspace\'s database and all artifacts will be permanently purged. Create a backup first if you need a recovery copy.')"
+            :confirm-text="t('request_erasure', 'Request Erasure')"
+            variant="danger"
+            @close="showErasureModal = false"
+            @confirm="requestErasure"
+        />
+
+        <!-- Delete Backup Modal -->
+        <ConfirmDialog
+            :is-open="pendingBackupDelete !== null"
+            :title="t('confirm_delete_backup_title', 'Delete This Backup?')"
+            :message="t('confirm_delete_backup_message', 'The dump file will be removed permanently. This action cannot be undone.')"
+            :confirm-text="t('delete_forever', 'Delete Forever')"
+            variant="danger"
+            @close="pendingBackupDelete = null"
+            @confirm="deleteBackup"
+        />
     </LandlordLayout>
 </template>

@@ -20,6 +20,7 @@ const { t } = useI18n();
 const brandingForm = useForm({
     domain: 'branding',
     workspace_name: props.branding?.workspace_name || '',
+    logo: null as File | null,
     settings: {
         tagline: props.branding?.tagline || '',
     },
@@ -60,6 +61,23 @@ const palettes = THEME_PRESETS.filter((p) => allowedPalettes.has(p.id));
                         :placeholder="t('workspace_tagline_example', 'e.g. Innovating together')"
                         :error="brandingForm.errors['settings.tagline']"
                     />
+                    <div class="flex items-center gap-4">
+                        <img
+                            v-if="props.branding?.logo_url"
+                            :src="props.branding.logo_url"
+                            :alt="t('workspace_logo', 'Workspace Logo')"
+                            class="w-12 h-12 rounded-xl object-cover border border-border-subtle"
+                        />
+                        <FormField
+                            v-model="brandingForm.logo"
+                            :label="t('workspace_logo', 'Workspace Logo')"
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            :hint="t('workspace_logo_hint', 'PNG, JPG or WebP, up to 2MB.')"
+                            :error="brandingForm.errors.logo"
+                            class="flex-1"
+                        />
+                    </div>
 
                     <div class="pt-2 flex justify-end">
                         <BaseButton type="submit" :icon="Save" :loading="brandingForm.processing">

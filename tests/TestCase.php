@@ -7,9 +7,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Access\Models\Role;
 use Modules\Access\Services\AccessBaselineProvisioner;
 use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\TenantStatus;
+use Modules\Landlord\Models\LandlordUser;
 use Modules\Landlord\Services\TenantProvisioner;
 use Modules\Subscription\Database\Seeders\PlanSeeder;
 
@@ -116,5 +118,33 @@ abstract class TestCase extends BaseTestCase
         $this->tenantDatabaseFiles[] = (string) $tenant->database;
 
         return $tenant;
+    }
+
+    /**
+     * A landlord admin carrying exactly the given permissions — the scoped
+     * principal for permission-gating assertions.
+     *
+     * @param  array<int, string>  $permissions
+     */
+    protected function makeScopedAdmin(string $prefix, array $permissions): LandlordUser
+    {
+        $role = Role::findOrCreate('T'.ucfirst($prefix).'-'.uniqid(), 'landlord');
+        $role->syncPermissions($permissions);
+
+        $admin = LandlordUser::create([
+            'name' => ucfirst($prefix),
+            'email' => $prefix.'-'.uniqid().'@landlord.test',
+            'password' => bcrypt('password'),
+            'status' => 'active',
+        ]);
+        $admin->assignRole($role);
+
+        return $admin;
+    }
+
+    protected function cleanup(LandlordUser $admin): void
+    {
+        $admin->roles()->detach();
+        $admin->delete();
     }
 }

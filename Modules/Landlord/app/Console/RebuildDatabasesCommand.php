@@ -7,8 +7,8 @@ use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
-use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Destructive dev/maintenance reset: migrate:fresh + seed for the landlord
@@ -21,6 +21,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 class RebuildDatabasesCommand extends Command
 {
     use ConfirmableTrait;
+
+    public const SUCCESS = 0;
+
+    public const FAILURE = 1;
 
     protected $signature = 'db:rebuild
                             {--all : Rebuild landlord + every tenant database}
@@ -41,15 +45,25 @@ class RebuildDatabasesCommand extends Command
 
         if ($rebuildLandlord) {
             $this->components->task('Rebuilding landlord database', function () {
-                Artisan::call('migrate:fresh', [
+                Tenant::forgetCurrent();
+                DB::purge('landlord');
+
+                $exitCode = Artisan::call('migrate:fresh', [
                     '--database' => 'landlord',
                     '--force' => true,
                     '--seed' => true,
                 ]);
+
+                DB::purge('landlord');
+
+                return $exitCode === 0;
             });
         }
 
         if ($rebuildTenants) {
+            Tenant::forgetCurrent();
+            DB::purge('landlord');
+
             foreach ($this->resolveTenants($tenants) as $tenant) {
                 $this->rebuildTenant($tenant);
             }
@@ -90,15 +104,19 @@ class RebuildDatabasesCommand extends Command
                     // SwitchTenantDatabaseTask swaps the `tenant` connection's
                     // database but NOT the default connection — without
                     // --database=tenant this would wipe the landlord DB.
+                    DB::purge('tenant');
+
                     Artisan::call('migrate:fresh', [
                         '--database' => 'tenant',
                         '--path' => 'database/migrations/tenant',
                         '--force' => true,
                         '--seed' => true,
                     ]);
+
+                    DB::purge('tenant');
                 });
             } catch (\Throwable $e) {
-                $this->output->writeln("  <fg=yellow>skipped: {$e->getMessage()}</>", OutputInterface::VERBOSITY_NORMAL);
+                $this->line("  <fg=yellow>skipped: {$e->getMessage()}</>");
             }
         });
     }

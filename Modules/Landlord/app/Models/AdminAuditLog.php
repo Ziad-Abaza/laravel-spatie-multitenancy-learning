@@ -30,6 +30,17 @@ class AdminAuditLog extends Model
         'role.updated',
         'role.deleted',
         'system.repair',
+        'tenant.created',
+        'tenant.status_changed',
+        'tenant.backup_created',
+        'tenant.backup_downloaded',
+        'tenant.backup_deleted',
+        'tenant.erasure_requested',
+        'tenant.erasure_canceled',
+        'tenant.deleted',
+        'auth.login',
+        'auth.login_failed',
+        'auth.logout',
     ];
 
     protected $fillable = [

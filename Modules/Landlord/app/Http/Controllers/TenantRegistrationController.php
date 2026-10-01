@@ -85,6 +85,8 @@ class TenantRegistrationController extends Controller
             'admin_email' => ['required', 'email', 'max:150'],
             'admin_password' => ['required', 'string', 'min:8', 'confirmed'],
             'plan_id' => ['nullable', 'exists:plans,id'],
+            // Honeypot — hidden from humans; a filled value marks a bot.
+            'website' => ['prohibited'],
         ]);
 
         $tenant = $this->provisioner->provision([

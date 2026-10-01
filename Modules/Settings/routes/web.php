@@ -13,7 +13,7 @@ Route::prefix('landlord')->middleware(['landlord', 'auth:landlord', 'landlord.ac
 });
 
 // Tenant Settings — permission-gated (Owner/Admin hold settings.manage via baseline roles)
-Route::middleware(['auth:web', 'tenant'])->group(function () {
+Route::middleware(['auth:web', 'tenant', 'verified'])->group(function () {
     Route::get('/settings', [TenantSettingsController::class, 'index'])->name('tenant.settings.index')->middleware('permission:'.P::SETTINGS_VIEW);
     Route::post('/settings', [TenantSettingsController::class, 'update'])->name('tenant.settings.update')->middleware('permission:'.P::SETTINGS_MANAGE);
 });

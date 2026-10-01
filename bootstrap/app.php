@@ -4,6 +4,7 @@ use App\Exceptions\TenantSuspendedException;
 use App\Http\Middleware\EnsureLandlordAdminActive;
 use App\Http\Middleware\EnsureLandlordContext;
 use App\Http\Middleware\EnsureTenantIsActive;
+use App\Http\Middleware\EnsureTenantUserActive;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\IdentifyTenant;
 use App\Http\Middleware\SetLocale;
@@ -12,6 +13,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\AuthenticateSession;
 use Spatie\Multitenancy\Exceptions\NoCurrentTenant;
 use Spatie\Multitenancy\Http\Middleware\EnsureValidTenantSession;
 use Spatie\Multitenancy\Http\Middleware\NeedsTenant;
@@ -31,6 +33,10 @@ return Application::configure(basePath: dirname(__DIR__))
             IdentifyTenant::class,
             EnsureTenantIsActive::class,
         ], append: [
+            // Enables Auth::logoutOtherDevices — the session carries the
+            // password hash fingerprint, so a password change invalidates
+            // every other session without enumerating shared session rows.
+            AuthenticateSession::class,
             SetLocale::class,
             HandleInertiaRequests::class,
         ]);
@@ -43,6 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->group('tenant', [
             NeedsTenant::class,
             EnsureValidTenantSession::class,
+            EnsureTenantUserActive::class,
         ]);
 
         $middleware->alias([

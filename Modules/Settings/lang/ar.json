@@ -26,6 +26,8 @@
     "workspace_settings_updated": "تم تحديث إعدادات مساحة العمل بنجاح.",
     "workspace_tagline": "الشعار اللفظي لمساحة العمل",
     "workspace_tagline_example": "مثال: نبتكر معاً",
+    "workspace_logo": "شعار مساحة العمل",
+    "workspace_logo_hint": "PNG أو JPG أو WebP، بحد أقصى 2 ميجابايت.",
     "billing": "الفوترة",
     "default_currency_label": "العملة الافتراضية",
     "default_plan_label": "الخطة الافتراضية للتسجيلات الجديدة",

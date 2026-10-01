@@ -225,6 +225,13 @@ class TenantProvisioner
                 $user->assignRole(TenantPermissions::ROLE_OWNER);
             }
 
+            // Workspace owner starts unverified — send the verification link
+            // while tenant context is current so the URL binds to this tenant's
+            // domain (VerifyEmail::createUrlUsing in AccessServiceProvider).
+            if ($user->wasRecentlyCreated && method_exists($user, 'sendEmailVerificationNotification')) {
+                $user->sendEmailVerificationNotification();
+            }
+
             // Default tenant settings — always through the governed service
             // (registry validation + cache invalidation).
             $settings = app(SettingManagerContract::class);

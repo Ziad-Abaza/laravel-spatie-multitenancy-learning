@@ -8,6 +8,7 @@ import {
     CreditCard,
     Settings,
     User as UserIcon,
+    ScrollText,
     LogOut,
     Menu,
     X,
@@ -54,6 +55,7 @@ const navItems = computed(() => {
         { name: t('roles', 'Roles & Permissions'), href: '/roles', icon: ShieldCheck, visible: can('roles.view') },
         { name: t('subscriptions', 'Subscription & Quotas'), href: '/subscription', icon: CreditCard, visible: can('subscription.view') },
         { name: t('settings', 'Workspace Settings'), href: '/settings', icon: Settings, visible: can('settings.view') },
+        { name: t('audit_log', 'Audit Log'), href: '/audit-logs', icon: ScrollText, visible: can('audit.view') },
         { name: t('profile', 'Profile'), href: '/profile', icon: UserIcon, visible: true },
     ];
 

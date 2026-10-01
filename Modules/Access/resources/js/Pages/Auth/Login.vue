@@ -71,6 +71,9 @@ function submit() {
                             />
                             <span>{{ t('remember_me', 'Remember me') }}</span>
                         </label>
+                        <Link href="/forgot-password" class="text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300">
+                            {{ t('forgot_password', 'Forgot password?') }}
+                        </Link>
                     </div>
 
                     <BaseButton type="submit" :loading="form.processing" :icon="ArrowRight" class="w-full !py-3 shadow-lg shadow-primary-600/30">

@@ -11,6 +11,7 @@ use Modules\Access\Services\AccessBaselineProvisioner;
 use Modules\Access\Services\ManagementPolicy;
 use Modules\Access\Support\LandlordPermissions;
 use Modules\Access\Support\TenantPermissions;
+use Modules\Core\Enums\UserStatus;
 use Modules\Landlord\Models\LandlordUser;
 use Modules\Settings\Services\SettingService;
 use Tests\TestCase;
@@ -117,7 +118,7 @@ class TenantAccessControlTest extends TestCase
         $owner = User::create([
             'name' => 'Access Owner',
             'email' => 'access-owner-'.uniqid().'@test.local',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('password'),            'email_verified_at' => now(),
         ]);
         $owner->assignRole('Owner');
 
@@ -140,7 +141,7 @@ class TenantAccessControlTest extends TestCase
         $member = User::create([
             'name' => 'Access Member',
             'email' => 'access-member-'.uniqid().'@test.local',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('password'),            'email_verified_at' => now(),
         ]);
         $member->assignRole('Member');
 
@@ -172,7 +173,7 @@ class TenantAccessControlTest extends TestCase
         $member = User::create([
             'name' => 'Team Member',
             'email' => 'team-member-'.uniqid().'@test.local',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('password'),            'email_verified_at' => now(),
         ]);
         $member->assignRole('Member');
 
@@ -186,6 +187,88 @@ class TenantAccessControlTest extends TestCase
         }
     }
 
+    public function test_suspended_tenant_user_cannot_log_in(): void
+    {
+        $tenant = $this->tenant();
+        $tenant->makeCurrent();
+
+        $suspended = User::create([
+            'name' => 'Suspended Member',
+            'email' => 'suspended-'.uniqid().'@test.local',
+            'password' => bcrypt('password'),            'email_verified_at' => now(),
+            'status' => UserStatus::Suspended->value,
+        ]);
+
+        try {
+            $response = $this->post('http://tenant1.localhost/login', [
+                'email' => $suspended->email,
+                'password' => 'password',
+            ]);
+
+            $response->assertSessionHasErrors('email');
+            $this->assertGuest('web');
+        } finally {
+            $suspended->delete();
+            Tenant::forgetCurrent();
+        }
+    }
+
+    public function test_suspended_tenant_user_is_cut_off_mid_session(): void
+    {
+        $tenant = $this->tenant();
+        $tenant->makeCurrent();
+
+        $member = User::create([
+            'name' => 'Session Member',
+            'email' => 'session-member-'.uniqid().'@test.local',
+            'password' => bcrypt('password'),            'email_verified_at' => now(),
+            'status' => UserStatus::Active->value,
+        ]);
+        $member->assignRole(TenantPermissions::ROLE_MEMBER);
+
+        try {
+            $this->actingAs($member, 'web')
+                ->get('http://tenant1.localhost/dashboard')
+                ->assertOk();
+
+            // Suspend the account — the very next request must reject it.
+            $member->update(['status' => UserStatus::Suspended->value]);
+
+            $this->get('http://tenant1.localhost/dashboard')
+                ->assertForbidden();
+
+            // Session was destroyed — subsequent requests behave as guest.
+            $this->get('http://tenant1.localhost/dashboard')
+                ->assertRedirect('http://tenant1.localhost/login');
+        } finally {
+            $member->delete();
+            Tenant::forgetCurrent();
+        }
+    }
+
+    public function test_inactive_tenant_user_is_also_blocked(): void
+    {
+        $tenant = $this->tenant();
+        $tenant->makeCurrent();
+
+        $inactive = User::create([
+            'name' => 'Inactive Member',
+            'email' => 'inactive-'.uniqid().'@test.local',
+            'password' => bcrypt('password'),            'email_verified_at' => now(),
+            'status' => UserStatus::Inactive->value,
+        ]);
+
+        try {
+            $this->post('http://tenant1.localhost/login', [
+                'email' => $inactive->email,
+                'password' => 'password',
+            ])->assertSessionHasErrors('email');
+        } finally {
+            $inactive->delete();
+            Tenant::forgetCurrent();
+        }
+    }
+
     public function test_landlord_platform_routes_are_permission_gated(): void
     {
         app(AccessBaselineProvisioner::class)->ensureLandlordBaseline();
@@ -193,7 +276,7 @@ class TenantAccessControlTest extends TestCase
         $staff = LandlordUser::create([
             'name' => 'Platform Staff',
             'email' => 'staff-'.uniqid().'@landlord.test',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('password'),            'email_verified_at' => now(),
         ]);
 
         try {
@@ -231,7 +314,7 @@ class TenantAccessControlTest extends TestCase
         $user = User::create([
             'name' => ucfirst($prefix),
             'email' => $prefix.'-'.uniqid().'@test.local',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('password'),            'email_verified_at' => now(),
         ]);
         $user->assignRole($role);
 
@@ -350,11 +433,15 @@ class TenantAccessControlTest extends TestCase
         $guard = app(ManagementPolicy::class);
         $owner = User::where('email', 'admin@tenant1.localhost')->first();
         $this->assertNotNull($owner);
+        // Provisioned owners start unverified; this test acts as the owner on
+        // verified-gated routes.
+        $owner->markEmailAsVerified();
 
         $peer = User::create([
             'name' => 'Peer Manager',
             'email' => 'peer-'.uniqid().'@test.local',
             'password' => bcrypt('password'),
+            'email_verified_at' => now(),
         ]);
         $peer->assignRole('Owner');
 
@@ -382,7 +469,7 @@ class TenantAccessControlTest extends TestCase
         $member = User::create([
             'name' => 'Locked Member',
             'email' => 'locked-member-'.uniqid().'@test.local',
-            'password' => bcrypt('password'),
+            'password' => bcrypt('password'),            'email_verified_at' => now(),
         ]);
         $member->assignRole('Member');
 

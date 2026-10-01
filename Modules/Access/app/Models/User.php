@@ -2,6 +2,8 @@
 
 namespace Modules\Access\Models;
 
+use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,9 +12,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Multitenancy\Models\Concerns\UsesTenantConnection;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements HasMedia
+class User extends Authenticatable implements HasMedia, MustVerifyEmailContract
 {
-    use HasFactory, HasRoles, InteractsWithMedia, Notifiable, UsesTenantConnection;
+    use HasFactory, HasRoles, InteractsWithMedia, MustVerifyEmail, Notifiable, UsesTenantConnection;
 
     protected $table = 'users';
 
@@ -22,6 +24,7 @@ class User extends Authenticatable implements HasMedia
         'name',
         'email',
         'password',
+        'email_verified_at',
         'job_title',
         'phone',
         'status',

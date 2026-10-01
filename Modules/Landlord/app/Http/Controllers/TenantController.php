@@ -8,8 +8,13 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Access\Support\LandlordPermissions as LP;
+use Modules\Landlord\Models\TenantBackup;
+use Modules\Landlord\Models\UsageRecord;
+use Modules\Landlord\Services\LandlordMetricsService;
 use Modules\Landlord\Services\TenantLifecycleService;
 use Modules\Landlord\Services\TenantProvisioner;
 use Modules\Subscription\Models\Plan;
@@ -20,7 +25,8 @@ class TenantController extends Controller
     public function __construct(
         protected TenantProvisioner $provisioner,
         protected TenantLifecycleService $lifecycleService,
-        protected SubscriptionService $subscriptionService
+        protected SubscriptionService $subscriptionService,
+        protected LandlordMetricsService $metrics
     ) {}
 
     /**
@@ -224,6 +230,8 @@ class TenantController extends Controller
                 'trial_ends_at' => $tenant->trial_ends_at?->format('Y-m-d') ?? null,
                 'suspended_at' => $tenant->suspended_at?->format('Y-m-d H:i') ?? null,
                 'suspension_reason' => $tenant->settings['suspension_reason'] ?? null,
+                'erasure_requested_at' => $tenant->settings['erasure_requested_at'] ?? null,
+                'retention_until' => $tenant->settings['retention_until'] ?? null,
                 'url' => $tenant->url(),
                 'user_count' => count($users),
                 'users' => $users,
@@ -245,6 +253,33 @@ class TenantController extends Controller
                 ]),
                 'created_at' => $tenant->created_at?->format('Y-m-d H:i') ?? '-',
             ],
+            'backups' => $tenant->backups()->latest('created_at')->limit(25)->get()
+                ->map(fn (TenantBackup $backup) => [
+                    'id' => $backup->id,
+                    'size' => $backup->size,
+                    'driver' => $backup->driver,
+                    'status' => $backup->status,
+                    'created_at' => $backup->created_at?->format('Y-m-d H:i') ?? '-',
+                    'download_url' => URL::temporarySignedRoute(
+                        'landlord.tenants.backups.download',
+                        now()->addHour(),
+                        ['tenant' => $tenant->id, 'backup' => $backup->id]
+                    ),
+                ]),
+            'can_export' => request()->user('landlord')?->can(LP::TENANTS_EXPORT) ?? false,
+            'diagnostics' => $this->metrics->tenantDiagnostics($tenant),
+            // Metering surface is a `metrics.view` read gate — no key at all
+            // for principals without it, so the UI has nothing to expose.
+            'usage' => request()->user('landlord')?->can(LP::METRICS_VIEW)
+                ? UsageRecord::where('tenant_id', $tenant->id)
+                    ->latest('recorded_at')->limit(50)->get()
+                    ->map(fn ($r) => [
+                        'id' => $r->id,
+                        'metric' => $r->metric,
+                        'value' => (float) $r->value,
+                        'recorded_at' => $r->recorded_at?->format('Y-m-d H:i') ?? '-',
+                    ])
+                : null,
         ]);
     }
 
@@ -256,6 +291,26 @@ class TenantController extends Controller
         $this->lifecycleService->suspend($tenant, request('reason', 'Suspended by platform administrator'));
 
         return back()->with('success', __('tenant_suspended_notice', ['name' => $tenant->name]));
+    }
+
+    /**
+     * Schedule erasure of an archived tenant (governed grace window).
+     */
+    public function requestErasure(Tenant $tenant): RedirectResponse
+    {
+        $this->lifecycleService->requestErasure($tenant);
+
+        return back()->with('success', __('tenant_erasure_scheduled', ['name' => $tenant->name]));
+    }
+
+    /**
+     * Cancel a pending erasure before the grace window lapses.
+     */
+    public function cancelErasure(Tenant $tenant): RedirectResponse
+    {
+        $this->lifecycleService->cancelErasure($tenant);
+
+        return back()->with('success', __('tenant_erasure_canceled', ['name' => $tenant->name]));
     }
 
     /**

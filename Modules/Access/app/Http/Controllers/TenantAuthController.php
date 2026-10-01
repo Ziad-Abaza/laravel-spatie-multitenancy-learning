@@ -5,6 +5,7 @@ namespace Modules\Access\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,6 +50,14 @@ class TenantAuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        // Reject suspended workspace members before any session exists.
+        $account = User::where('email', $credentials['email'])->first();
+        if ($account !== null && ($account->status ?? 'active') !== 'active') {
+            throw ValidationException::withMessages([
+                'email' => [__('account_suspended')],
+            ]);
+        }
+
         if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
@@ -88,6 +97,9 @@ class TenantAuthController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:150', Rule::unique(User::class, 'email')],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            // Honeypot — humans never fill a hidden field; a non-empty value
+            // marks the submission as a bot and fails validation.
+            'website' => ['prohibited'],
         ]);
 
         $user = $this->userService->createUser([
@@ -97,10 +109,12 @@ class TenantAuthController extends Controller
             'role' => TenantPermissions::ROLE_MEMBER,
         ]);
 
+        event(new Registered($user));
+
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
 
-        return redirect('/dashboard')->with('success', __('welcome_to_workspace'));
+        return redirect('/verify-email')->with('success', __('welcome_to_workspace'));
     }
 
     /**

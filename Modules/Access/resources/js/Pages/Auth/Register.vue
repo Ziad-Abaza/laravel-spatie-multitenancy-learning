@@ -17,6 +17,7 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
+    website: '',
 });
 
 function submit() {
@@ -43,6 +44,8 @@ function submit() {
                 </div>
 
                 <form @submit.prevent="submit" class="space-y-4">
+                    <!-- Honeypot: invisible to humans, bots that fill it are rejected server-side -->
+                    <input v-model="form.website" type="text" name="website" tabindex="-1" autocomplete="off" class="absolute opacity-0 -z-10 h-0 w-0 pointer-events-none" aria-hidden="true" />
                     <FormField
                         v-model="form.name"
                         :label="t('full_name', 'Full Name')"

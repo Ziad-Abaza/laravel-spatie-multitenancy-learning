@@ -9,13 +9,15 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Access\Models\Role;
+use Modules\Access\Services\AuditWriter;
 use Modules\Access\Services\ManagementPolicy;
 use Modules\Access\Support\TenantPermissions;
 
 class RoleController extends Controller
 {
     public function __construct(
-        protected ManagementPolicy $policy
+        protected ManagementPolicy $policy,
+        protected AuditWriter $audit
     ) {}
 
     /**
@@ -84,6 +86,11 @@ class RoleController extends Controller
         if (! empty($validated['permissions'])) {
             $role->syncPermissions($validated['permissions']);
         }
+
+        $this->audit->record(
+            $request->user(), 'web', 'role.created', 'role', $role, $role->name,
+            after: ['name' => $role->name, 'permissions' => $validated['permissions'] ?? []],
+        );
 
         return back()->with('success', __('role_created', ['name' => $role->name]));
     }

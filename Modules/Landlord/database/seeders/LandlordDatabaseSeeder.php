@@ -38,6 +38,8 @@ class LandlordDatabaseSeeder extends Seeder
                 [
                     'name' => 'Landlord Super Admin',
                     'password' => Hash::make($adminPassword),
+                    'status' => 'active',
+                    'email_verified_at' => now(),
                 ]
             );
 

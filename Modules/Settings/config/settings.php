@@ -31,6 +31,7 @@ return [
             'allow_registration' => ['owner' => 'landlord', 'type' => 'boolean', 'rules' => 'boolean'],
             'tenant_db_prefix' => ['owner' => 'landlord', 'type' => 'string', 'rules' => 'regex:/^[a-z0-9_]{0,20}$/'],
             'default_trial_days' => ['owner' => 'landlord', 'type' => 'integer', 'rules' => 'integer|min:0|max:365'],
+            'retention_grace_days' => ['owner' => 'landlord', 'type' => 'integer', 'rules' => 'integer|min:1|max:365'],
         ],
         'billing' => [
             'default_currency' => ['owner' => 'landlord', 'type' => 'string', 'rules' => 'in:'.implode(',', Currency::values())],
