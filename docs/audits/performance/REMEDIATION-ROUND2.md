@@ -19,7 +19,18 @@ drivers in `.env`) — they bound *what is measurable here*, not production.
 | 1 | `TenantUserService::listUsers()` → `paginate(15)`; controller maps page items + emits `pagination` prop; `Users/Index.vue` wires `pagination` + `@page-change` | `/users` loaded and serialized every row; ~N-row payload + per-row EXISTS checks | Bounded payload and query work regardless of member count | `RequestQueryBudgetTest` (new): 21 users → 38 queries first hit, 23 repeat — row-independent |
 | 2 | `share()` — `auth`, `tenant`, `branding`, `system`, `billing`, `theme` are now closures | Permission/plan/media/settings work ran even for partial reloads | `only` requests skip unrequested props entirely | Same test (partial reloads exercised by search/page tests) |
 | 3 | `only: [...]` on search/filter/page requests: Users, Access audit, Landlord audit, Landlord tenants index pages | Full prop re-evaluation + full payload on every debounced keystroke | Smaller responses, less server work per keystroke | Frontend build green; pages unchanged visually |
-| 4 | FK migration `2026_10_07_000002_add_billing_foreign_keys`: `tenants.plan_id`→`nullOnDelete`, `subscriptions.tenant_id`→`cascadeOnDelete`, `subscriptions.plan_id`→`restrictOnDelete` | Integrity enforced only at app level | DB-level enforcement; mirrors existing `delete_blocked` semantics | Orphan check = 0 on all three columns before migrating; `migrate` applied (209ms); suite green |
+| 4 | Billing FKs folded into the original create migrations (project rule: no corrective migrations): `tenants.plan_id`→`nullOnDelete` in `add_saas_fields_to_tenants_table`, `subscriptions.tenant_id`→`cascadeOnDelete` + `subscriptions.plan_id`→`restrictOnDelete` in `create_subscriptions_table` | Integrity enforced only at app level | DB-level enforcement; mirrors existing `delete_blocked` semantics | Orphan check = 0 on all three columns; fresh-build schema verified via PRAGMA; suite green |
+
+*Migration folding (project rule):* the round-1/2 corrective migrations
+(`add_landlord_performance_indexes`, `add_tenant_performance_indexes`,
+`add_billing_foreign_keys`) were eliminated and their indexes/FKs folded
+into the original create migrations: `jobs.(queue,reserved_at,available_at)`,
+`admin_audit_logs.(action,created_at)`, `webhook_endpoints.active`,
+`subscriptions` compounds + FKs, `tenants.plan_id` FK, tenant
+`users.created_at`, tenant `audit_logs.(action,created_at)`. Fresh-build
+schema verified via `PRAGMA index_list`/`foreign_key_list` on both
+landlord and tenant sqlite files; stale `migrations` rows removed from
+the dev landlord DB.
 | 5 | `EnforceTenantLifecycleCommand` `->with('tenant')`; `RecordTenantUsageCommand` bulk `insert`; `purgeExpiredRetentions` filters in SQL (`settings->` JSON) | N+1 tenant lookup per expired subscription; per-metric INSERT; loading all archived tenants to filter in PHP | Bounded, one-insert-per-tenant sweeps | `TenantRetentionTest`, `LandlordTenantProvisioningTest` lifecycle tests green |
 | 6 | `QuotaService::getUserCount`/`getStorageUsageMb` skip `execute()` when `$tenant->isCurrent()` | `Tenant::execute()` runs `makeCurrent()` unconditionally → full switch-task round (DB purge+reconnect, cache prefix, permission scope) twice per call, even when already current | Removes 2 redundant tenant switches per `/users` request | `QuotaEnforcementTest` green |
 | 7 | `LandlordMetricsService::tenantDiagnostics` → `Cache::remember(60s)` | Full tenant context switch + 4 aggregate queries on every tenant detail page | Support panel tolerates ≤60s staleness | `TenantBackupTest` diagnostics test green |

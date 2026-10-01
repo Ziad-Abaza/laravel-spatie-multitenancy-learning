@@ -29,6 +29,9 @@ return new class extends Migration
             $table->json('after')->nullable();
             $table->ipAddress('ip')->nullable();
             $table->timestamp('created_at')->index();
+
+            // Audit filter + sort pagination.
+            $table->index(['action', 'created_at']);
         });
     }
 

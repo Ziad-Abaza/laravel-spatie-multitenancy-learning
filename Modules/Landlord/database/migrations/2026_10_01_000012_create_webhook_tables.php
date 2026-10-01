@@ -24,7 +24,8 @@ return new class extends Migration
             $table->string('url');
             $table->string('secret', 100);
             $table->json('events');
-            $table->boolean('active')->default(true);
+            // Webhook fan-out filters on active.
+            $table->boolean('active')->default(true)->index();
             $table->timestamps();
         });
 

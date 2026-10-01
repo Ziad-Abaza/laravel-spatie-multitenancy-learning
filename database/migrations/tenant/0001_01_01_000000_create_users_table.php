@@ -22,6 +22,9 @@ return new class extends Migration
             $table->string('status')->default('active')->index();
             $table->rememberToken();
             $table->timestamps();
+
+            // Member-directory `latest()` ordering.
+            $table->index('created_at');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

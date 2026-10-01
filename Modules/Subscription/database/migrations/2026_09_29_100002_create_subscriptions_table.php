@@ -20,8 +20,8 @@ return new class extends Migration
 
         Schema::connection($connection)->create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('tenant_id')->index();
-            $table->unsignedBigInteger('plan_id')->index();
+            $table->foreignId('tenant_id')->constrained('tenants')->cascadeOnDelete();
+            $table->foreignId('plan_id')->constrained('plans')->restrictOnDelete();
             $table->string('status')->default('trialing')->index();
             $table->string('billing_interval')->default('monthly');
             $table->decimal('amount', 10, 2)->default(0.00);
@@ -32,6 +32,10 @@ return new class extends Migration
             $table->timestamp('canceled_at')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamps();
+
+            // Lifecycle enforcement sweeps.
+            $table->index(['status', 'trial_ends_at']);
+            $table->index(['status', 'ends_at']);
         });
     }
 

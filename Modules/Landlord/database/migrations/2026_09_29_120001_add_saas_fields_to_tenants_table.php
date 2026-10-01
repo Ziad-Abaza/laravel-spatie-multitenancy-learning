@@ -26,7 +26,8 @@ return new class extends Migration
                 $table->string('status')->default('active')->index()->after('database');
             }
             if (! Schema::connection($connection)->hasColumn('tenants', 'plan_id')) {
-                $table->unsignedBigInteger('plan_id')->nullable()->index()->after('status');
+                $table->foreignId('plan_id')->nullable()->index()->after('status')
+                    ->constrained('plans')->nullOnDelete();
             }
             if (! Schema::connection($connection)->hasColumn('tenants', 'settings')) {
                 $table->json('settings')->nullable()->after('plan_id');
