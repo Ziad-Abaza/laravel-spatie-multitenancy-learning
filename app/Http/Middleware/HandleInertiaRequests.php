@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Tenant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\Currency;
@@ -120,7 +121,7 @@ class HandleInertiaRequests extends Middleware
                 'current' => $locale,
                 'is_rtl' => $isRtl,
                 'supported' => $supportedLocales,
-                'translations' => $this->translationsFor($request, $locale),
+                'translations' => fn () => $this->translationsFor($request, $locale),
             ],
             'theme' => [
                 'theme' => $theme['theme'],
@@ -157,17 +158,29 @@ class HandleInertiaRequests extends Middleware
             $paths[] = module_path($matches[1], "lang/{$locale}.json");
         }
 
-        $translations = [];
+        // Stat each candidate once; the merged catalog is cached under a key
+        // that embeds the newest mtime so edits invalidate without tag support.
+        $files = [];
+        $mtime = 0;
         foreach ($paths as $path) {
-            if (! is_file($path)) {
-                continue;
-            }
-            $decoded = json_decode((string) file_get_contents($path), true);
-            if (is_array($decoded)) {
-                $translations = array_merge($translations, $decoded);
+            if (is_file($path)) {
+                $files[] = $path;
+                $mtime = max($mtime, (int) filemtime($path));
             }
         }
 
-        return $translations;
+        $cacheKey = 'i18n.catalog.'.md5(implode('|', $files).'.'.$mtime);
+
+        return Cache::rememberForever($cacheKey, function () use ($files) {
+            $translations = [];
+            foreach ($files as $path) {
+                $decoded = json_decode((string) file_get_contents($path), true);
+                if (is_array($decoded)) {
+                    $translations = array_merge($translations, $decoded);
+                }
+            }
+
+            return $translations;
+        });
     }
 }

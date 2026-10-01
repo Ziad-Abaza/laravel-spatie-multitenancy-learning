@@ -3,12 +3,14 @@
 namespace Modules\Landlord\Listeners;
 
 use App\Models\User;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Notification;
 use Modules\Access\Support\TenantPermissions;
 use Modules\Core\Events\TenantStatusChanged;
 use Modules\Landlord\Notifications\TenantStatusChangedNotification;
+use Spatie\Multitenancy\Jobs\NotTenantAware;
 
-class SendTenantStatusNotification
+class SendTenantStatusNotification implements NotTenantAware, ShouldQueue
 {
     public function handle(TenantStatusChanged $event): void
     {

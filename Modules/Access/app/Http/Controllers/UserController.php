@@ -67,7 +67,7 @@ class UserController extends Controller
             'quota' => [
                 'current' => $userCount,
                 'limit' => $userLimit,
-                'can_add' => $this->quotaManager->canAddUser($currentTenant),
+                'can_add' => $userLimit === null || $userCount < $userLimit,
             ],
             'filters' => [
                 'search' => $search,
@@ -159,14 +159,16 @@ class UserController extends Controller
         DB::transaction(function () use ($user, $validated, $accessChanged, $before, $request) {
             $this->userService->updateUser($user, $validated);
 
+            $fresh = $user->fresh(['roles']);
+
             $this->audit->record(
                 $request->user(), 'web', 'user.updated', 'user', $user, $user->email,
                 before: $before,
                 after: [
-                    'name' => $user->fresh()->name,
-                    'email' => $user->fresh()->email,
-                    'status' => $user->fresh()->status,
-                    'role' => $user->fresh()->roles->first()?->name,
+                    'name' => $fresh->name,
+                    'email' => $fresh->email,
+                    'status' => $fresh->status,
+                    'role' => $fresh->roles->first()?->name,
                 ],
             );
 

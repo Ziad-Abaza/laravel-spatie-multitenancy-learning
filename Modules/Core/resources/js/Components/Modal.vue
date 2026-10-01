@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, onMounted, onUnmounted } from 'vue';
+import { computed, watch, onUnmounted } from 'vue';
 import { X } from 'lucide-vue-next';
 import { lockScroll, unlockScroll } from '../Composables/useScrollLock';
 
@@ -38,15 +38,18 @@ function handleKeydown(e: KeyboardEvent) {
     }
 }
 
+// The global keydown listener exists only while the modal is open — one
+// attached listener per mounted modal would scale with dialog count.
 watch(isVisible, (isOpen) => {
     if (isOpen) {
         lockScroll();
+        window.addEventListener('keydown', handleKeydown);
     } else {
         unlockScroll();
+        window.removeEventListener('keydown', handleKeydown);
     }
 });
 
-onMounted(() => window.addEventListener('keydown', handleKeydown));
 onUnmounted(() => {
     window.removeEventListener('keydown', handleKeydown);
 

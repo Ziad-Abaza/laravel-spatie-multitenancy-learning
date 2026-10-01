@@ -11,7 +11,7 @@
     @include('partials.theme-init')
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
     <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700,800|inter:300,400,500,600,700&display=swap" rel="stylesheet" />
 
     <!-- Scripts & Styles -->

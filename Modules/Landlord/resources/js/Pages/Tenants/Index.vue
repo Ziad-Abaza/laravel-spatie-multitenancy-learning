@@ -146,7 +146,7 @@ function rowClick(row: TenantItem) {
                 per_page: tenants.per_page,
             }"
             :search-query="search"
-            @update:search-query="handleSearch"
+            @search="handleSearch"
             @page-change="goToPage"
             @row-click="rowClick"
         >

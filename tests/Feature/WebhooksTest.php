@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\Tenant;
+use Illuminate\Events\CallQueuedListener;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Modules\Access\Support\LandlordPermissions as LP;
 use Modules\Core\Enums\TenantStatus;
 use Modules\Core\Events\TenantStatusChanged;
 use Modules\Landlord\Jobs\DeliverWebhookJob;
+use Modules\Landlord\Listeners\DispatchDomainEventWebhooks;
 use Modules\Landlord\Models\WebhookDelivery;
 use Modules\Landlord\Models\WebhookEndpoint;
 use Tests\TestCase;
@@ -85,7 +87,16 @@ class WebhooksTest extends TestCase
         ]);
 
         try {
-            event(new TenantStatusChanged($tenant, TenantStatus::Active->value, TenantStatus::Suspended->value));
+            event($event = new TenantStatusChanged($tenant, TenantStatus::Active->value, TenantStatus::Suspended->value));
+
+            // The fan-out listener is queued (NotTenantAware): the event only
+            // enqueues it; invoking handle() exercises the delivery logic.
+            Queue::assertPushed(
+                CallQueuedListener::class,
+                fn (CallQueuedListener $job) => $job->class === DispatchDomainEventWebhooks::class
+            );
+
+            (new DispatchDomainEventWebhooks)->handle($event);
 
             $delivery = WebhookDelivery::where('webhook_endpoint_id', $endpoint->id)->firstOrFail();
             $this->assertSame('tenant.status-changed', $delivery->event);

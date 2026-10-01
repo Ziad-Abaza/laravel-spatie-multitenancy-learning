@@ -88,7 +88,7 @@ function handleSearch(val: string) {
                 per_page: logs.per_page,
             }"
             :search-query="search"
-            @update:search-query="handleSearch"
+            @search="handleSearch"
             @page-change="goToPage"
         >
             <template #toolbar-actions>

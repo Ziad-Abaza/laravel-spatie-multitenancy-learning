@@ -16,6 +16,15 @@ use Throwable;
 class SettingService implements SettingManagerContract
 {
     /**
+     * Per-request memo of resolved scope maps. Settings values are identical
+     * within a request; without this, every read re-hits the cache store
+     * (a database SELECT when CACHE_STORE=database).
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    private array $scopeMemo = [];
+
+    /**
      * Get a setting by key and domain with landlord fallback.
      */
     public function get(string $key, mixed $default = null, string $domain = 'system'): mixed
@@ -229,14 +238,20 @@ class SettingService implements SettingManagerContract
      */
     protected function scopeMap(string $model, string $scope, string $domain): array
     {
+        $memoKey = "{$scope}.{$domain}";
+
+        if (array_key_exists($memoKey, $this->scopeMemo)) {
+            return $this->scopeMemo[$memoKey];
+        }
+
         try {
-            return Cache::rememberForever("settings.map.{$scope}.{$domain}", fn () => $model::query()
+            return $this->scopeMemo[$memoKey] = Cache::rememberForever("settings.map.{$memoKey}", fn () => $model::query()
                 ->where('domain', $domain)
                 ->get()
                 ->mapWithKeys(fn ($item) => [$item->key => $item->getParsedValue()])
                 ->toArray());
         } catch (Throwable) {
-            return [];
+            return $this->scopeMemo[$memoKey] = [];
         }
     }
 
@@ -254,6 +269,20 @@ class SettingService implements SettingManagerContract
             : 'landlord';
 
         Cache::forget("settings.map.{$scope}.{$domain}");
+
+        $service = app(SettingManagerContract::class);
+        if ($service instanceof self) {
+            $service->flushMemo();
+        }
+    }
+
+    /**
+     * Drop all per-request memoized maps. Writes are rare; a full flush keeps
+     * invalidation correct regardless of which scope/domain was touched.
+     */
+    public function flushMemo(): void
+    {
+        $this->scopeMemo = [];
     }
 
     protected function forgetDomainMap(string $domain): void
@@ -261,6 +290,8 @@ class SettingService implements SettingManagerContract
         $scope = Tenant::checkCurrent() ? 'tenant.'.Tenant::current()->getKey() : 'landlord';
 
         Cache::forget("settings.map.{$scope}.{$domain}");
+
+        $this->flushMemo();
     }
 
     /**

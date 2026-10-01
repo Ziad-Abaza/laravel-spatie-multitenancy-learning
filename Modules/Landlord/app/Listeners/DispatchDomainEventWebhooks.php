@@ -2,6 +2,7 @@
 
 namespace Modules\Landlord\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Core\Events\PlanChanged;
 use Modules\Core\Events\SubscriptionCreated;
 use Modules\Core\Events\SubscriptionUpdated;
@@ -11,13 +12,14 @@ use Modules\Core\Events\TenantStatusChanged;
 use Modules\Landlord\Jobs\DeliverWebhookJob;
 use Modules\Landlord\Models\WebhookDelivery;
 use Modules\Landlord\Models\WebhookEndpoint;
+use Spatie\Multitenancy\Jobs\NotTenantAware;
 
 /**
  * Fans out subscribed domain events to registered webhook endpoints.
  * Payloads carry tenant identifiers and event metadata only — credentials,
  * PII, and tenant database content never cross the wire.
  */
-class DispatchDomainEventWebhooks
+class DispatchDomainEventWebhooks implements NotTenantAware, ShouldQueue
 {
     public function handle(object $event): void
     {
@@ -31,8 +33,8 @@ class DispatchDomainEventWebhooks
 
         WebhookEndpoint::query()
             ->where('active', true)
+            ->whereJsonContains('events', $eventKey)
             ->get()
-            ->filter(fn (WebhookEndpoint $endpoint) => in_array($eventKey, $endpoint->events ?? [], true))
             ->each(function (WebhookEndpoint $endpoint) use ($eventKey, $payload) {
                 $delivery = WebhookDelivery::create([
                     'webhook_endpoint_id' => $endpoint->id,

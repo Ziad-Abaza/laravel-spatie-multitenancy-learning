@@ -73,7 +73,10 @@ return [
     |
     */
 
-    'connection' => env('SESSION_CONNECTION', 'landlord'),
+    'connection' => match (env('SESSION_DRIVER', 'database')) {
+        'redis' => env('REDIS_SESSION_CONNECTION', env('SESSION_CONNECTION') === 'landlord' ? 'session' : env('SESSION_CONNECTION', 'session')),
+        default => env('DB_SESSION_CONNECTION', env('SESSION_CONNECTION') === 'session' ? 'landlord' : env('SESSION_CONNECTION', 'landlord')),
+    },
 
     /*
     |--------------------------------------------------------------------------

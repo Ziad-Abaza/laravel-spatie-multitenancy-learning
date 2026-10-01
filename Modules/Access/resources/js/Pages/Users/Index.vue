@@ -160,7 +160,7 @@ function confirmDelete() {
                 :rows="users"
                 :total-count="users.length"
                 :search-query="search"
-                @update:search-query="handleSearch"
+                @search="handleSearch"
             >
                 <template #toolbar-actions>
                     <div class="flex items-center gap-3">

@@ -6,11 +6,11 @@ import { setupInertiaStateBridge } from '@core/Stores/setupInertiaStateBridge'
 
 const pinia = createPinia()
 
+const appPages = import.meta.glob('./Pages/**/*.vue')
+const modulePages = import.meta.glob('/Modules/*/resources/js/Pages/**/*.vue')
+
 createInertiaApp({
     resolve: (name) => {
-        const appPages = import.meta.glob('./Pages/**/*.vue')
-        const modulePages = import.meta.glob('/Modules/*/resources/js/Pages/**/*.vue')
-
         const parts = name.split('/')
         const moduleName = parts[0]
         const pageSubpath = parts.slice(1).join('/')

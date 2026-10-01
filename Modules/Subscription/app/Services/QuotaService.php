@@ -4,6 +4,7 @@ namespace Modules\Subscription\Services;
 
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Modules\Core\Contracts\QuotaManagerContract;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -123,9 +124,13 @@ class QuotaService implements QuotaManagerContract
 
         $tenantConnection = config('multitenancy.tenant_database_connection_name', 'tenant');
 
-        return $tenant->execute(function () use ($tenantConnection) {
+        return $tenant->execute(function () use ($tenantConnection, $tenant) {
             try {
-                return (int) round(Media::on($tenantConnection)->sum('size') / 1048576);
+                return (int) Cache::remember(
+                    "quota.storage_mb.{$tenant->getKey()}",
+                    60,
+                    fn () => (int) round(Media::on($tenantConnection)->sum('size') / 1048576)
+                );
             } catch (\Throwable) {
                 return 0;
             }

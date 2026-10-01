@@ -30,7 +30,7 @@ class TenantUserService
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('job_title', 'like', "%{$search}%");
             })
-            ->with('roles.permissions')
+            ->with(['roles.permissions', 'media'])
             ->latest()
             ->get();
     }
