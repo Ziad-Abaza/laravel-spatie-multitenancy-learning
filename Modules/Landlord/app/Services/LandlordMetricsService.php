@@ -4,6 +4,7 @@ namespace Modules\Landlord\Services;
 
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Modules\Core\Enums\SubscriptionStatus;
 use Modules\Core\Enums\TenantStatus;
@@ -79,6 +80,20 @@ class LandlordMetricsService
      * @return array<string, mixed>
      */
     public function tenantDiagnostics(Tenant $tenant): array
+    {
+        // A full tenant context switch + 4 aggregate queries per call; the
+        // diagnostics panel tolerates up to a minute of staleness.
+        return Cache::remember(
+            "tenant.diagnostics.{$tenant->getKey()}",
+            60,
+            fn () => $this->probeTenant($tenant)
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function probeTenant(Tenant $tenant): array
     {
         $diagnostics = [
             'reachable' => false,

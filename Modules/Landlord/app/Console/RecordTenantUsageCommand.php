@@ -43,14 +43,15 @@ class RecordTenantUsageCommand extends Command
                             ->value('bytes'),
                     ]);
 
-                    foreach ($metrics as $metric => $value) {
-                        UsageRecord::create([
+                    // One INSERT per tenant, not per metric row.
+                    UsageRecord::insert(
+                        collect($metrics)->map(fn ($value, $metric) => [
                             'tenant_id' => $tenant->id,
                             'metric' => $metric,
                             'value' => $value,
                             'recorded_at' => $recordedAt,
-                        ]);
-                    }
+                        ])->all()
+                    );
                 } catch (\Throwable $e) {
                     $failed++;
                     report($e);

@@ -60,7 +60,7 @@ function applyFilters(page?: number) {
             plan_id: planId.value || undefined,
             page: page ?? undefined,
         },
-        { preserveState: true, replace: true }
+        { preserveState: true, replace: true, only: ['tenants', 'filters'] }
     );
 }
 

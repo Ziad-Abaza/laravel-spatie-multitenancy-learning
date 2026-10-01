@@ -30,12 +30,14 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <!-- Isolated test topology: in-memory sqlite landlord + per-tenant
-             sqlite files created by Tests\TestCase::provisionTenant().
+        <!-- Isolated test topology: file-based sqlite landlord (RefreshDatabase
+             migrates once, then wraps each test in a transaction — :memory:
+             would re-run every migration per test) + per-tenant sqlite files
+             created by Tests\TestCase::provisionTenant().
              Never points at the development MySQL databases. -->
         <env name="DB_CONNECTION" value="landlord"/>
         <env name="DB_LANDLORD_DRIVER" value="sqlite"/>
-        <env name="DB_LANDLORD_DATABASE" value=":memory:"/>
+        <env name="DB_LANDLORD_DATABASE" value="database/testing.sqlite"/>
         <env name="DB_TENANT_DRIVER" value="sqlite"/>
         <env name="DB_TENANT_DATABASE" value=""/>
         <env name="MAIL_MAILER" value="array"/>

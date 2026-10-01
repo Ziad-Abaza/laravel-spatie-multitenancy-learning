@@ -81,13 +81,17 @@ class QuotaService implements QuotaManagerContract
             return 0;
         }
 
-        return $tenant->execute(function () {
+        // execute() runs every switch task (DB purge, cache prefix, permission
+        // scope) — skip it entirely when this tenant is already current.
+        $countUsers = function () {
             try {
                 return User::count();
             } catch (\Throwable) {
                 return 0;
             }
-        });
+        };
+
+        return $tenant->isCurrent() ? $countUsers() : $tenant->execute($countUsers);
     }
 
     /**
@@ -124,7 +128,7 @@ class QuotaService implements QuotaManagerContract
 
         $tenantConnection = config('multitenancy.tenant_database_connection_name', 'tenant');
 
-        return $tenant->execute(function () use ($tenantConnection, $tenant) {
+        $measure = function () use ($tenantConnection, $tenant) {
             try {
                 return (int) Cache::remember(
                     "quota.storage_mb.{$tenant->getKey()}",
@@ -134,6 +138,8 @@ class QuotaService implements QuotaManagerContract
             } catch (\Throwable) {
                 return 0;
             }
-        });
+        };
+
+        return $tenant->isCurrent() ? $measure() : $tenant->execute($measure);
     }
 }

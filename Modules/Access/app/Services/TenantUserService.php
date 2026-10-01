@@ -4,7 +4,7 @@ namespace Modules\Access\Services;
 
 use App\Models\Tenant;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Modules\Access\Support\TenantPermissions;
@@ -18,11 +18,13 @@ class TenantUserService
     ) {}
 
     /**
-     * List users in current tenant context with optional search.
+     * Paginate users in current tenant context with optional search.
+     * Roles and media are eager-loaded — the index maps role labels and
+     * avatar URLs per row.
      *
-     * @return Collection<int, User>
+     * @return LengthAwarePaginator<int, User>
      */
-    public function listUsers(?string $search = null): Collection
+    public function listUsers(?string $search = null, int $perPage = 15): LengthAwarePaginator
     {
         return User::query()
             ->when($search, function ($query, $search) {
@@ -32,7 +34,8 @@ class TenantUserService
             })
             ->with(['roles.permissions', 'media'])
             ->latest()
-            ->get();
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     /**

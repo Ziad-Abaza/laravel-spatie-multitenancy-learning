@@ -186,16 +186,14 @@ class TenantLifecycleService
     {
         $purged = 0;
 
+        // ISO-8601 timestamps compare chronologically as strings, so the
+        // retention filter runs in SQL instead of loading every archived
+        // tenant into memory.
         Tenant::query()
             ->where('status', TenantStatus::Archived->value)
+            ->whereNotNull('settings->erasure_requested_at')
+            ->where('settings->retention_until', '<=', now()->toIso8601String())
             ->get()
-            ->filter(function (Tenant $tenant) {
-                $until = $tenant->settings['retention_until'] ?? null;
-
-                return $until !== null
-                    && isset($tenant->settings['erasure_requested_at'])
-                    && \Illuminate\Support\Carbon::parse($until)->isPast();
-            })
             ->each(function (Tenant $tenant) use (&$purged) {
                 // Full erasure: database, row, AND backup artifacts. A dump
                 // created here would be deleted by delete()'s dir purge

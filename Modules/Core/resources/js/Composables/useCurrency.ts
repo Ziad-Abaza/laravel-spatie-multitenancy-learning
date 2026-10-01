@@ -11,13 +11,23 @@ export function useCurrency() {
     const currency = (): string => (page.props.billing as any)?.currency ?? 'USD';
     const locale = (): string => ((page.props.locale as any)?.current === 'ar' ? 'ar-EG' : 'en-US');
 
-    const format = (amount: number | string, override?: string): string =>
-        new Intl.NumberFormat(locale(), {
-            style: 'currency',
-            currency: override ?? currency(),
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2,
-        }).format(Number(amount) || 0);
+    // Intl.NumberFormat construction is ~µs-costly; reuse per (locale|currency).
+    const formatters = new Map<string, Intl.NumberFormat>();
+
+    const format = (amount: number | string, override?: string): string => {
+        const key = `${locale()}|${override ?? currency()}`;
+        let formatter = formatters.get(key);
+        if (!formatter) {
+            formatter = new Intl.NumberFormat(locale(), {
+                style: 'currency',
+                currency: override ?? currency(),
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+            });
+            formatters.set(key, formatter);
+        }
+        return formatter.format(Number(amount) || 0);
+    };
 
     return { currency, format };
 }

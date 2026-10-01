@@ -3,9 +3,11 @@
 namespace App\Http\Middleware;
 
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
+use Modules\Landlord\Models\LandlordUser;
 use Modules\Core\Contracts\SettingManagerContract;
 use Modules\Core\Enums\Currency;
 use Modules\Core\Enums\Locale;
@@ -44,50 +46,7 @@ class HandleInertiaRequests extends Middleware
         $currentTenant = Tenant::current();
         $isLandlordContext = $currentTenant === null;
 
-        $user = null;
-        if ($isLandlordContext && auth('landlord')->check()) {
-            $landlordUser = auth('landlord')->user();
-            $user = [
-                'id' => $landlordUser->id,
-                'name' => $landlordUser->name,
-                'email' => $landlordUser->email,
-                'is_landlord' => true,
-                'roles' => $landlordUser->getRoleNames(),
-                'permissions' => $landlordUser->getAllPermissions()->pluck('name'),
-            ];
-        } elseif (auth('web')->check()) {
-            $tenantUser = auth('web')->user();
-            $user = [
-                'id' => $tenantUser->id,
-                'name' => $tenantUser->name,
-                'email' => $tenantUser->email,
-                'is_landlord' => false,
-                'status' => $tenantUser->status ?? 'active',
-                'roles' => $tenantUser->getRoleNames(),
-                'permissions' => $tenantUser->getAllPermissions()->pluck('name'),
-            ];
-        }
-
         $settings = app(SettingManagerContract::class);
-        $branding = $settings->getBranding();
-
-        $tenantData = null;
-        if ($currentTenant) {
-            $tenantData = [
-                'id' => $currentTenant->id,
-                'name' => $branding['workspace_name'] ?? $currentTenant->name,
-                'slug' => $currentTenant->slug ?? $currentTenant->domain,
-                'domain' => $currentTenant->domain,
-                'status' => $currentTenant->status ?? 'active',
-                'plan' => $currentTenant->plan ? [
-                    'id' => $currentTenant->plan->id,
-                    'name' => $currentTenant->plan->getName(),
-                    'slug' => $currentTenant->plan->slug,
-                    'limits' => $currentTenant->plan->limits ?? [],
-                ] : null,
-                'branding' => $branding,
-            ];
-        }
 
         // The SetLocale middleware has already resolved and applied the locale.
         $locale = app()->getLocale();
@@ -99,22 +58,23 @@ class HandleInertiaRequests extends Middleware
 
         $isRtl = Locale::tryFrom($locale)?->isRtl() ?? false;
 
-        $theme = $settings->getTheme();
-
+        // Expensive props stay closures: Inertia resolves them only when the
+        // key is part of the response, so `only` partial reloads skip the
+        // permission, plan, media, and settings work entirely.
         return array_merge(parent::share($request), [
-            'auth' => [
-                'user' => $user,
+            'auth' => fn () => [
+                'user' => $this->sharedUser($request, $isLandlordContext),
                 'isLandlord' => $isLandlordContext,
             ],
-            'tenant' => $tenantData,
-            'branding' => $branding,
-            'system' => [
+            'tenant' => fn () => $this->tenantProps($currentTenant, $settings),
+            'branding' => fn () => $settings->getBranding(),
+            'system' => fn () => [
                 'allow_registration' => (bool) $settings->get('allow_registration', true, 'system'),
             ],
             'tenancy' => [
                 'domain_suffix' => config('multitenancy.tenant_domain_suffix'),
             ],
-            'billing' => [
+            'billing' => fn () => [
                 'currency' => $settings->get('default_currency', Currency::Usd->value, 'billing'),
             ],
             'locale' => [
@@ -123,13 +83,17 @@ class HandleInertiaRequests extends Middleware
                 'supported' => $supportedLocales,
                 'translations' => fn () => $this->translationsFor($request, $locale),
             ],
-            'theme' => [
-                'theme' => $theme['theme'],
-                'palette' => $theme['palette'],
-                'mode' => $theme['mode'],
-                'palettes' => ThemePalette::values(),
-                'font' => $isRtl ? 'cairo' : 'inter',
-            ],
+            'theme' => function () use ($settings, $isRtl) {
+                $theme = $settings->getTheme();
+
+                return [
+                    'theme' => $theme['theme'],
+                    'palette' => $theme['palette'],
+                    'mode' => $theme['mode'],
+                    'palettes' => ThemePalette::values(),
+                    'font' => $isRtl ? 'cairo' : 'inter',
+                ];
+            },
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
@@ -137,6 +101,71 @@ class HandleInertiaRequests extends Middleware
                 'info' => fn () => $request->session()->get('info'),
             ],
         ]);
+    }
+
+    /**
+     * Resolved principal for the active context — landlord admin on landlord
+     * hosts, tenant member otherwise. Roles and permissions hydrate here,
+     * not on every request that never reads `auth`.
+     */
+    private function sharedUser(Request $request, bool $isLandlordContext): ?array
+    {
+        $landlordUser = $isLandlordContext ? auth('landlord')->user() : null;
+
+        if ($landlordUser instanceof LandlordUser) {
+            return [
+                'id' => $landlordUser->id,
+                'name' => $landlordUser->name,
+                'email' => $landlordUser->email,
+                'is_landlord' => true,
+                'roles' => $landlordUser->getRoleNames(),
+                'permissions' => $landlordUser->getAllPermissions()->pluck('name'),
+            ];
+        }
+
+        $tenantUser = auth('web')->user();
+
+        if ($tenantUser instanceof User) {
+            return [
+                'id' => $tenantUser->id,
+                'name' => $tenantUser->name,
+                'email' => $tenantUser->email,
+                'is_landlord' => false,
+                'status' => $tenantUser->status ?? 'active',
+                'roles' => $tenantUser->getRoleNames(),
+                'permissions' => $tenantUser->getAllPermissions()->pluck('name'),
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Tenant context props — branding merges over the stored record; plan is
+     * loaded only when this prop is included in the response.
+     */
+    private function tenantProps(?Tenant $currentTenant, SettingManagerContract $settings): ?array
+    {
+        if ($currentTenant === null) {
+            return null;
+        }
+
+        $branding = $settings->getBranding();
+
+        return [
+            'id' => $currentTenant->id,
+            'name' => $branding['workspace_name'] ?? $currentTenant->name,
+            'slug' => $currentTenant->slug ?? $currentTenant->domain,
+            'domain' => $currentTenant->domain,
+            'status' => $currentTenant->status ?? 'active',
+            'plan' => $currentTenant->plan ? [
+                'id' => $currentTenant->plan->id,
+                'name' => $currentTenant->plan->getName(),
+                'slug' => $currentTenant->plan->slug,
+                'limits' => $currentTenant->plan->limits ?? [],
+            ] : null,
+            'branding' => $branding,
+        ];
     }
 
     /**

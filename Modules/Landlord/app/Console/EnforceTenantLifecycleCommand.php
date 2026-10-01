@@ -37,6 +37,7 @@ class EnforceTenantLifecycleCommand extends Command
             });
 
         Subscription::query()
+            ->with('tenant')
             ->whereIn('status', [SubscriptionStatus::Active, SubscriptionStatus::Trialing])
             ->whereNotNull('ends_at')
             ->where('ends_at', '<=', now())

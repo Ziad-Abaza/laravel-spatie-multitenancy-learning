@@ -51,7 +51,7 @@ function applyFilters(page?: number) {
             action: action.value || undefined,
             page: page ?? undefined,
         },
-        { preserveState: true, replace: true }
+        { preserveState: true, replace: true, only: ['logs', 'filters'] }
     );
 }
 

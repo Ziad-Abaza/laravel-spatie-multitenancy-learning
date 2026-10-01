@@ -40,7 +40,9 @@ class UserController extends Controller
 
         $actor = $request->user();
 
-        $users = $this->userService->listUsers($search)->map(fn (User $user) => [
+        $paginator = $this->userService->listUsers($search);
+
+        $users = $paginator->getCollection()->map(fn (User $user) => [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
@@ -62,7 +64,13 @@ class UserController extends Controller
         $userCount = $this->quotaManager->getUserCount($currentTenant);
 
         return Inertia::render('Access/Users/Index', [
-            'users' => $users,
+            'users' => $users->all(),
+            'pagination' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
             'roles' => $roles,
             'quota' => [
                 'current' => $userCount,

@@ -28,6 +28,12 @@ interface UserItem {
 
 const props = defineProps<{
     users: UserItem[];
+    pagination: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
     roles: string[];
     quota: {
         current: number;
@@ -75,12 +81,23 @@ const columns = computed<ColumnDefinition[]>(() => [
     { key: 'actions', label: t('actions', 'Actions'), align: 'end' },
 ]);
 
+// Partial reloads: only the table-related props are re-evaluated server-side.
+const TABLE_PROPS = ['users', 'pagination', 'filters', 'quota'];
+
 function handleSearch(val: string) {
     search.value = val;
     router.get(
         '/users',
         { search: val },
-        { preserveState: true, replace: true }
+        { preserveState: true, replace: true, only: TABLE_PROPS }
+    );
+}
+
+function handlePageChange(page: number) {
+    router.get(
+        '/users',
+        { search: search.value || undefined, page },
+        { preserveState: true, replace: true, only: TABLE_PROPS }
     );
 }
 
@@ -158,9 +175,10 @@ function confirmDelete() {
                 :description="t('team_members_sub', 'Manage team members, roles, and isolated workspace access.')"
                 :columns="columns"
                 :rows="users"
-                :total-count="users.length"
+                :pagination="pagination"
                 :search-query="search"
                 @search="handleSearch"
+                @page-change="handlePageChange"
             >
                 <template #toolbar-actions>
                     <div class="flex items-center gap-3">

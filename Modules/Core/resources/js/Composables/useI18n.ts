@@ -24,7 +24,7 @@ export function useI18n() {
     function trans(key: string, replace: Record<string, string | number> = {}): string {
         let line = t(key);
         for (const [placeholder, value] of Object.entries(replace)) {
-            line = line.replace(new RegExp(`:${placeholder}`, 'g'), String(value));
+            line = line.replaceAll(`:${placeholder}`, String(value));
         }
         return line;
     }
